@@ -138,6 +138,8 @@ def main() -> None:
                            help="What feature is being captured")
     p_capture.add_argument("--notes", "-n", default="",
                            help="Additional notes about the capture")
+    p_capture.add_argument("--device-address", type=int,
+                           help="USB device address for filtering (auto-detected on Linux, required on Windows)")
     p_capture.add_argument("--detect", action="store_true",
                            help="Only detect device and list interfaces, don't capture")
     p_capture.set_defaults(func=cmd_capture)
@@ -201,7 +203,13 @@ def cmd_list_captures(args: argparse.Namespace) -> None:
 
 def cmd_capture(args: argparse.Namespace) -> None:
     """Capture USB traffic from the DSP device."""
-    from dspanalyze.capture import detect_device, find_tshark, list_interfaces, run_capture
+    from dspanalyze.capture import (
+        _find_linux_device_address,
+        detect_device,
+        find_tshark,
+        list_interfaces,
+        run_capture,
+    )
 
     tshark = find_tshark()
 
@@ -211,6 +219,11 @@ def cmd_capture(args: argparse.Namespace) -> None:
             print(f"Device found: VID=0x{device['vid']:04x} PID=0x{device['pid']:04x} ({device['system']})")
             if "bus" in device:
                 print(f"  USB bus: {device['bus']}")
+            # Show device address on Linux (useful for --device-address override)
+            if device["system"] == "Linux":
+                dev_addr = _find_linux_device_address()
+                if dev_addr is not None:
+                    print(f"  Device address: {dev_addr}")
         else:
             print("Device not found (VID=0x0168 PID=0x0821)")
 
@@ -226,4 +239,5 @@ def cmd_capture(args: argparse.Namespace) -> None:
         notes=args.notes,
         duration=args.duration,
         interface=args.interface,
+        device_address=args.device_address,
     )

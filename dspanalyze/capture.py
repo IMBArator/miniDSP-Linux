@@ -10,9 +10,9 @@ import os
 import platform
 import re
 import shutil
-import signal
 import subprocess
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -104,6 +104,25 @@ def _find_linux_usb_bus() -> int | None:
     return None
 
 
+def _find_linux_device_address() -> int | None:
+    """Find the USB device address (devnum) for the DSP device via sysfs."""
+    try:
+        usb_devices = Path("/sys/bus/usb/devices")
+        for dev_dir in usb_devices.iterdir():
+            vid_path = dev_dir / "idVendor"
+            pid_path = dev_dir / "idProduct"
+            if vid_path.exists() and pid_path.exists():
+                vid = vid_path.read_text().strip()
+                pid = pid_path.read_text().strip()
+                if vid == f"{VENDOR_ID:04x}" and pid == f"{PRODUCT_ID:04x}":
+                    devnum_path = dev_dir / "devnum"
+                    if devnum_path.exists():
+                        return int(devnum_path.read_text().strip())
+    except (OSError, ValueError):
+        pass
+    return None
+
+
 def detect_device() -> dict | None:
     """Detect the DSP device and return info dict, or None if not found."""
     system = platform.system()
@@ -135,12 +154,20 @@ def run_capture(
     notes: str = "",
     duration: int | None = None,
     interface: str | None = None,
+    device_address: int | None = None,
 ) -> Path | None:
     """Run a tshark capture session and save the pcapng file.
+
+    Uses a two-pass approach: captures all USB traffic to a temp file, then
+    filters by usb.device_address to produce a small final pcapng with only
+    DSP device traffic. This is necessary because tshark has no BPF capture
+    filters for USB-specific fields — they're only available as display filters,
+    which can't be combined with -w during live capture.
 
     Returns the path to the saved capture file, or None on failure.
     """
     tshark = find_tshark()
+    system = platform.system()
 
     # Auto-detect interface if not specified
     if interface is None:
@@ -153,6 +180,20 @@ def run_capture(
             print("\nSpecify one with --interface", file=sys.stderr)
             return None
 
+    # Determine USB device address for post-capture filtering
+    if device_address is None:
+        if system == "Linux":
+            device_address = _find_linux_device_address()
+            if device_address is None:
+                print("Error: Could not auto-detect USB device address.", file=sys.stderr)
+                print("Is the DSP device connected? (VID=0x0168 PID=0x0821)", file=sys.stderr)
+                return None
+        else:
+            # Windows: require explicit --device-address
+            print("Error: --device-address is required on Windows.", file=sys.stderr)
+            print("Find the device address in Wireshark's USB device list.", file=sys.stderr)
+            return None
+
     # Generate output filename from description
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     safe_desc = re.sub(r"[^\w\s-]", "", description).strip().replace(" ", "_")
@@ -163,19 +204,20 @@ def run_capture(
 
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = output_dir / filename
+    temp_path = output_dir / f".capture_{timestamp}_raw.pcapng"
 
-    # Build tshark command
+    # Build tshark command — capture all traffic on the interface (no filter)
     cmd = [
         tshark,
         "-i", interface,
-        "-w", str(output_path),
-        "-f", f"usb.idVendor == 0x{VENDOR_ID:04x} and usb.idProduct == 0x{PRODUCT_ID:04x}",
+        "-w", str(temp_path),
     ]
 
     if duration:
         cmd.extend(["-a", f"duration:{duration}"])
 
     print(f"Capturing USB traffic on interface: {interface}")
+    print(f"Device address: {device_address}")
     print(f"Output: {output_path}")
     if duration:
         print(f"Duration: {duration}s")
@@ -183,32 +225,61 @@ def run_capture(
         print("Press Ctrl+C to stop capture...")
     print()
 
+    # Run tshark with a polling loop so Ctrl+C is handled cleanly
     try:
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        proc.wait()
+        while proc.poll() is None:
+            time.sleep(0.2)
     except KeyboardInterrupt:
-        # Graceful stop on Ctrl+C
-        proc.send_signal(signal.SIGINT)
+        proc.terminate()
         proc.wait(timeout=5)
         print("\nCapture stopped.")
 
-    if not output_path.exists() or output_path.stat().st_size == 0:
+    if not temp_path.exists() or temp_path.stat().st_size == 0:
         print("Warning: Capture file is empty or was not created.", file=sys.stderr)
-        print("The USB capture filter may not match. Try without filter:", file=sys.stderr)
-        print(f"  tshark -i {interface} -w {output_path}", file=sys.stderr)
+        temp_path.unlink(missing_ok=True)
+        return None
+
+    # Second pass: filter by device address to produce a small final pcapng
+    print(f"Filtering by usb.device_address == {device_address}...")
+    filter_result = subprocess.run(
+        [
+            tshark,
+            "-r", str(temp_path),
+            "-Y", f"usb.device_address == {device_address}",
+            "-w", str(output_path),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+
+    # Clean up temp file
+    temp_path.unlink(missing_ok=True)
+
+    if filter_result.returncode != 0:
+        print(f"Error filtering capture: {filter_result.stderr}", file=sys.stderr)
+        return None
+
+    if not output_path.exists() or output_path.stat().st_size == 0:
+        print("Warning: No packets matched the device address filter.", file=sys.stderr)
+        print(f"Device address {device_address} may be incorrect.", file=sys.stderr)
+        output_path.unlink(missing_ok=True)
         return None
 
     # Write metadata sidecar
-    from dspanalyze.metadata import meta_path_for
     import tomli_w
+
+    from dspanalyze.metadata import meta_path_for
 
     meta = {
         "capture": {
             "file": filename,
             "format": "pcapng",
             "created": datetime.now().isoformat(timespec="seconds"),
-            "source_machine": platform.system().lower(),
+            "source_machine": system.lower(),
             "interface": interface,
+            "device_address": device_address,
         },
         "description": {
             "feature": description,
@@ -220,6 +291,7 @@ def run_capture(
     with open(meta_file, "wb") as f:
         tomli_w.dump(meta, f)
 
-    print(f"Capture saved: {output_path}")
+    size_kb = output_path.stat().st_size / 1024
+    print(f"Capture saved: {output_path} ({size_kb:.1f} KB)")
     print(f"Metadata saved: {meta_file}")
     return output_path
