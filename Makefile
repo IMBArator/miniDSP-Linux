@@ -2,7 +2,7 @@ VENV := .venv
 PYTHON := $(VENV)/bin/python
 CAPTURES := analysis/usb_captures
 
-.PHONY: install test analyze analyze-raw analyze-no-poll analyze-all check-all list-captures
+.PHONY: install test analyze analyze-raw analyze-no-poll analyze-all check-all list-captures capture-enable capture-disable
 
 install:
 	$(PYTHON) -m pip install -e ".[dev]"
@@ -39,9 +39,19 @@ analyze-all:
 		echo ""; \
 	done
 
-# Run protocol assertions against all captures (Phase 3)
+# Run protocol assertions against all captures
 check-all:
 	@for f in $(CAPTURES)/*.txt $(CAPTURES)/*.pcapng; do \
 		[ -f "$$f" ] || continue; \
 		$(PYTHON) -m dspanalyze check "$$f" --assertion all 2>/dev/null || true; \
 	done
+
+# Grant dumpcap the capabilities needed for non-root USB capture
+capture-enable:
+	sudo setcap cap_net_raw,cap_net_admin=eip $$(which dumpcap)
+	@echo "dumpcap capture capabilities enabled"
+
+# Remove capture capabilities from dumpcap
+capture-disable:
+	sudo setcap -r $$(which dumpcap)
+	@echo "dumpcap capture capabilities removed"
