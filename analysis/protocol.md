@@ -1,9 +1,39 @@
 # the t.racks DSP 4x4 Mini — USB HID Protocol Documentation
 
-Reverse-engineered from Wireshark USBPcap sessions:
+Reverse-engineered from Wireshark USBPcap sessions (all in `usb_captures/`):
+
+**Startup & initialization:**
+- `miniDSP Capture - Start and close windows edit software.txt` — full manufacturer startup sequence (init → config read → polling → shutdown)
+- `miniDSP Capture - startup in4 and out4 muted.txt` — startup with In4+Out4 muted (mute bitmask discovery)
+- `miniDSP Capture - startup in4 and out4 not muted.txt` — startup with nothing muted (mute bitmask control)
+
+**Mute & gain:**
 - `miniDSP Capture.txt` — mute/unmute input ch1 (linked to ch2)
 - `miniDSP Capture - Input gain fader moved.txt` — input gain ch1 fader sweep
+- `miniDSP Capture - move input gain fader ch3 from -60 to *.txt` (×5) — gain calibration at -12, 0, +3, +6, +12 dB
+
+**Level metering:**
+- `miniDSP Capture - monitoring sine wave at static level.txt` — 220 packets, normal/high-res mode switching
+- `miniDSP Capture - monitoring sine wave at increasing and decreasing level.txt` — full sweep, uint16 reaching 264
+- `miniDSP Capture - monitoring sine wave at static level 0dBu.txt` — meter calibration at 0 dBu
+- `miniDSP Capture - monitoring sine wave at static level -30dBu.txt` — meter calibration at -30 dBu
+- `miniDSP Capture - monitoring sine wave at static level right before visible level.txt` — below display threshold
+- `miniDSP Capture - monitoring sine wave at static level first visible level.txt` — minimum visible level
+- `miniDSP Capture - monitoring sine wave at static level end of green area.txt` — green/yellow boundary
+- `miniDSP Capture - monitoring sine wave at static level start of yellow area.txt` — yellow zone start
 - `miniDSP Capture - clip channel 1+2 in+out.txt` — clipping test on ch1+2 in/out
+- `miniDSP Capture - trigger limiter indicator on out channel 4.txt` — compressor/limiter bitmask discovery
+
+**Channel linking:**
+- `miniDSP Capture - link input channel channel 1 and 2.txt`
+- `miniDSP Capture - unlink input channel channel 1 and 2.txt`
+- `miniDSP Capture - link outut channel channel 2 and 3.txt`
+- `miniDSP Capture - unlink output channel channel 2 and 3.txt`
+- `miniDSP Capture - link unlink out channel 1 and 2.txt`
+- `miniDSP Capture - link unlink out channel 3 and 4.txt`
+- `miniDSP Capture - link unlink out channel 1,2,3 and 4.txt`
+
+**Other:**
 - `miniDSP USBTree output.txt` — USB device descriptor (VID/PID/endpoints)
 
 ## Physical Layer
