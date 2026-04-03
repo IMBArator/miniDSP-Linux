@@ -142,8 +142,61 @@ def main() -> None:
                            help="Only detect device and list interfaces, don't capture")
     p_capture.set_defaults(func=cmd_capture)
 
+    # --- list-captures ---
+    p_list = sub.add_parser("list-captures", help="List captures with metadata summaries")
+    p_list.add_argument("directory", nargs="?", default="analysis/usb_captures",
+                        help="Directory to scan (default: analysis/usb_captures)")
+    p_list.set_defaults(func=cmd_list_captures)
+
     args = parser.parse_args()
     args.func(args)
+
+
+def cmd_list_captures(args: argparse.Namespace) -> None:
+    """List capture files with metadata summaries."""
+    import tomllib
+
+    from dspanalyze.metadata import meta_path_for
+
+    capture_dir = Path(args.directory)
+    if not capture_dir.is_dir():
+        print(f"Not a directory: {capture_dir}", file=sys.stderr)
+        sys.exit(1)
+
+    # Find capture files
+    captures = sorted(
+        list(capture_dir.glob("*.txt")) + list(capture_dir.glob("*.pcapng")) + list(capture_dir.glob("*.pcap")),
+        key=lambda p: p.name,
+    )
+
+    if not captures:
+        print(f"No capture files found in {capture_dir}")
+        return
+
+    print(f"Captures in {capture_dir} ({len(captures)} files):\n")
+
+    for cap in captures:
+        meta_file = meta_path_for(cap)
+        if meta_file.exists():
+            with open(meta_file, "rb") as f:
+                meta = tomllib.load(f)
+            analysis = meta.get("analysis", {})
+            desc = meta.get("description", {})
+            pkts = analysis.get("packet_count", "?")
+            dur = analysis.get("duration_seconds", "?")
+            feature = desc.get("feature", "")
+            unknown = " [HAS UNKNOWNS]" if analysis.get("has_unknown_opcodes") else ""
+            opcodes = ", ".join(analysis.get("opcodes_seen", []))
+            print(f"  {cap.name}")
+            print(f"    {pkts} packets, {dur}s{unknown}")
+            if feature:
+                print(f"    Feature: {feature}")
+            if opcodes:
+                print(f"    Opcodes: {opcodes}")
+        else:
+            print(f"  {cap.name}")
+            print(f"    (no metadata — run 'dspanalyze analyze' to generate)")
+        print()
 
 
 def cmd_capture(args: argparse.Namespace) -> None:

@@ -2,6 +2,10 @@
 
 ## IMPORTANT
 
+
+- explain in single sentences what you are doing so we can learn from it.
+- commit using conventional commits and commit grouped by topic.
+- automatically commit after significant changes.
 - you are allowed to use subagents if applicable for tasks. use models that are effective.
 - avoid using commands that generate friction and need user input while exploring/researching.
 - always use tools that we commited to, e.g. use the analyse tool instead of creating python/bash one-liners.
@@ -19,7 +23,7 @@ Reverse engineer the USB HID protocol used by the **the t.racks DSP 4x4 Mini** (
 ## Repository Layout
 
 ```
-minidsp/                  # Python package — the application
+minidsp/                  # Python package — the runtime control application
   __init__.py
   __main__.py             # entry point (--gui or CLI)
   device.py               # USB HID open/close, send/recv, config read
@@ -32,19 +36,45 @@ minidsp/                  # Python package — the application
     level_meter.py        # custom QPainter dB-scaled meter
     device_thread.py      # QThread polling + command coalescing
 
+dspanalyze/               # Protocol analysis toolchain
+  __init__.py
+  __main__.py             # python -m dspanalyze entry
+  cli.py                  # argparse: analyze, check, capture, list-captures
+  config.py               # load protocol_config.toml, value format converters
+  protocol_config.toml    # all protocol knowledge (opcodes, fields, formats)
+  decode.py               # frame → structured command decoder
+  capture.py              # tshark-based USB capture with device auto-detect
+  check.py                # protocol assertion framework (12 assertions)
+  metadata.py             # per-capture .meta.toml sidecar files
+  readers/
+    __init__.py            # RawPacket dataclass, read_capture() dispatcher
+    pcapng.py              # tshark -T fields based pcapng reader
+    wireshark_text.py      # Wireshark text export parser
+  output/
+    __init__.py
+    claude.py              # compact structured output for Claude
+    human.py               # terminal table with summary
+    raw.py                 # raw hex dump
+
 tests/
   test_protocol.py        # protocol encoding/decoding tests
+  test_dspanalyze/        # analysis tool tests
 
 analysis/                 # Protocol reverse engineering (reference only)
   protocol.md             # full protocol specification
+  feature-list.md         # DSP feature inventory with protocol status
   t-racks-dsp-4x4-research.md
   dsp-408-ui-summary.md   # cross-reference: Aeternitaas/dsp-408-ui
-  extract_hid.py          # Wireshark capture analysis scripts
+  extract_hid.py          # legacy analysis script (superseded by dspanalyze)
   extract_gain_commands.py
   hid_packets.txt
   miniDSP USBTree output.txt
   miniDSP current settings.unt
-  usb_captures/           # Wireshark USBPcap text exports
+  usb_captures/           # Wireshark captures (.txt exports + .pcapng)
+  resources/              # screenshots, manual PDF
+
+pyproject.toml            # build system, dependencies, entry points
+Makefile                  # convenience targets for analysis workflows
 ```
 
 ## Device Info
