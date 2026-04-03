@@ -6,8 +6,9 @@ we need a tool that can create and analyze usb pcap data to reverse engineer the
 
 prequesites:
 
-- a feature list of the DSP capabilities
-- create a test protocol to work through reverse engineering every feature of the DSP 
+a feature list of the DSP capabilities has been created: analysis/feature-list.md 
+
+
 
 first pass:
 
@@ -59,6 +60,8 @@ Device ID: 0x0821
 
 # instructions
 
+
+
 to be clear: this tools is ment to be used by you (claude) to learn about the protocol. the user will also use it to help you when there are questions and do own research. user will manually perform the first pass on the first machine.
 
 analyse the project so far: 
@@ -67,10 +70,8 @@ analyse the project so far:
 - in analysis/usb_captures/ you can also find capture data in text format. protocol.md knows whats in each dump. 
 - avoid looking at the capture text files directly, it will fill up your context window.
 
-be verbose:
+- create a test protocol to work through reverse engineering every feature of the DSP 
 
-- explain in single sentences what you are doing so we can learn from it.
-- commit using conventional commits and commit grouped by topic.
 
 be thorough:
 
