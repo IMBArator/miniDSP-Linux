@@ -1,5 +1,5 @@
 """
-T.racks DSPmini 4x4 — USB HID device communication.
+the t.racks DSP 4x4 Mini — USB HID device communication.
 
 Uses /dev/hidraw directly (no library dependency beyond the kernel driver).
 Falls back to cython-hidapi if available and hidraw not found.
@@ -58,7 +58,7 @@ def find_hidraw_device() -> str | None:
 
 
 class DSPmini:
-    """Interface to a T.racks DSPmini 4x4 over USB HID."""
+    """Interface to a the t.racks DSP 4x4 Mini over USB HID."""
 
     def __init__(self) -> None:
         self._fd: int | None = None
@@ -74,7 +74,7 @@ class DSPmini:
             device_path = find_hidraw_device()
             if device_path is None:
                 raise OSError(
-                    "DSPmini 4x4 not found. Is it connected? "
+                    "DSP 4x4 Mini not found. Is it connected? "
                     "Check: lsusb | grep 0168"
                 )
         self._fd = os.open(device_path, os.O_RDWR)

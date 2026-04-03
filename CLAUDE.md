@@ -2,7 +2,7 @@
 
 ## Project Goal
 
-Reverse engineer the USB HID protocol used by the **T.racks DSPmini 4x4** (a miniDSP-based device) by analyzing Wireshark USBPcap captures, then build a Python tool to manage the DSP on Linux.
+Reverse engineer the USB HID protocol used by the **the t.racks DSP 4x4 Mini** (a Musicrown-based device) by analyzing Wireshark USBPcap captures, then build a Python tool to manage the DSP on Linux.
 
 ## Repository Layout
 

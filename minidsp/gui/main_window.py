@@ -22,7 +22,7 @@ NUM_CHANNELS = 4
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("DSPmini 4x4")
+        self.setWindowTitle("DSP 4x4 Mini")
         self.setMinimumSize(700, 480)
 
         self._input_strips: list[ChannelStrip] = []
@@ -79,7 +79,7 @@ class MainWindow(QMainWindow):
         # Status bar
         self._status = QStatusBar()
         self.setStatusBar(self._status)
-        self._status.showMessage("Waiting for DSPmini 4x4...")
+        self._status.showMessage("Waiting for DSP 4x4 Mini...")
 
     def _build_device_thread(self) -> None:
         self._thread = DeviceThread(self)
@@ -116,7 +116,7 @@ class MainWindow(QMainWindow):
     def _on_connection(self, connected: bool) -> None:
         self._set_controls_enabled(connected)
         if connected:
-            self._status.showMessage("Connected to DSPmini 4x4")
+            self._status.showMessage("Connected to DSP 4x4 Mini")
         else:
             self._status.showMessage("DSPmini disconnected \u2014 waiting for reconnection...")
 

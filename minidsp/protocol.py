@@ -1,5 +1,5 @@
 """
-T.racks DSPmini 4x4 — USB HID protocol encoding/decoding.
+the t.racks DSP 4x4 Mini — USB HID protocol encoding/decoding.
 
 Frame format (inside 64-byte HID report):
     10 02 [SRC] [DST] [LEN] [PAYLOAD...] 10 03 [CHK]

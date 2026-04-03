@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-T.racks DSPmini 4x4 — CLI control tool.
+the t.racks DSP 4x4 Mini — CLI control tool.
 
 Usage:
     python -m minidsp mute 1         # Mute input channel 1
@@ -51,7 +51,7 @@ def _do_mute(channels: list[int], mute: bool) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="minidsp",
-        description="T.racks DSPmini 4x4 — USB HID control tool",
+        description="the t.racks DSP 4x4 Mini — USB HID control tool",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 

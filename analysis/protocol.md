@@ -1,4 +1,4 @@
-# T.racks DSPmini 4x4 — USB HID Protocol Documentation
+# the t.racks DSP 4x4 Mini — USB HID Protocol Documentation
 
 Reverse-engineered from Wireshark USBPcap sessions:
 - `miniDSP Capture.txt` — mute/unmute input ch1 (linked to ch2)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Extract and decode HID interrupt transfer payloads from a Wireshark text export.
-Focuses on opcode 0x34 (input gain commands) for the T.racks DSPmini 4x4.
+Focuses on opcode 0x34 (input gain commands) for the the t.racks DSP 4x4 Mini.
 
 Frame format: 10 02 [SRC] [DST] [LEN] [PAYLOAD...] 10 03 [XOR_CHK]
 """

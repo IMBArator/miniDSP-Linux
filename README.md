@@ -2,7 +2,7 @@
 
 > **Status: Proof of Concept** — Core functionality (gain, mute, level metering) works. EQ, crossover, compressor, routing, and preset management are not yet implemented. Protocol reverse engineering is ongoing.
 
-Linux control tool for the **T.racks DSPmini 4x4** (Musicrown-based DSP processor). Provides a PySide6 GUI and CLI for gain control, muting, and real-time level metering over USB HID — no official Linux software required.
+Linux control tool for the **the t.racks DSP 4x4 Mini** (Musicrown-based DSP processor). Provides a PySide6 GUI and CLI for gain control, muting, and real-time level metering over USB HID — no official Linux software required.
 
 The USB HID protocol was fully reverse-engineered from Wireshark captures. See [analysis/protocol.md](analysis/protocol.md) for the complete protocol specification.
 
@@ -69,7 +69,7 @@ Then reconnect the device.
 | Property | Value |
 |---|---|
 | Manufacturer | Musicrown (T.racks / the t.racks) |
-| Product | DSPmini 4x4 |
+| Product | DSP 4x4 Mini |
 | USB VID:PID | `0168:0821` |
 | USB class | HID, 64-byte interrupt transfers |
 | Channels | 4 in / 4 out |
