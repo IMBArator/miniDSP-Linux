@@ -1,0 +1,336 @@
+# Protocol configuration for the t.racks DSP 4x4 Mini (Musicrown)
+# This file is the single source of truth for protocol analysis.
+# Update it whenever new opcodes or field meanings are discovered.
+
+[device]
+vendor_id = 0x0168
+product_id = 0x0821
+report_size = 64
+manufacturer = "Musicrown"
+product = "Dsp Process"
+out_endpoint = 0x02
+in_endpoint = 0x81
+
+[frame]
+stx = [0x10, 0x02]
+etx = [0x10, 0x03]
+src_host = 0x00
+src_device = 0x01
+dst_device = 0x01
+dst_host = 0x00
+
+[frame.footer]
+# Static 8-byte footer at bytes 56-63 of every IN report
+offset = 56
+value = "0010033d000abc8d"
+description = "Device identifier / firmware version (0x000abc8d = 703629)"
+
+[noise]
+# Byte positions within level response payload to mask (noisy instant bytes)
+# These are payload-relative offsets for 0x40 responses
+level_instant_offsets = [3, 6, 9, 12, 15, 18, 21, 24]
+# HID report positions to ignore during comparison
+footer_offset = 56
+# Zero padding between CHK and footer is also noise
+
+
+# ──────────────────────────────────────────────
+# Opcodes: verified = captured on our 4x4 Mini
+# ──────────────────────────────────────────────
+
+[opcodes.0x01]
+name = "ack"
+direction = "in"
+description = "Generic command acknowledgment"
+verified = true
+
+[opcodes.0x10]
+name = "init"
+direction = "both"
+description = "Init handshake (out=request, in=response with max_presets)"
+verified = true
+
+[opcodes.0x10.fields.response]
+max_presets = { offset = 1, size = 1, format = "uint8" }
+
+[opcodes.0x12]
+name = "activate"
+direction = "out"
+description = "Config load complete / activate — device responds with ACK"
+verified = true
+
+[opcodes.0x13]
+name = "firmware"
+direction = "both"
+description = "Firmware/model string query (out) / response with ASCII string (in)"
+verified = true
+
+[opcodes.0x13.fields.response]
+model = { offset = 1, size = 12, format = "ascii" }
+
+[opcodes.0x14]
+name = "preset_index"
+direction = "both"
+description = "Active preset index query (out) / response (in)"
+verified = true
+
+[opcodes.0x14.fields.response]
+index = { offset = 1, size = 1, format = "uint8" }
+
+[opcodes.0x20]
+name = "load_preset"
+direction = "out"
+description = "Load preset by 1-based slot index"
+verified = false
+
+[opcodes.0x20.fields.request]
+slot = { offset = 1, size = 1, format = "uint8", note = "1-based" }
+
+[opcodes.0x21]
+name = "store_preset"
+direction = "out"
+description = "Store current config to 1-based slot"
+verified = false
+
+[opcodes.0x21.fields.request]
+slot = { offset = 1, size = 1, format = "uint8", note = "1-based" }
+
+[opcodes.0x22]
+name = "preset_header"
+direction = "both"
+description = "Active preset header query (out) / response (in)"
+verified = true
+
+[opcodes.0x24]
+name = "config_page"
+direction = "in"
+description = "Config page response (to 0x27 request)"
+verified = true
+
+[opcodes.0x24.fields.response]
+page = { offset = 1, size = 1, format = "uint8" }
+data = { offset = 2, size = 50, format = "hex" }
+
+[opcodes.0x26]
+name = "set_preset_name"
+direction = "out"
+description = "Set preset name (14-char ASCII, space-padded). Max 15 chars — longer CRASHES the DSP!"
+verified = false
+
+[opcodes.0x26.fields.request]
+name = { offset = 1, size = 14, format = "ascii" }
+
+[opcodes.0x27]
+name = "read_config"
+direction = "out"
+description = "Request config page (0x00-0x08 on 4x4 Mini)"
+verified = true
+
+[opcodes.0x27.fields.request]
+page = { offset = 1, size = 1, format = "uint8" }
+
+[opcodes.0x29]
+name = "read_name"
+direction = "both"
+description = "Read preset name (out=request, in=response)"
+verified = true
+
+[opcodes.0x29.fields.request]
+slot = { offset = 1, size = 1, format = "uint8" }
+
+[opcodes.0x29.fields.response]
+slot = { offset = 1, size = 1, format = "uint8" }
+name = { offset = 2, size = 14, format = "ascii" }
+
+[opcodes.0x2a]
+name = "prepare_link"
+direction = "out"
+description = "Prepare channel link (sent before 0x3b when linking, not unlinking)"
+verified = true
+
+[opcodes.0x2a.fields.request]
+master = { offset = 1, size = 1, format = "channel" }
+slave = { offset = 2, size = 1, format = "channel" }
+
+[opcodes.0x2c]
+name = "device_info"
+direction = "both"
+description = "Device info query (out) / response (in) — contains 0x270F (9999), purpose unknown"
+verified = true
+
+[opcodes.0x31]
+name = "lopass_crossover"
+direction = "out"
+description = "Low-pass crossover filter (freq=1000 disables)"
+verified = false
+
+[opcodes.0x31.fields.request]
+channel = { offset = 1, size = 1, format = "channel" }
+frequency = { offset = 2, size = 2, format = "freq_log" }
+slope = { offset = 4, size = 1, format = "slope_index" }
+
+[opcodes.0x32]
+name = "hipass_crossover"
+direction = "out"
+description = "High-pass crossover filter"
+verified = false
+
+[opcodes.0x32.fields.request]
+channel = { offset = 1, size = 1, format = "channel" }
+frequency = { offset = 2, size = 2, format = "freq_log" }
+enable = { offset = 4, size = 1, format = "bool" }
+
+[opcodes.0x33]
+name = "peq"
+direction = "out"
+description = "Parametric EQ band (7 bands per output on 4x4 Mini)"
+verified = false
+
+[opcodes.0x33.fields.request]
+channel = { offset = 1, size = 1, format = "channel" }
+band = { offset = 2, size = 1, format = "uint8" }
+gain = { offset = 3, size = 1, format = "peq_gain" }
+# offset 4 is always 0x00
+frequency = { offset = 5, size = 2, format = "freq_log" }
+q = { offset = 7, size = 1, format = "q_log" }
+type = { offset = 8, size = 1, format = "filter_type" }
+bypass = { offset = 9, size = 1, format = "bool" }
+
+[opcodes.0x34]
+name = "gain"
+direction = "out"
+description = "Set channel gain (dual-resolution 0-400)"
+verified = true
+
+[opcodes.0x34.fields.request]
+channel = { offset = 1, size = 1, format = "channel" }
+value = { offset = 2, size = 2, format = "gain_raw" }
+
+[opcodes.0x35]
+name = "mute"
+direction = "out"
+description = "Set channel mute state"
+verified = true
+
+[opcodes.0x35.fields.request]
+channel = { offset = 1, size = 1, format = "channel" }
+state = { offset = 2, size = 1, format = "mute_state" }
+
+[opcodes.0x3a]
+name = "matrix_routing"
+direction = "out"
+description = "Matrix routing — output gets input bitmask (InA=0x01,InB=0x02,InC=0x04,InD=0x08)"
+verified = false
+
+[opcodes.0x3a.fields.request]
+output = { offset = 1, size = 1, format = "channel" }
+input_mask = { offset = 2, size = 1, format = "input_bitmask" }
+
+[opcodes.0x3b]
+name = "channel_link"
+direction = "out"
+description = "Set channel link state — master gets OR of linked bits, slaves get 0x00"
+verified = true
+
+[opcodes.0x3b.fields.request]
+channel = { offset = 1, size = 1, format = "channel" }
+link_flags = { offset = 2, size = 1, format = "link_bitmask" }
+
+[opcodes.0x40]
+name = "poll"
+direction = "both"
+description = "Level poll (out: 1 byte) / Level response (in: 28 bytes with 8ch metering)"
+verified = true
+
+[opcodes.0x40.fields.response]
+in1 = { offset = 1, size = 2, format = "level_uint16" }
+in2 = { offset = 4, size = 2, format = "level_uint16" }
+in3 = { offset = 7, size = 2, format = "level_uint16" }
+in4 = { offset = 10, size = 2, format = "level_uint16" }
+out1 = { offset = 13, size = 2, format = "level_uint16" }
+out2 = { offset = 16, size = 2, format = "level_uint16" }
+out3 = { offset = 19, size = 2, format = "level_uint16" }
+out4 = { offset = 22, size = 2, format = "level_uint16" }
+limiter_mask = { offset = 25, size = 1, format = "limiter_bitmask" }
+state = { offset = 26, size = 1, format = "uint8", note = "0x00=normal, 0x01=high-res" }
+
+[opcodes.0x48]
+name = "geq"
+direction = "out"
+description = "31-band graphic EQ (inputs only, bands 0-30)"
+verified = false
+
+[opcodes.0x48.fields.request]
+channel = { offset = 1, size = 1, format = "channel" }
+band = { offset = 2, size = 1, format = "uint8" }
+value = { offset = 3, size = 1, format = "peq_gain" }
+# offset 4 is always 0x00
+
+
+# ──────────────────────────────────────────────
+# Value format definitions
+# ──────────────────────────────────────────────
+
+[formats.channel]
+type = "enum"
+values = { "0" = "InA", "1" = "InB", "2" = "InC", "3" = "InD", "4" = "Out1", "5" = "Out2", "6" = "Out3", "7" = "Out4" }
+
+[formats.gain_raw]
+type = "uint16le"
+min = 0
+max = 400
+unit = "dB"
+note = "raw<80: dB=raw/2-60 (0.5dB/step) | raw>=80: dB=(raw-80)/10-20 (0.1dB/step)"
+
+[formats.mute_state]
+type = "enum"
+values = { "0" = "unmuted", "1" = "muted" }
+
+[formats.bool]
+type = "enum"
+values = { "0" = "off", "1" = "on" }
+
+[formats.link_bitmask]
+type = "bitmask"
+bits = { "0" = "ch1/A", "1" = "ch2/B", "2" = "ch3/C", "3" = "ch4/D" }
+note = "Within 4-channel group (inputs 0-3 or outputs 4-7)"
+
+[formats.input_bitmask]
+type = "bitmask"
+bits = { "0" = "InA", "1" = "InB", "2" = "InC", "3" = "InD" }
+
+[formats.limiter_bitmask]
+type = "bitmask"
+bits = { "0" = "Out1", "1" = "Out2", "2" = "Out3", "3" = "Out4" }
+
+[formats.filter_type]
+type = "enum"
+values = { "0" = "Peak", "1" = "Low Shelf", "2" = "High Shelf", "3" = "LP-6", "4" = "LP-12", "5" = "HP-6", "6" = "HP-12", "7" = "AllPass1", "8" = "AllPass2" }
+
+[formats.freq_log]
+type = "uint16le"
+min = 0
+max = 1000
+unit = "Hz"
+note = "Hz = 19.70 * (20160/19.70)^(raw/1000)"
+
+[formats.q_log]
+type = "uint8"
+min = 0
+max = 255
+note = "Q = 0.40 * 320^(raw/255)"
+
+[formats.peq_gain]
+type = "uint8"
+unit = "dB"
+note = "dB = (value - 120) / 10.0, range -12.0 to +12.0"
+
+[formats.level_uint16]
+type = "uint16le"
+unit = "linear"
+note = "dB = 20*log10(level/1153), 63 dB range. 0dBu~188, -30dBu~5"
+
+[formats.slope_index]
+type = "enum"
+values = { "0" = "BW-6", "1" = "BW-12", "2" = "BW-18", "3" = "BW-24", "4" = "BW-36", "5" = "BW-48", "6" = "LR-12", "7" = "LR-24", "8" = "LR-36", "9" = "LR-48", "10" = "BS-6", "11" = "BS-12", "12" = "BS-18", "13" = "BS-24", "14" = "BS-36", "15" = "BS-48" }
+note = "4x4 Mini has only 10 slopes (no -36/-48). Mapping needs verification."

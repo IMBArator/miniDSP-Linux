@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "minidsp-linux"
+version = "0.1.0"
+description = "USB HID control and protocol analysis for the t.racks DSP 4x4 Mini"
+requires-python = ">=3.11"
+dependencies = [
+    "tomli-w>=1.0",
+]
+
+[project.optional-dependencies]
+gui = ["PySide6>=6.5"]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+minidsp = "minidsp.cli:main"
+dspanalyze = "dspanalyze.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["minidsp*", "dspanalyze*"]
+
+[tool.setuptools.package-data]
+dspanalyze = ["*.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
