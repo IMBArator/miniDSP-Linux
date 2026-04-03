@@ -43,13 +43,17 @@ class CompressorLED(QWidget):
             self.update()
 
     def paintEvent(self, event) -> None:
-        p = QPainter(self)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        color = QColor(255, 160, 0) if self._active else QColor(60, 60, 60)
-        p.setBrush(color)
-        p.setPen(Qt.PenStyle.NoPen)
-        p.drawEllipse(2, 2, 12, 12)
-        p.end()
+        p = QPainter()
+        if not p.begin(self):
+            return
+        try:
+            p.setRenderHint(QPainter.RenderHint.Antialiasing)
+            color = QColor(255, 160, 0) if self._active else QColor(60, 60, 60)
+            p.setBrush(color)
+            p.setPen(Qt.PenStyle.NoPen)
+            p.drawEllipse(2, 2, 12, 12)
+        finally:
+            p.end()
 
 
 class ChannelStrip(QWidget):

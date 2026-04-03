@@ -59,30 +59,33 @@ class LevelMeter(QWidget):
         self.update()
 
     def paintEvent(self, event) -> None:
-        p = QPainter(self)
-        w, h = self.width(), self.height()
+        p = QPainter()
+        if not p.begin(self):
+            return
+        try:
+            w, h = self.width(), self.height()
 
-        # Background
-        p.fillRect(0, 0, w, h, QColor(30, 30, 30))
+            # Background
+            p.fillRect(0, 0, w, h, QColor(30, 30, 30))
 
-        # Level bar (bottom-up, dB-scaled)
-        frac = _to_db_fraction(self._level)
-        bar_h = int(frac * h)
-        if bar_h > 0:
-            bar_top = h - bar_h
-            grad = QLinearGradient(0, h, 0, 0)
-            grad.setColorAt(0.0, QColor(0, 180, 0))
-            grad.setColorAt(0.70, QColor(0, 200, 0))
-            grad.setColorAt(0.75, QColor(220, 200, 0))   # 0 dBu boundary
-            grad.setColorAt(0.88, QColor(220, 60, 0))
-            grad.setColorAt(1.0, QColor(220, 0, 0))
-            p.fillRect(1, bar_top, w - 2, bar_h, grad)
+            # Level bar (bottom-up, dB-scaled)
+            frac = _to_db_fraction(self._level)
+            bar_h = int(frac * h)
+            if bar_h > 0:
+                bar_top = h - bar_h
+                grad = QLinearGradient(0, h, 0, 0)
+                grad.setColorAt(0.0, QColor(0, 180, 0))
+                grad.setColorAt(0.70, QColor(0, 200, 0))
+                grad.setColorAt(0.75, QColor(220, 200, 0))   # 0 dBu boundary
+                grad.setColorAt(0.88, QColor(220, 60, 0))
+                grad.setColorAt(1.0, QColor(220, 0, 0))
+                p.fillRect(1, bar_top, w - 2, bar_h, grad)
 
-        # Peak hold marker (white horizontal line)
-        peak_frac = _to_db_fraction(self._peak)
-        if peak_frac > 0.01:
-            peak_y = h - int(peak_frac * h)
-            p.setPen(QColor(255, 255, 255))
-            p.drawLine(1, peak_y, w - 2, peak_y)
-
-        p.end()
+            # Peak hold marker (white horizontal line)
+            peak_frac = _to_db_fraction(self._peak)
+            if peak_frac > 0.01:
+                peak_y = h - int(peak_frac * h)
+                p.setPen(QColor(255, 255, 255))
+                p.drawLine(1, peak_y, w - 2, peak_y)
+        finally:
+            p.end()
