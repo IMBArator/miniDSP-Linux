@@ -22,6 +22,11 @@ def cmd_analyze(args: argparse.Namespace) -> None:
 
     commands = decode_packets(packets, config)
 
+    # Generate metadata sidecar (uses unfiltered commands)
+    if not args.no_meta:
+        from dspanalyze.metadata import write_metadata
+        write_metadata(args.file, commands)
+
     # Apply opcode filters
     if args.filter:
         opcodes = {int(o, 16) for o in args.filter.split(",")}
@@ -39,7 +44,7 @@ def cmd_analyze(args: argparse.Namespace) -> None:
     elif args.format == "human":
         from dspanalyze.output.human import format_human
         output = format_human(commands, config, summary=args.summary,
-                              decode=args.decode)
+                              decode=args.decode, filename=args.file)
     elif args.format == "raw":
         from dspanalyze.output.raw import format_raw
         output = format_raw(commands)
@@ -73,6 +78,8 @@ def main() -> None:
                            help="Show only summary statistics")
     p_analyze.add_argument("--decode", action="store_true",
                            help="Show human-readable field values")
+    p_analyze.add_argument("--no-meta", action="store_true",
+                           help="Skip generating .meta.toml sidecar file")
     p_analyze.set_defaults(func=cmd_analyze)
 
     args = parser.parse_args()
