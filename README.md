@@ -1,5 +1,7 @@
 # miniDSP-Linux
 
+> **Status: Proof of Concept** — Core functionality (gain, mute, level metering) works. EQ, crossover, compressor, routing, and preset management are not yet implemented. Protocol reverse engineering is ongoing.
+
 Linux control tool for the **T.racks DSPmini 4x4** (Musicrown-based DSP processor). Provides a PySide6 GUI and CLI for gain control, muting, and real-time level metering over USB HID — no official Linux software required.
 
 The USB HID protocol was fully reverse-engineered from Wireshark captures. See [analysis/protocol.md](analysis/protocol.md) for the complete protocol specification.
