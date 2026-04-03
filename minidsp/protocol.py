@@ -192,16 +192,18 @@ CONFIG_PAGES = 9
 CONFIG_PAGE_SIZE = 50
 OP_CONFIG_RESP = 0x24
 
-# Offsets within the 459-byte stitched config blob (preset structure)
+# Offsets within the 450-byte stitched config blob (preset structure)
 _PRESET_INPUT_START = 16    # 4 × 24-byte input blocks
 _INPUT_BLOCK_SIZE = 24
 _INPUT_GAIN_OFFSET = 18     # uint16 LE within input block
-_INPUT_MUTE_OFFSET = 20     # uint8 within input block
 
 _PRESET_OUTPUT_START = 112  # 4 × 74-byte output blocks
 _OUTPUT_BLOCK_SIZE = 74
 _OUTPUT_GAIN_OFFSET = 66    # uint16 LE within output block
-_OUTPUT_MUTE_OFFSET = 68    # uint8 within output block
+
+# Mute bitmasks in the config footer (after channel blocks)
+_INPUT_MUTE_BITMASK_OFFSET = 408   # uint16 LE, bit 0=In1 .. bit 3=In4
+_OUTPUT_MUTE_BITMASK_OFFSET = 410  # uint16 LE, bit 0=Out1 .. bit 3=Out4
 
 
 def parse_config_page(payload: bytes) -> tuple[int, bytes] | None:
@@ -224,28 +226,36 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     config_data: 450 bytes (9 pages × 50 bytes) from read_config().
     Returns dict with 'gains' (list[8], raw 0–400) and 'mutes' (list[8], bool).
     Channel order: inputs 0–3, outputs 4–7.
+
+    Mute state is read from bitmasks in the config footer (offsets 408-411),
+    not from the per-channel blocks. Verified against startup captures with
+    In4+Out4 muted vs unmuted.
     """
-    if len(config_data) < _PRESET_OUTPUT_START + 4 * _OUTPUT_BLOCK_SIZE:
+    if len(config_data) < _OUTPUT_MUTE_BITMASK_OFFSET + 2:
         return None
 
     gains: list[int] = []
     mutes: list[bool] = []
 
-    # Inputs 0–3
+    # Gain: per-channel blocks
     for i in range(4):
         base = _PRESET_INPUT_START + i * _INPUT_BLOCK_SIZE
         gain = config_data[base + _INPUT_GAIN_OFFSET] + config_data[base + _INPUT_GAIN_OFFSET + 1] * 256
-        mute = config_data[base + _INPUT_MUTE_OFFSET] != 0
         gains.append(gain)
-        mutes.append(mute)
 
-    # Outputs 0–3
     for i in range(4):
         base = _PRESET_OUTPUT_START + i * _OUTPUT_BLOCK_SIZE
         gain = config_data[base + _OUTPUT_GAIN_OFFSET] + config_data[base + _OUTPUT_GAIN_OFFSET + 1] * 256
-        mute = config_data[base + _OUTPUT_MUTE_OFFSET] != 0
         gains.append(gain)
-        mutes.append(mute)
+
+    # Mute: bitmasks in config footer
+    input_mute_mask = config_data[_INPUT_MUTE_BITMASK_OFFSET] + config_data[_INPUT_MUTE_BITMASK_OFFSET + 1] * 256
+    output_mute_mask = config_data[_OUTPUT_MUTE_BITMASK_OFFSET] + config_data[_OUTPUT_MUTE_BITMASK_OFFSET + 1] * 256
+
+    for i in range(4):
+        mutes.append(bool(input_mute_mask & (1 << i)))
+    for i in range(4):
+        mutes.append(bool(output_mute_mask & (1 << i)))
 
     return {"gains": gains, "mutes": mutes}
 

@@ -161,7 +161,7 @@ Names are space-padded to 14 characters.
 
 ### 0x27 — Read Config Page
 
-Reads the active preset's configuration in 51-byte pages. The device responds
+Reads the active preset's configuration in 50-byte pages. The device responds
 with opcode `0x24` (not `0x27`).
 
 ```
@@ -169,9 +169,9 @@ Payload (2 bytes): 27 [page_index]
   page_index = 0x00 through 0x08 (9 pages)
 ```
 
-Device responds with 52-byte payload: `24 [page_index] [51 bytes data]`.
+Device responds with 52-byte payload: `24 [page_index] [50 bytes data]`.
 
-The 9 pages (9 × 51 = 459 data bytes) reconstruct the **exact same binary
+The 9 pages (9 × 50 = 450 data bytes) reconstruct the **exact same binary
 structure** as a preset block in the `.unt` configuration file:
 
 ```
@@ -460,7 +460,7 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x21` | 2 | OUT | Store preset | `21 [slot+1]` — 1-based index (*) |
 | `0x22` | 1 | OUT | Preset header | `22` — device responds `22 ffff` + 28 zeros |
 | `0x26` | 15 | OUT | Store preset name | `26 [14-char name]` — space-padded (*) |
-| `0x27` | 2 | OUT | Read config page | `27 [page]` — device responds `24 [page] [51 bytes]` |
+| `0x27` | 2 | OUT | Read config page | `27 [page]` — device responds `24 [page] [50 bytes]` |
 | `0x29` | 2 | OUT | Read preset name | `29 [slot]` — device responds `29 [slot] [14 char name]` |
 | `0x2c` | 1 | OUT | Device info | `2c` — device responds `2c` + 7 bytes |
 | `0x31` | 5 | OUT | Lo-pass filter | `31 [ch] [freq_lo] [freq_hi] [slope]` (*) |
@@ -709,7 +709,9 @@ Offset  Size  Field
   2     14    Preset name (ASCII, space-padded to 14 chars)
  16    4×24   Input channel blocks (InA, InB, InC, InD)
 112   4×74    Output channel blocks (Out1, Out2, Out3, Out4)
-408     21    Zero padding
+408      2    Input mute bitmask, LE uint16 (bit 0=In1 .. bit 3=In4)
+410      2    Output mute bitmask, LE uint16 (bit 0=Out1 .. bit 3=Out4)
+412     17    Zero padding
 429      2    CRLF (0x0D 0x0A) — preset terminator
 ```
 
@@ -728,9 +730,8 @@ Offset  Size  Field
 14       1    Unknown param (99 in preset 1, 9 in modified)
 15–16    2    Unknown param, LE uint16 (0 in preset 1, 140 in modified)
 17       1    Always 0x00
-18       1    Unknown (0x18 = 24 — possibly block size self-reference)
-19       1    Unknown (always 0x01)
-20–21    2    Zero padding
+18–19    2    **Input gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
+20–21    2    Always 0x00 (mute state is NOT here — see footer bitmasks)
 22       1    Routing/link flags (see below)
 23       1    Always 0x00
 ```
@@ -762,17 +763,17 @@ Offset  Size  Field
  8       1    Routing byte (Out1=0x01, Out2=0x02, Out3=0x04, Out4=0x08)
  9       1    Always 0x00
 10–11    2    Parameter A, LE uint16 (Out1/2=20, Out3/4=0)
-12–13    2    Always 300 (0x012C) — possibly output gain or master volume
+12–13    2    Always 300 (0x012C) — possibly compressor threshold
 14–15    2    Parameter B, LE uint16 (Out1/2=10, Out3/4=0)
 16–17    2    Crossover/filter param (Out1/2=203, Out3/4=120)
 18–19    2    Crossover/filter param (Out1/2=89, Out3/4=31)
 20–21    2    Crossover/filter param (Out1/2=272, Out3/4=25)
 22–61   40    EQ band data: 6-byte repeating groups (see below)
 62–63    2    Always 0x0000
-64–65    2    Always 49 (0x0031)
-66–67    2    Always 499 (0x01F3)
-68–69    2    Output gain/level (220 = 0x00DC)
-70–71    2    Unknown (280 = 0x0118)
+64–65    2    Unknown (49 = 0x0031)
+66–67    2    **Output gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
+68–69    2    Always 0x00 (mute state is NOT here — see footer bitmasks)
+70–71    2    Unknown (280 = 0x0118 in default, 40 in modified Out1)
 72       1    Routing/link flags (same scheme as input)
 73       1    Always 0x00
 ```
@@ -797,9 +798,12 @@ The fixed file size of 13010 bytes is likely a firmware/software requirement.
 
 ### .unt Format Unknowns
 
-- [ ] Exact meaning of input block bytes 10–16 (gain? EQ? compressor threshold?)
+- [x] ~~Input/output gain location~~ → Input block bytes 18–19, output block bytes 66–67 (uint16 LE, raw 0–400)
+- [x] ~~Mute state location~~ → Footer bitmasks at preset offsets 408–409 (input) and 410–411 (output), NOT in per-channel blocks. Verified by comparing startup captures with In4+Out4 muted vs unmuted.
+- [ ] Exact meaning of input block bytes 10–16 (EQ? compressor threshold?)
 - [ ] Output EQ band count and parameter mapping (frequency in Hz, gain in dB, Q factor)
-- [ ] Whether bytes 12–13 (always 300) represent output master gain
+- [ ] Whether output block bytes 12–13 (always 300) represent compressor threshold
 - [ ] Purpose of the "4x4D Amplifier" product string vs "Dsp Process" USB string
 - [ ] Whether the file can hold more than 2 presets (count byte at 0x11)
 - [ ] Crossover type/slope encoded in Out1/Out2 extra parameters
+- [ ] Output block bytes 70–71: purpose (delay? polarity? varies between presets)
