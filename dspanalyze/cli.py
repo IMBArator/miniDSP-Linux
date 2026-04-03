@@ -126,5 +126,51 @@ def main() -> None:
                          help="Show passing assertions too")
     p_check.set_defaults(func=cmd_check)
 
+    # --- capture ---
+    p_capture = sub.add_parser("capture", help="Capture USB traffic via tshark")
+    p_capture.add_argument("--output-dir", default="analysis/usb_captures",
+                           help="Output directory (default: analysis/usb_captures)")
+    p_capture.add_argument("--duration", type=int,
+                           help="Capture duration in seconds (default: until Ctrl+C)")
+    p_capture.add_argument("--interface",
+                           help="tshark capture interface (auto-detected if omitted)")
+    p_capture.add_argument("--description", "-d", default="",
+                           help="What feature is being captured")
+    p_capture.add_argument("--notes", "-n", default="",
+                           help="Additional notes about the capture")
+    p_capture.add_argument("--detect", action="store_true",
+                           help="Only detect device and list interfaces, don't capture")
+    p_capture.set_defaults(func=cmd_capture)
+
     args = parser.parse_args()
     args.func(args)
+
+
+def cmd_capture(args: argparse.Namespace) -> None:
+    """Capture USB traffic from the DSP device."""
+    from dspanalyze.capture import detect_device, find_tshark, list_interfaces, run_capture
+
+    tshark = find_tshark()
+
+    if args.detect:
+        device = detect_device()
+        if device:
+            print(f"Device found: VID=0x{device['vid']:04x} PID=0x{device['pid']:04x} ({device['system']})")
+            if "bus" in device:
+                print(f"  USB bus: {device['bus']}")
+        else:
+            print("Device not found (VID=0x0168 PID=0x0821)")
+
+        print("\nAvailable capture interfaces:")
+        for iface in list_interfaces(tshark):
+            print(f"  {iface['index']}. {iface['name']}"
+                  + (f" ({iface['description']})" if iface['description'] else ""))
+        return
+
+    output_path = run_capture(
+        output_dir=Path(args.output_dir),
+        description=args.description,
+        notes=args.notes,
+        duration=args.duration,
+        interface=args.interface,
+    )
