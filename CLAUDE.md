@@ -1,5 +1,17 @@
 # miniDSP-Linux
 
+## IMPORTANT
+
+- you are allowed to use subagents if applicable for tasks. use models that are effective.
+- avoid using commands that generate friction and need user input while exploring/researching.
+- always use tools that we commited to, e.g. use the analyse tool instead of creating python/bash one-liners.
+- if you need complex one-liners to explore/research, suggest adding these to a make file for repeatability.
+- suggest additional pre-made tools if it makes things easier or more effective
+- remember that claude usage is expensive, try to be economical when processing data. use agents with lower grade modles if bulk processing is needed.
+- always feel free to suggest improvements to the code and to the process!
+- be more explanative so the humans can learn along the way.
+- always remember to update the protocol implementation and documentation. but always make sure the results are verified before changing docs and code. and always ask. it is curcial to never change protocol docs and code without confirmation!
+
 ## Project Goal
 
 Reverse engineer the USB HID protocol used by the **the t.racks DSP 4x4 Mini** (a Musicrown-based device) by analyzing Wireshark USBPcap captures, then build a Python tool to manage the DSP on Linux.
@@ -57,11 +69,6 @@ See `analysis/protocol.md` for the full reverse-engineered specification.
 
 - `dsp-408-ui` (Aeternitaas/dsp-408-ui) — same Musicrown protocol over TCP for DSP 408
 - Confirmed: PEQ, GEQ, crossover, routing, preset commands from that project apply here
-
-### Useful Wireshark filters when re-exporting
-```
-usb.addr == "1.17.2" && usb.transfer_type == 0x01
-```
 
 ## Workflow Notes
 
