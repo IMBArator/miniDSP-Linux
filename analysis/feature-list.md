@@ -30,11 +30,11 @@ Compiled from: manufacturer tool screenshots (`analysis/resources/`), PDF user m
 | **Noise Gate** | Per-input: Threshold, Attack, Hold, Release | Visible in screenshots & manual; protocol unknown |
 | **Level Meter** | Real-time level with clip indicator | **Captured & implemented** (`0x40`) |
 
-**Gate parameters (from screenshots):**
-- Threshold: down to -90 dB
-- Attack: ~10-50 ms
-- Hold: ~100 ms
-- Release: ~300-600 ms
+**Gate parameters:**
+- Threshold: -90.0 to 0.0 dB
+- Attack: 1 to 999 ms
+- Hold: 10 to 999 ms
+- Release: 1 to 3000 ms
 
 **Signal chain (from Matrix tab):** GAIN -> GATE -> PHASE -> MUTE -> routing matrix
 
@@ -49,15 +49,15 @@ Compiled from: manufacturer tool screenshots (`analysis/resources/`), PDF user m
 | **Output Delay** | Per-output, configurable in ms / meters / feet | Visible in screenshots & manual; protocol unknown |
 | **Level Meter** | Real-time level with clip + limiter active indicators | **Captured & implemented** (`0x40`, limiter bitmask at byte 25) |
 
-**Compressor parameters (from screenshots):**
-- Threshold: -20 dB to at least -3 dB visible
-- Attack: ~10-50 ms
-- Ratio: 1:1.0 up to at least 1:4.0
-- Release: ~300-500 ms
-- Knee: 0 dB to 6 dB
+**Compressor parameters:**
+- Threshold: -90.0 to 20 dB
+- Attack: 1 to 999 ms
+- Ratio: 1:1.0, 1:1.1, 1:1.3, 1:1.5, 1:1.7, 1:2.0, 1:2.5, 1:3.0, 1:3.5, 1:4.0, 1:5.0, 1:6.0, 1:8.0, 1:10.0, 1:20.0, limit
+- Release: 10 to 3000 ms
+- Knee: 0 to 12 dB (1 dB increments)
 
-**Delay (from screenshots):**
-- Range: 0.000 ms up to at least 1.000 ms per output
+**Delay:**
+- Range: 0.000 ms to 680.000 ms per output in ~0.021 ms varying increments. (needs further investigation)
 - Unit selector: ms, m (meters), ft (feet)
 
 **Signal chain (from Matrix tab):** XOVER -> PEQ -> GAIN -> COMP -> PHASE -> DELAY -> MUTE -> output
@@ -92,10 +92,10 @@ The 4x4 Mini has PEQ on output channels only (no GEQ, no input EQ).
 
 ### 4. Crossover Filters (per output channel)
 
-| Feature | Details | Protocol Status |
-|---|---|---|
-| **High-Pass** | Per-output, with bypass | Protocol: likely `0x32`; NOT yet captured |
-| **Low-Pass** | Per-output, with bypass | Protocol: likely `0x31`; NOT yet captured |
+| Feature | Details                                       | Protocol Status |
+|---|-----------------------------------------------|---|
+| **High-Pass** | 19.7 Hz to 20.16 kHz, Per-output, with bypass | Protocol: likely `0x32`; NOT yet captured |
+| **Low-Pass** | 19.7 Hz to 20.16 kHz, Per-output, with bypass | Protocol: likely `0x31`; NOT yet captured |
 
 **Slope types (from screenshots, 10 options):**
 | Slope | Types available |
@@ -168,14 +168,14 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 - Level metering (8 channels + limiter indicators)
 - Config read (9 pages)
 - Preset name reading (30 slots)
-- Channel linking
 - Initialization sequence
 
-### Protocol likely known but NOT yet captured on our device:
+### Protocol likely known but NOT yet or not fully captured on our device:
 - PEQ (`0x33`) - 7 bands per output
 - Crossover hi/lo pass (`0x32`/`0x31`)
 - Matrix routing (`0x3a`)
 - Preset load/store (`0x20`/`0x21`/`0x26`)
+- Channel linking (`0x3b`/`0x2a`)
 
 ### Completely unknown protocol:
 - Noise Gate (input)
@@ -183,4 +183,4 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 - Output Delay
 - Phase Invert
 - Test Tone Generator
-- Device Lock/Password
+- Device Lock/Password (careful. DO NOT TOUCH! could lock us out.)
