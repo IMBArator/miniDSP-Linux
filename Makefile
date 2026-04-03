@@ -48,10 +48,10 @@ check-all:
 
 # Grant dumpcap the capabilities needed for non-root USB capture
 capture-enable:
-	sudo setcap cap_net_raw,cap_net_admin=eip $$(which dumpcap)
+	sudo setcap cap_net_raw,cap_net_admin=eip /usr/sbin/dumpcap
 	@echo "dumpcap capture capabilities enabled"
 
 # Remove capture capabilities from dumpcap
 capture-disable:
-	sudo setcap -r $$(which dumpcap)
+	sudo setcap -r /usr/sbin/dumpcap
 	@echo "dumpcap capture capabilities removed"
