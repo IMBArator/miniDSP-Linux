@@ -24,7 +24,7 @@ def _to_db_fraction(value: float) -> float:
 
     Calibrated so that 0 dBu (~188) appears at 75% and -30 dBu (~5) at 25%.
     """
-    if value <= 0:
+    if value < 0.01:
         return 0.0
     db = 20.0 * math.log10(value / REF_LEVEL)
     return max(0.0, min(1.0, (db + DB_RANGE) / DB_RANGE))
