@@ -59,6 +59,39 @@ def cmd_analyze(args: argparse.Namespace) -> None:
         print(output)
 
 
+def cmd_check(args: argparse.Namespace) -> None:
+    """Run protocol assertions against a capture file."""
+    from dspanalyze.check import ASSERTIONS, format_results, run_assertions
+
+    if args.list_assertions:
+        print("Available assertions:")
+        for a in ASSERTIONS:
+            print(f"  {a.name:<25s}  {a.description}  (files: {a.capture_glob})")
+        return
+
+    from dspanalyze.config import load_config
+    from dspanalyze.decode import decode_packets
+    from dspanalyze.readers import read_capture
+
+    config = load_config()
+    packets = read_capture(args.file)
+
+    if not packets:
+        print(f"No HID packets found in {args.file}", file=sys.stderr)
+        sys.exit(1)
+
+    commands = decode_packets(packets, config)
+    results = run_assertions(commands, args.file, args.assertion)
+
+    name = Path(args.file).stem
+    print(f"Check: {name}")
+    print(format_results(results, verbose=args.verbose))
+
+    # Exit with non-zero if any assertion failed
+    if any(not r.passed for r in results):
+        sys.exit(1)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="dspanalyze",
@@ -81,6 +114,17 @@ def main() -> None:
     p_analyze.add_argument("--no-meta", action="store_true",
                            help="Skip generating .meta.toml sidecar file")
     p_analyze.set_defaults(func=cmd_analyze)
+
+    # --- check ---
+    p_check = sub.add_parser("check", help="Run protocol assertions against a capture")
+    p_check.add_argument("file", help="Path to capture file")
+    p_check.add_argument("--assertion", default="all",
+                         help="Run specific assertion (or 'all')")
+    p_check.add_argument("--list", action="store_true", dest="list_assertions",
+                         help="List available assertions")
+    p_check.add_argument("--verbose", "-v", action="store_true",
+                         help="Show passing assertions too")
+    p_check.set_defaults(func=cmd_check)
 
     args = parser.parse_args()
     args.func(args)
