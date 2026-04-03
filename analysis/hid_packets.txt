@@ -1,0 +1,1642 @@
+====================================================================================================
+Total HID URB_INTERRUPT packets with data: 126
+====================================================================================================
+
+Pkt # 3073  t=11.351458  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 10 10 03
+         11 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x10  trailer=OK  chk=0x11 [OK]
+  PldHex : 10
+
+Pkt # 3075  t=11.358798  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 02 10 1e 10
+         03 0c 00 04 00 00 01 00
+         00 00 00 00 25 00 00 19
+         00 00 17 00 00 1c 00 00
+         00 10 03 6c 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=2  opcode=0x10  trailer=OK  chk=0x0c [OK]
+  PldHex : 101e
+
+Pkt # 3077  t=11.360086  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 13 10 03
+         12 40 00 00 44 53 0a 0a
+         44 53 0a b8 5f 05 0a 77
+         4d 40 00 00 44 53 0a 77
+         4d 40 00 00 44 53 0a c0
+         fd fe 04 15 48 40 00 00
+         44 53 0a 0a 44 53 0a b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x13  trailer=OK  chk=0x12 [OK]
+  PldHex : 13
+
+Pkt # 3079  t=11.368780  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 0d 13 34 78
+         34 4d 49 4e 49 20 56 30
+         31 30 10 03 22 00 00 19
+         00 00 17 00 00 1c 00 00
+         00 10 03 6c 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=13  opcode=0x13  trailer=OK  chk=0x22 [OK]
+  PldHex : 133478344d494e492056303130
+
+Pkt # 3081  t=11.369685  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 2c 10 03
+         2d 40 00 f0 9c ef 03 05
+         9d ef 03 b8 5f 05 0a 77
+         4d 40 00 f0 9c ef 03 77
+         4d 40 00 f0 9c ef 03 c0
+         fd fe 04 15 48 40 00 f0
+         9c ef 03 05 9d ef 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x2c  trailer=OK  chk=0x2d [OK]
+  PldHex : 2c
+
+Pkt # 3083  t=11.377840  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 08 2c 00 27
+         0f 00 00 00 00 10 03 0c
+         31 30 10 03 22 00 00 19
+         00 00 17 00 00 1c 00 00
+         00 10 03 6c 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=8  opcode=0x2c  trailer=OK  chk=0x0c [OK]
+  PldHex : 2c00270f00000000
+
+Pkt # 3085  t=11.384757  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 22 10 03
+         23 40 00 f0 9c ef 03 00
+         9d ef 03 b8 5f 05 0a 77
+         4d 40 00 f0 9c ef 03 77
+         4d 40 00 f0 9c ef 03 c0
+         fd fe 04 15 48 40 00 f0
+         9c ef 03 00 9d ef 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x22  trailer=OK  chk=0x23 [OK]
+  PldHex : 22
+
+Pkt # 3087  t=11.415780  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1f 22 ff ff
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=31  opcode=0x22  trailer=OK  chk=0x3d [OK]
+  PldHex : 22ffff00000000000000000000000000000000000000000000000000000000
+
+Pkt # 3089  t=11.417761  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 14 10 03
+         15 40 00 80 a1 f3 03 a7
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 a7 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x14  trailer=OK  chk=0x15 [OK]
+  PldHex : 14
+
+Pkt # 3091  t=11.420775  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 02 14 02 10
+         03 14 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=2  opcode=0x14  trailer=OK  chk=0x14 [OK]
+  PldHex : 1402
+
+Pkt # 3093  t=11.421339  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 00 10
+         03 2b 00 80 a1 f3 03 8a
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 8a a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x2b [OK]
+  PldHex : 2900
+
+Pkt # 3095  t=11.435780  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 00 44
+         49 59 20 4d 6f 6e 20 20
+         20 20 20 20 20 10 03 21
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x21 [OK]
+  PldHex : 2900444959204d6f6e20202020202020
+
+Pkt # 3097  t=11.436583  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 01 10
+         03 2a 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x2a [OK]
+  PldHex : 2901
+
+Pkt # 3099  t=11.455781  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 01 44
+         49 59 20 4d 6f 6e 20 6f
+         66 66 73 65 74 10 03 2d
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x2d [OK]
+  PldHex : 2901444959204d6f6e206f6666736574
+
+Pkt # 3101  t=11.456634  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 02 10
+         03 29 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x29 [OK]
+  PldHex : 2902
+
+Pkt # 3103  t=11.467776  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 02 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 75
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x75 [OK]
+  PldHex : 290244656661756c7420507265736574
+
+Pkt # 3105  t=11.468379  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 03 10
+         03 28 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x28 [OK]
+  PldHex : 2903
+
+Pkt # 3107  t=11.477774  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 03 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 74
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x74 [OK]
+  PldHex : 290344656661756c7420507265736574
+
+Pkt # 3109  t=11.507541  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 04 10
+         03 2f 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x2f [OK]
+  PldHex : 2904
+
+Pkt # 3111  t=11.516862  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 04 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 73
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x73 [OK]
+  PldHex : 290444656661756c7420507265736574
+
+Pkt # 3113  t=11.517769  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 05 10
+         03 2e 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x2e [OK]
+  PldHex : 2905
+
+Pkt # 3115  t=11.526779  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 05 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 72
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x72 [OK]
+  PldHex : 290544656661756c7420507265736574
+
+Pkt # 3117  t=11.527504  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 06 10
+         03 2d 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x2d [OK]
+  PldHex : 2906
+
+Pkt # 3119  t=11.536775  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 06 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 71
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x71 [OK]
+  PldHex : 290644656661756c7420507265736574
+
+Pkt # 3121  t=11.537928  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 07 10
+         03 2c 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x2c [OK]
+  PldHex : 2907
+
+Pkt # 3123  t=11.546771  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 07 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 70
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x70 [OK]
+  PldHex : 290744656661756c7420507265736574
+
+Pkt # 3125  t=11.547389  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 08 10
+         03 23 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x23 [OK]
+  PldHex : 2908
+
+Pkt # 3127  t=11.555772  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 08 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 7f
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x7f [OK]
+  PldHex : 290844656661756c7420507265736574
+
+Pkt # 3129  t=11.556569  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 09 10
+         03 22 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x22 [OK]
+  PldHex : 2909
+
+Pkt # 3131  t=11.565776  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 09 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 7e
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x7e [OK]
+  PldHex : 290944656661756c7420507265736574
+
+Pkt # 3133  t=11.566751  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 0a 10
+         03 21 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x21 [OK]
+  PldHex : 290a
+
+Pkt # 3135  t=11.575767  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 0a 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 7d
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x7d [OK]
+  PldHex : 290a44656661756c7420507265736574
+
+Pkt # 3137  t=11.576306  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 0b 10
+         03 20 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x20 [OK]
+  PldHex : 290b
+
+Pkt # 3139  t=11.597770  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 0b 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 7c
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x7c [OK]
+  PldHex : 290b44656661756c7420507265736574
+
+Pkt # 3141  t=11.598607  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 0c 10
+         03 27 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x27 [OK]
+  PldHex : 290c
+
+Pkt # 3143  t=11.605770  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 0c 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 7b
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x7b [OK]
+  PldHex : 290c44656661756c7420507265736574
+
+Pkt # 3145  t=11.606532  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 0d 10
+         03 26 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x26 [OK]
+  PldHex : 290d
+
+Pkt # 3147  t=11.615773  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 0d 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 7a
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x7a [OK]
+  PldHex : 290d44656661756c7420507265736574
+
+Pkt # 3149  t=11.616913  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 0e 10
+         03 25 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x25 [OK]
+  PldHex : 290e
+
+Pkt # 3151  t=11.624778  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 0e 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 79
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x79 [OK]
+  PldHex : 290e44656661756c7420507265736574
+
+Pkt # 3153  t=11.625457  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 0f 10
+         03 24 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x24 [OK]
+  PldHex : 290f
+
+Pkt # 3155  t=11.634768  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 0f 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 78
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x78 [OK]
+  PldHex : 290f44656661756c7420507265736574
+
+Pkt # 3157  t=11.635376  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 10 10
+         03 3b 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x3b [OK]
+  PldHex : 2910
+
+Pkt # 3159  t=11.644764  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 10 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 67
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x67 [OK]
+  PldHex : 291044656661756c7420507265736574
+
+Pkt # 3161  t=11.645445  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 11 10
+         03 3a 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x3a [OK]
+  PldHex : 2911
+
+Pkt # 3163  t=11.654768  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 11 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 66
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x66 [OK]
+  PldHex : 291144656661756c7420507265736574
+
+Pkt # 3165  t=11.655539  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 12 10
+         03 39 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x39 [OK]
+  PldHex : 2912
+
+Pkt # 3167  t=11.664774  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 12 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 65
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x65 [OK]
+  PldHex : 291244656661756c7420507265736574
+
+Pkt # 3169  t=11.665568  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 13 10
+         03 38 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x38 [OK]
+  PldHex : 2913
+
+Pkt # 3171  t=11.674767  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 13 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 64
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x64 [OK]
+  PldHex : 291344656661756c7420507265736574
+
+Pkt # 3173  t=11.675512  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 14 10
+         03 3f 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x3f [OK]
+  PldHex : 2914
+
+Pkt # 3175  t=11.697768  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 14 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 63
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x63 [OK]
+  PldHex : 291444656661756c7420507265736574
+
+Pkt # 3177  t=11.698475  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 15 10
+         03 3e 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x3e [OK]
+  PldHex : 2915
+
+Pkt # 3179  t=11.703765  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 15 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 62
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x62 [OK]
+  PldHex : 291544656661756c7420507265736574
+
+Pkt # 3181  t=11.704414  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 16 10
+         03 3d 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x3d [OK]
+  PldHex : 2916
+
+Pkt # 3183  t=11.713760  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 16 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 61
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x61 [OK]
+  PldHex : 291644656661756c7420507265736574
+
+Pkt # 3185  t=11.714317  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 17 10
+         03 3c 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x3c [OK]
+  PldHex : 2917
+
+Pkt # 3187  t=11.723774  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 17 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 60
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x60 [OK]
+  PldHex : 291744656661756c7420507265736574
+
+Pkt # 3189  t=11.724721  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 18 10
+         03 33 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x33 [OK]
+  PldHex : 2918
+
+Pkt # 3191  t=11.733763  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 18 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 6f
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x6f [OK]
+  PldHex : 291844656661756c7420507265736574
+
+Pkt # 3193  t=11.734483  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 19 10
+         03 32 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x32 [OK]
+  PldHex : 2919
+
+Pkt # 3195  t=11.743762  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 19 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 6e
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x6e [OK]
+  PldHex : 291944656661756c7420507265736574
+
+Pkt # 3197  t=11.744536  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 1a 10
+         03 31 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x31 [OK]
+  PldHex : 291a
+
+Pkt # 3199  t=11.753763  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 1a 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 6d
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x6d [OK]
+  PldHex : 291a44656661756c7420507265736574
+
+Pkt # 3201  t=11.754483  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 1b 10
+         03 30 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x30 [OK]
+  PldHex : 291b
+
+Pkt # 3203  t=11.763758  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 1b 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 6c
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x6c [OK]
+  PldHex : 291b44656661756c7420507265736574
+
+Pkt # 3205  t=11.764320  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 1c 10
+         03 37 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x37 [OK]
+  PldHex : 291c
+
+Pkt # 3207  t=11.772759  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 1c 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 6b
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x6b [OK]
+  PldHex : 291c44656661756c7420507265736574
+
+Pkt # 3209  t=11.773560  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 29 1d 10
+         03 36 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x29  trailer=OK  chk=0x36 [OK]
+  PldHex : 291d
+
+Pkt # 3211  t=11.796759  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 10 29 1d 44
+         65 66 61 75 6c 74 20 50
+         72 65 73 65 74 10 03 6a
+         00 00 00 00 00 00 00 00
+         00 00 00 00 10 03 3d 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 31 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=16  opcode=0x29  trailer=OK  chk=0x6a [OK]
+  PldHex : 291d44656661756c7420507265736574
+
+Pkt # 3213  t=11.797443  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 27 00 10
+         03 25 00 80 a1 f3 03 98
+         a1 f3 03 b8 5f 05 0a 77
+         4d 40 00 80 a1 f3 03 77
+         4d 40 00 80 a1 f3 03 c0
+         fd fe 04 15 48 40 00 80
+         a1 f3 03 98 a1 f3 03 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x27  trailer=OK  chk=0x25 [OK]
+  PldHex : 2700
+
+Pkt # 3215  t=11.801756  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 34 24 00 ff
+         ff 44 49 59 20 4d 6f 6e
+         20 6f 66 66 73 65 74 49
+         6e 41 00 00 00 00 00 00
+         00 31 00 f3 01 63 00 00
+         00 18 01 00 00 03 00 49
+         6e 42 00 00 00 00 00 00
+         00 10 03 bc 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=52  opcode=0x24  trailer=OK  chk=0xbc [OK]
+  PldHex : 2400ffff444959204d6f6e206f6666736574496e41000000000000003100f30163000000180100000300496e4200000000000000
+
+Pkt # 3217  t=11.803018  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 27 01 10
+         03 24 00 f0 eb 7f 09 2c
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 2c ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x27  trailer=OK  chk=0x24 [OK]
+  PldHex : 2701
+
+Pkt # 3219  t=11.811754  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 34 24 01 31
+         00 f3 01 63 00 00 00 18
+         01 00 00 00 00 49 6e 43
+         00 00 00 00 00 00 00 31
+         00 f3 01 63 00 00 00 18
+         01 00 00 04 00 49 6e 44
+         00 00 00 00 00 00 00 00
+         00 10 03 12 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=52  opcode=0x24  trailer=OK  chk=0x12 [OK]
+  PldHex : 24013100f30163000000180100000000496e43000000000000003100f30163000000180100000400496e44000000000000000000
+
+Pkt # 3221  t=11.813495  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 27 02 10
+         03 27 00 f0 eb 7f 09 2c
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 2c ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x27  trailer=OK  chk=0x27 [OK]
+  PldHex : 2702
+
+Pkt # 3223  t=11.821758  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 34 24 02 99
+         02 09 00 8c 00 18 01 00
+         00 08 00 4f 75 74 31 00
+         00 00 00 01 00 14 00 2c
+         01 0a 00 cb 00 59 00 10
+         01 78 00 47 00 19 00 78
+         00 76 00 19 00 78 00 a1
+         00 10 03 3b 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=52  opcode=0x24  trailer=OK  chk=0x3b [OK]
+  PldHex : 2402990209008c001801000008004f75743100000000010014002c010a00cb00590010017800470019007800760019007800a100
+
+Pkt # 3225  t=11.823976  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 27 03 10
+         03 26 00 f0 eb 7f 09 2c
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 2c ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x27  trailer=OK  chk=0x26 [OK]
+  PldHex : 2703
+
+Pkt # 3227  t=11.831758  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 34 24 03 19
+         00 78 00 c8 00 19 00 78
+         00 f0 00 19 00 78 00 0e
+         01 19 00 00 00 31 00 f3
+         01 dc 00 ff 00 00 00 28
+         00 01 00 4f 75 74 32 00
+         00 00 00 02 00 14 00 2c
+         01 10 03 d2 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=52  opcode=0x24  trailer=OK  chk=0xd2 [OK]
+  PldHex : 240319007800c80019007800f000190078000e01190000003100f301dc00ff000000280001004f75743200000000020014002c01
+
+Pkt # 3229  t=11.834080  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 27 04 10
+         03 21 00 f0 eb 7f 09 2c
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 2c ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x27  trailer=OK  chk=0x21 [OK]
+  PldHex : 2704
+
+Pkt # 3231  t=11.841758  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 34 24 04 0a
+         00 cb 00 59 00 10 01 78
+         00 47 00 19 00 78 00 76
+         00 19 00 78 00 a1 00 19
+         00 78 00 c8 00 19 00 78
+         00 f0 00 19 00 78 00 0e
+         01 19 00 00 00 31 00 f3
+         01 10 03 f9 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=52  opcode=0x24  trailer=OK  chk=0xf9 [OK]
+  PldHex : 24040a00cb00590010017800470019007800760019007800a10019007800c80019007800f000190078000e01190000003100f301
+
+Pkt # 3233  t=11.844834  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 27 05 10
+         03 20 00 f0 eb 7f 09 2c
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 2c ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x27  trailer=OK  chk=0x20 [OK]
+  PldHex : 2705
+
+Pkt # 3235  t=11.851753  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 34 24 05 dc
+         00 1e 01 00 00 00 00 02
+         00 4f 75 74 33 00 00 00
+         00 04 00 00 00 2c 01 00
+         00 78 00 1f 00 19 00 78
+         00 47 00 19 00 78 00 76
+         00 19 00 78 00 a1 00 19
+         00 10 03 0f 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=52  opcode=0x24  trailer=OK  chk=0x0f [OK]
+  PldHex : 2405dc001e010000000002004f75743300000000040000002c01000078001f0019007800470019007800760019007800a1001900
+
+Pkt # 3237  t=11.855070  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 27 06 10
+         03 23 00 f0 eb 7f 09 2c
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 2c ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x27  trailer=OK  chk=0x23 [OK]
+  PldHex : 2706
+
+Pkt # 3239  t=11.861758  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 34 24 06 78
+         00 c8 00 19 00 78 00 f0
+         00 19 00 78 00 0e 01 19
+         00 00 00 31 00 f3 01 dc
+         00 18 01 00 00 00 00 04
+         00 4f 75 74 34 00 00 00
+         00 08 00 4f 00 2c 01 08
+         00 10 03 5a 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=52  opcode=0x24  trailer=OK  chk=0x5a [OK]
+  PldHex : 24067800c80019007800f000190078000e01190000003100f301dc0018010000000004004f7574340000000008004f002c010800
+
+Pkt # 3241  t=11.865568  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 27 07 10
+         03 22 00 f0 eb 7f 09 2c
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 2c ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x27  trailer=OK  chk=0x22 [OK]
+  PldHex : 2707
+
+Pkt # 3243  t=11.870765  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 34 24 07 78
+         00 1f 00 19 00 78 00 47
+         00 19 00 78 00 76 00 19
+         00 78 00 a1 00 19 00 78
+         00 c8 00 19 00 78 00 f0
+         00 19 00 78 00 0e 01 19
+         00 09 03 09 00 f3 01 ba
+         00 10 03 85 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=52  opcode=0x24  trailer=OK  chk=0x85 [OK]
+  PldHex : 240778001f0019007800470019007800760019007800a10019007800c80019007800f000190078000e01190009030900f301ba00
+
+Pkt # 3245  t=11.875017  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 02 27 08 10
+         03 2d 00 f0 eb 7f 09 2c
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 2c ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=2  opcode=0x27  trailer=OK  chk=0x2d [OK]
+  PldHex : 2708
+
+Pkt # 3247  t=11.895753  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 34 24 08 2c
+         01 00 00 00 00 08 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=52  opcode=0x24  trailer=OK  chk=0x3d [OK]
+  PldHex : 24082c01000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+Pkt # 3249  t=12.421297  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 12 10 03
+         13 40 00 f0 eb 7f 09 2c
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 2c ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x12  trailer=OK  chk=0x13 [OK]
+  PldHex : 12
+
+Pkt # 3251  t=12.433731  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 01 01 10 03
+         00 00 00 00 00 08 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=1  opcode=0x01  trailer=OK  chk=0x00 [OK]
+  PldHex : 01
+
+Pkt # 3253  t=12.737418  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 f9
+         eb 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 f9 eb 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 3255  t=12.748724  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         09 00 00 09 00 00 05 00
+         00 00 00 00 17 00 00 14
+         00 00 14 00 00 0a 00 00
+         00 10 03 44 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x44 [OK]
+  PldHex : 4000000900000900000500000000001700001400001400000a000000
+
+Pkt # 3257  t=13.061077  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 3259  t=13.064708  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         03 00 00 04 00 00 04 00
+         00 00 00 00 14 00 00 1c
+         00 00 1c 00 00 0a 00 00
+         00 10 03 41 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 4000000300000400000400000000001400001c00001c00000a000000
+
+Pkt # 3359  t=13.373264  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 3396  t=13.391695  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         05 00 00 07 00 00 04 00
+         00 00 00 00 10 00 00 1b
+         00 00 13 00 00 0a 00 00
+         00 10 03 48 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x48 [OK]
+  PldHex : 4000000500000700000400000000001000001b00001300000a000000
+
+Pkt # 3961  t=13.674361  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 3994  t=13.689668  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         07 00 00 09 00 00 04 00
+         00 00 00 00 0c 00 00 16
+         00 00 17 00 00 0a 00 00
+         00 10 03 51 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x51 [OK]
+  PldHex : 4000000700000900000400000000000c00001600001700000a000000
+
+Pkt # 4497  t=13.984796  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 4508  t=13.989654  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         08 00 00 06 00 00 06 00
+         00 00 00 00 18 00 00 19
+         00 00 14 00 00 0a 00 00
+         00 10 03 4b 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x4b [OK]
+  PldHex : 4000000800000600000600000000001800001900001400000a000000
+
+Pkt # 4747  t=14.304910  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 4750  t=14.306641  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         04 00 00 06 00 00 03 00
+         00 00 00 00 16 00 00 17
+         00 00 19 00 00 0a 00 00
+         00 10 03 4f 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x4f [OK]
+  PldHex : 4000000400000600000300000000001600001700001900000a000000
+
+Pkt # 5523  t=14.889548  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 5535  t=14.898600  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         03 00 00 03 00 00 01 00
+         00 00 00 00 0d 00 00 1d
+         00 00 15 00 00 1c 00 00
+         00 10 03 44 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x44 [OK]
+  PldHex : 4000000300000300000100000000000d00001d00001500001c000000
+
+Pkt # 5571  t=14.927247  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 5589  t=14.937598  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         03 00 00 03 00 00 01 00
+         00 00 00 00 0d 00 00 1d
+         00 00 15 00 00 1c 00 00
+         00 10 03 44 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x44 [OK]
+  PldHex : 4000000300000300000100000000000d00001d00001500001c000000
+
+Pkt # 5939  t=15.244862  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 5941  t=15.253597  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         07 00 00 05 00 00 02 00
+         00 00 00 00 0c 00 00 15
+         00 00 17 00 00 1c 00 00
+         00 10 03 4e 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x4e [OK]
+  PldHex : 4000000700000500000200000000000c00001500001700001c000000
+
+Pkt # 6045  t=15.552916  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 6061  t=15.559565  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         06 00 00 07 00 00 04 00
+         00 00 00 00 0f 00 00 16
+         00 00 16 00 00 0a 00 00
+         00 10 03 5c 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x5c [OK]
+  PldHex : 4000000600000700000400000000000f00001600001600000a000000
+
+Pkt # 6487  t=15.862568  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 6489  t=15.864551  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         03 00 00 04 00 00 04 00
+         00 00 00 00 0e 00 00 0a
+         00 00 18 00 00 0a 00 00
+         00 10 03 49 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x49 [OK]
+  PldHex : 4000000300000400000400000000000e00000a00001800000a000000
+
+Pkt # 6671  t=16.186610  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 6673  t=16.190548  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         06 00 00 05 00 00 03 00
+         00 00 00 00 0f 00 00 17
+         00 00 1b 00 00 0a 00 00
+         00 10 03 55 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x55 [OK]
+  PldHex : 4000000600000500000300000000000f00001700001b00000a000000
+
+Pkt # 6711  t=16.504589  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 6715  t=16.515530  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         05 00 00 04 00 00 03 00
+         00 00 00 00 0f 00 00 14
+         00 00 18 00 00 0a 00 00
+         00 10 03 57 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x57 [OK]
+  PldHex : 4000000500000400000300000000000f00001400001800000a000000
+
+Pkt # 6727  t=16.822110  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 6729  t=16.831515  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         08 00 00 07 00 00 04 00
+         00 00 00 00 19 00 00 1c
+         00 00 13 00 00 0a 00 00
+         00 10 03 4b 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x4b [OK]
+  PldHex : 4000000800000700000400000000001900001c00001300000a000000
+
+Pkt # 6735  t=17.132579  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 6737  t=17.136486  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         03 00 00 07 00 00 01 00
+         00 00 00 00 10 00 00 14
+         00 00 19 00 00 0a 00 00
+         00 10 03 4e 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x4e [OK]
+  PldHex : 4000000300000700000100000000001000001400001900000a000000
+
+Pkt # 6739  t=17.441209  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 6741  t=17.452478  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         02 00 00 05 00 00 04 00
+         00 00 00 00 1e 00 00 10
+         00 00 19 00 00 0a 00 00
+         00 10 03 42 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x42 [OK]
+  PldHex : 4000000200000500000400000000001e00001000001900000a000000
+
+Pkt # 7071  t=17.764602  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 7081  t=17.776453  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         06 00 00 07 00 00 04 00
+         00 00 00 00 16 00 00 19
+         00 00 14 00 00 0a 00 00
+         00 10 03 48 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x48 [OK]
+  PldHex : 4000000600000700000400000000001600001900001400000a000000
+
+Pkt # 7191  t=18.086341  OUT (host→device)
+  Info   : URB_INTERRUPT out
+  Payload: 10 02 00 01 01 40 10 03
+         41 40 00 f0 eb 7f 09 14
+         ec 7f 09 b8 5f 05 0a 77
+         4d 40 00 f0 eb 7f 09 77
+         4d 40 00 f0 eb 7f 09 c0
+         fd fe 04 15 48 40 00 f0
+         eb 7f 09 14 ec 7f 09 b8
+         5f 05 0a d8 fd fe 04 d8
+  Frame  : src=0x00 dst=0x01 len=1  opcode=0x40  trailer=OK  chk=0x41 [OK]
+  PldHex : 40
+
+Pkt # 7193  t=18.093448  IN  (device→host)
+  Info   : URB_INTERRUPT in
+  Payload: 10 02 01 00 1c 40 00 00
+         07 00 00 08 00 00 06 00
+         00 00 00 00 10 00 00 1f
+         00 00 12 00 00 11 00 00
+         00 10 03 59 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00
+         00 10 03 3d 00 0a bc 8d
+  Frame  : src=0x01 dst=0x00 len=28  opcode=0x40  trailer=OK  chk=0x59 [OK]
+  PldHex : 4000000700000800000600000000001000001f000012000011000000
+
