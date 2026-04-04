@@ -216,6 +216,16 @@ verified = true
 channel = { offset = 1, size = 1, format = "channel" }
 state = { offset = 2, size = 1, format = "mute_state" }
 
+[opcodes.0x36]
+name = "phase"
+direction = "out"
+description = "Set channel phase invert (0x00=normal, 0x01=inverted)"
+verified = true
+
+[opcodes.0x36.fields.request]
+channel = { offset = 1, size = 1, format = "channel" }
+state = { offset = 2, size = 1, format = "phase_state" }
+
 [opcodes.0x3a]
 name = "matrix_routing"
 direction = "out"
@@ -285,6 +295,10 @@ note = "raw<80: dB=raw/2-60 (0.5dB/step) | raw>=80: dB=(raw-80)/10-20 (0.1dB/ste
 [formats.mute_state]
 type = "enum"
 values = { "0" = "unmuted", "1" = "muted" }
+
+[formats.phase_state]
+type = "enum"
+values = { "0" = "normal", "1" = "inverted" }
 
 [formats.bool]
 type = "enum"

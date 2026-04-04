@@ -33,6 +33,9 @@ Reverse-engineered from Wireshark USBPcap sessions (all in `usb_captures/`):
 - `miniDSP Capture - link unlink out channel 3 and 4.txt`
 - `miniDSP Capture - link unlink out channel 1,2,3 and 4.txt`
 
+**Phase invert:**
+- `capture_20260405_000924_input_channel_phase_invert.pcapng` — InC phase toggled normal↔inverted (opcode 0x36 discovery)
+
 **Other:**
 - `miniDSP USBTree output.txt` — USB device descriptor (VID/PID/endpoints)
 
@@ -498,6 +501,7 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x33` | 10 | OUT | PEQ band | `33 [ch] [band] [gain] 00 [freq_lo] [freq_hi] [Q] [type] [bypass]` (*) |
 | `0x34` | 4 | OUT | Gain | `34 [ch] [val_lo] [val_hi]` — LE uint16, 0–400 |
 | `0x35` | 3 | OUT | Mute | `35 [ch] [state]` — 0x00=off, 0x01=on |
+| `0x36` | 3 | OUT | Phase invert | `36 [ch] [state]` — 0x00=normal, 0x01=inverted |
 | `0x3b` | 3 | OUT | Channel link | `3b [ch] [link_flags]` — see below |
 | `0x3a` | 3 | OUT | Matrix routing | `3a [output_ch] [input_bitmask]` (*) |
 | `0x40` | 1 | OUT | Poll levels | `40` — request only, no parameters |
@@ -683,7 +687,9 @@ Payload (15 bytes): 26 [14 chars ASCII, space-padded]
 - [ ] **Delay command:** Not yet reverse-engineered even in `dsp-408-ui`.
 - [ ] **Compressor/Limiter:** Not yet reverse-engineered. Likely encoded in the
       22-byte post-PEQ tail of output channel config blocks.
-- [ ] **Phase invert:** UI toggle exists in `dsp-408-ui` but no opcode found.
+- [x] **Phase invert:** Opcode `0x36` — `36 [ch] [state]`, 0x00=normal, 0x01=inverted.
+      Also stored in config at input block offset 20 (byte within 24-byte block).
+      Captured: InC toggled normal↔inverted. InA+InB were already inverted.
 - [ ] **Verify PEQ/GEQ/crossover/routing on 4x4 Mini:** Commands from `dsp-408-ui`
       need capture verification on our device.
 
@@ -761,7 +767,8 @@ Offset  Size  Field
 15–16    2    Unknown param, LE uint16 (0 in preset 1, 140 in modified)
 17       1    Always 0x00
 18–19    2    **Input gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
-20–21    2    Always 0x00 (mute state is NOT here — see footer bitmasks)
+20       1    **Phase invert**: 0x00=normal, 0x01=inverted (same as 0x36 command)
+21       1    Always 0x00 (mute state is NOT here — see footer bitmasks)
 22       1    Routing/link flags (see below)
 23       1    Always 0x00
 ```

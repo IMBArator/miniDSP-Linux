@@ -24,6 +24,7 @@ OP_READ_NAME = 0x29
 OP_DEVICE_INFO = 0x2C
 OP_GAIN = 0x34
 OP_MUTE = 0x35
+OP_PHASE = 0x36
 OP_POLL = 0x40
 
 
@@ -97,6 +98,15 @@ def cmd_gain(channel: int, raw_value: int) -> bytes:
     lo = raw_value & 0xFF
     hi = (raw_value >> 8) & 0xFF
     return build_frame(bytes([OP_GAIN, channel, lo, hi]))
+
+
+def cmd_phase(channel: int, inverted: bool) -> bytes:
+    """Build a phase invert command (0x36).
+
+    channel: unified index (inputs 0-3, outputs 4-7)
+    inverted: True=180° inverted, False=normal
+    """
+    return build_frame(bytes([OP_PHASE, channel, 0x01 if inverted else 0x00]))
 
 
 def cmd_init() -> bytes:

@@ -1,11 +1,44 @@
 [capture]
 file = "capture_20260405_000924_input_channel_phase_invert.pcapng"
 format = "pcapng"
-created = "2026-04-05T00:10:07"
-source_machine = "windows"
-interface = "\\\\.\\USBPcap1"
-device_address = 14
 
 [description]
 feature = "input channel phase invert"
 notes = "captured input channel 3 pahse invert selection and restartet application"
+
+[analysis]
+packet_count = 344
+out_packets = 172
+in_packets = 172
+duration_seconds = 33.09
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x36",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-05T00:23:52"
+
+[analysis.opcode_counts]
+0x40 = 158
+0x29 = 120
+0x27 = 18
+0x24 = 18
+0x01 = 5
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x36 = 3
+0x12 = 2

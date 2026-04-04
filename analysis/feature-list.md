@@ -26,7 +26,7 @@ Compiled from: manufacturer tool screenshots (`analysis/resources/`), PDF user m
 |---|---|---|
 | **Gain** | -60.0 to +12.0 dB, dual resolution (0.5 dB/step below -20 dB, 0.1 dB/step above) | **Captured & implemented** (`0x34`) |
 | **Mute** | Per-channel on/off | **Captured & implemented** (`0x35`) |
-| **Phase Invert** | 180 degree polarity flip ("Normal" / "Inverse" button) | Visible in screenshots; protocol unknown |
+| **Phase Invert** | 180 degree polarity flip ("Normal" / "Inverse" button) | **Captured & implemented** (`0x36`) |
 | **Noise Gate** | Per-input: Threshold, Attack, Hold, Release | Visible in screenshots & manual; protocol unknown |
 | **Level Meter** | Real-time level with clip indicator | **Captured & implemented** (`0x40`) |
 
@@ -44,7 +44,7 @@ Compiled from: manufacturer tool screenshots (`analysis/resources/`), PDF user m
 |---|---|---|
 | **Gain** | -60.0 to +12.0 dB (same encoding as input) | **Captured & implemented** (`0x34`) |
 | **Mute** | Per-channel on/off | **Captured & implemented** (`0x35`) |
-| **Phase Invert** | 180 degree polarity flip | Visible in screenshots; protocol unknown |
+| **Phase Invert** | 180 degree polarity flip | **Captured & implemented** (`0x36`) |
 | **Compressor** | Per-output: Threshold, Attack, Ratio, Release, Knee | Visible in screenshots & manual; protocol unknown |
 | **Output Delay** | Per-output, configurable in ms / meters / feet | Visible in screenshots & manual; protocol unknown |
 | **Level Meter** | Real-time level with clip + limiter active indicators | **Captured & implemented** (`0x40`, limiter bitmask at byte 25) |
@@ -165,6 +165,7 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 ### Captured & implemented in our Python tool:
 - Gain (input + output)
 - Mute (input + output)
+- Phase invert (input + output)
 - Level metering (8 channels + limiter indicators)
 - Config read (9 pages)
 - Preset name reading (30 slots)
@@ -181,6 +182,5 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 - Noise Gate (input)
 - Compressor settings (output)
 - Output Delay
-- Phase Invert
 - Test Tone Generator
 - Device Lock/Password (careful. DO NOT TOUCH! could lock us out.)
