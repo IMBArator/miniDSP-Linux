@@ -1,0 +1,11 @@
+[capture]
+file = "capture_20260405_003445_output_channel_phase_invert.pcapng"
+format = "pcapng"
+created = "2026-04-05T00:35:13"
+source_machine = "windows"
+interface = "\\\\.\\USBPcap1"
+device_address = 14
+
+[description]
+feature = "output channel phase invert"
+notes = "captured output channel 4 pahse invert selection and restartet application"
