@@ -1,0 +1,11 @@
+[capture]
+file = "capture_20260405_010640_output_channel_gate_release.pcapng"
+format = "pcapng"
+created = "2026-04-05T01:07:12"
+source_machine = "windows"
+interface = "\\\\.\\USBPcap1"
+device_address = 14
+
+[description]
+feature = "output channel gate release"
+notes = "captured input channel 3 gate release configuration 1ms to 3000ms and restartet application"

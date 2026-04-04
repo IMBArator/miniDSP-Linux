@@ -1,0 +1,11 @@
+[capture]
+file = "capture_20260405_010241_output_channel_gate_attack.pcapng"
+format = "pcapng"
+created = "2026-04-05T01:03:23"
+source_machine = "windows"
+interface = "\\\\.\\USBPcap1"
+device_address = 14
+
+[description]
+feature = "output channel gate attack"
+notes = "captured input channel 3 gate attack configuration 1ms to 999ms and restartet application"

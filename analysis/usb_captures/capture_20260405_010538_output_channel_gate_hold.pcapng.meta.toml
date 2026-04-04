@@ -1,0 +1,11 @@
+[capture]
+file = "capture_20260405_010538_output_channel_gate_hold.pcapng"
+format = "pcapng"
+created = "2026-04-05T01:06:10"
+source_machine = "windows"
+interface = "\\\\.\\USBPcap1"
+device_address = 14
+
+[description]
+feature = "output channel gate hold"
+notes = "captured input channel 3 gate hold configuration 10ms to 999ms and restartet application"

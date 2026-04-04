@@ -1,0 +1,11 @@
+[capture]
+file = "capture_20260405_010105_output_channel_gate_threshold.pcapng"
+format = "pcapng"
+created = "2026-04-05T01:01:47"
+source_machine = "windows"
+interface = "\\\\.\\USBPcap1"
+device_address = 14
+
+[description]
+feature = "output channel gate threshold"
+notes = "captured input channel 3 gate threshold configuration -90.0dB to +0.0dB and restartet application"
