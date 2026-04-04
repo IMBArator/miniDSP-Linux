@@ -144,6 +144,12 @@ def main() -> None:
                            help="Only detect device and list interfaces, don't capture")
     p_capture.set_defaults(func=cmd_capture)
 
+    # --- diff-config ---
+    p_diff = sub.add_parser("diff-config",
+                            help="Compare config reads within a capture to find changed bytes")
+    p_diff.add_argument("file", help="Path to capture file with multiple config reads")
+    p_diff.set_defaults(func=cmd_diff_config)
+
     # --- list-captures ---
     p_list = sub.add_parser("list-captures", help="List captures with metadata summaries")
     p_list.add_argument("directory", nargs="?", default="analysis/usb_captures",
@@ -199,6 +205,25 @@ def cmd_list_captures(args: argparse.Namespace) -> None:
             print(f"  {cap.name}")
             print(f"    (no metadata — run 'dspanalyze analyze' to generate)")
         print()
+
+
+def cmd_diff_config(args: argparse.Namespace) -> None:
+    """Compare config page reads within a capture."""
+    from dspanalyze.config import load_config
+    from dspanalyze.decode import decode_packets
+    from dspanalyze.diff_config import diff_config_reads, extract_config_reads
+    from dspanalyze.readers import read_capture
+
+    config = load_config()
+    packets = read_capture(args.file)
+
+    if not packets:
+        print(f"No HID packets found in {args.file}", file=sys.stderr)
+        sys.exit(1)
+
+    commands = decode_packets(packets, config)
+    reads = extract_config_reads(commands)
+    print(diff_config_reads(reads))
 
 
 def cmd_capture(args: argparse.Namespace) -> None:

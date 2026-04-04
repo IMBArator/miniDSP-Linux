@@ -2,7 +2,7 @@ VENV := .venv
 PYTHON := $(VENV)/bin/python
 CAPTURES := analysis/usb_captures
 
-.PHONY: install test analyze analyze-raw analyze-no-poll analyze-all check-all list-captures capture-enable capture-disable
+.PHONY: install test analyze analyze-raw analyze-no-poll analyze-all check-all diff-config list-captures capture-enable capture-disable
 
 install:
 	$(PYTHON) -m pip install -e ".[dev]"
@@ -29,6 +29,10 @@ analyze-human:
 # Summary only
 analyze-summary:
 	$(PYTHON) -m dspanalyze analyze "$(FILE)" --format claude --decode --summary
+
+# Compare config reads within a capture to find changed bytes
+diff-config:
+	$(PYTHON) -m dspanalyze diff-config "$(FILE)"
 
 # Analyze all captures (summaries only to avoid flooding)
 analyze-all:
