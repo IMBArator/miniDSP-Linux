@@ -46,12 +46,16 @@ check-all:
 		$(PYTHON) -m dspanalyze check "$$f" --assertion all 2>/dev/null || true; \
 	done
 
-# Grant dumpcap the capabilities needed for non-root USB capture
+# Load usbmon, grant access, and enable dumpcap capabilities for non-root USB capture
 capture-enable:
+	sudo modprobe usbmon
+	sudo chgrp $(shell id -gn) /dev/usbmon*
+	sudo chmod g+r /dev/usbmon*
 	sudo setcap cap_net_raw,cap_net_admin=eip /usr/sbin/dumpcap
-	@echo "dumpcap capture capabilities enabled"
+	@echo "USB capture enabled (usbmon loaded, devices accessible, dumpcap caps set)"
 
-# Remove capture capabilities from dumpcap
+# Remove dumpcap capabilities and unload usbmon
 capture-disable:
 	sudo setcap -r /usr/sbin/dumpcap
-	@echo "dumpcap capture capabilities removed"
+	sudo modprobe -r usbmon
+	@echo "USB capture disabled (dumpcap caps removed, usbmon unloaded)"
