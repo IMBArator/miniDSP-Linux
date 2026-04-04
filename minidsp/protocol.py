@@ -206,10 +206,12 @@ OP_CONFIG_RESP = 0x24
 _PRESET_INPUT_START = 16    # 4 × 24-byte input blocks
 _INPUT_BLOCK_SIZE = 24
 _INPUT_GAIN_OFFSET = 18     # uint16 LE within input block
+_INPUT_PHASE_OFFSET = 20    # 0x00=normal, 0x01=inverted
 
 _PRESET_OUTPUT_START = 112  # 4 × 74-byte output blocks
 _OUTPUT_BLOCK_SIZE = 74
 _OUTPUT_GAIN_OFFSET = 66    # uint16 LE within output block
+_OUTPUT_PHASE_OFFSET = 68   # 0x00=normal, 0x01=inverted
 
 # Mute bitmasks in the config footer (after channel blocks)
 _INPUT_MUTE_BITMASK_OFFSET = 408   # uint16 LE, bit 0=In1 .. bit 3=In4
@@ -231,32 +233,37 @@ def parse_config_page(payload: bytes) -> tuple[int, bytes] | None:
 
 
 def parse_preset_params(config_data: bytes) -> dict | None:
-    """Extract gain and mute for all 8 channels from stitched config data.
+    """Extract gain, mute, and phase for all 8 channels from stitched config data.
 
     config_data: 450 bytes (9 pages × 50 bytes) from read_config().
-    Returns dict with 'gains' (list[8], raw 0–400) and 'mutes' (list[8], bool).
+    Returns dict with 'gains' (list[8], raw 0–400), 'mutes' (list[8], bool),
+    and 'phases' (list[8], bool — True=inverted).
     Channel order: inputs 0–3, outputs 4–7.
 
     Mute state is read from bitmasks in the config footer (offsets 408-411),
-    not from the per-channel blocks. Verified against startup captures with
-    In4+Out4 muted vs unmuted.
+    not from the per-channel blocks. Phase is per-channel: input block byte 20,
+    output block byte 68.
     """
     if len(config_data) < _OUTPUT_MUTE_BITMASK_OFFSET + 2:
         return None
 
     gains: list[int] = []
     mutes: list[bool] = []
+    phases: list[bool] = []
 
-    # Gain: per-channel blocks
+    # Input channels: gain + phase from per-channel blocks
     for i in range(4):
         base = _PRESET_INPUT_START + i * _INPUT_BLOCK_SIZE
         gain = config_data[base + _INPUT_GAIN_OFFSET] + config_data[base + _INPUT_GAIN_OFFSET + 1] * 256
         gains.append(gain)
+        phases.append(bool(config_data[base + _INPUT_PHASE_OFFSET]))
 
+    # Output channels: gain + phase from per-channel blocks
     for i in range(4):
         base = _PRESET_OUTPUT_START + i * _OUTPUT_BLOCK_SIZE
         gain = config_data[base + _OUTPUT_GAIN_OFFSET] + config_data[base + _OUTPUT_GAIN_OFFSET + 1] * 256
         gains.append(gain)
+        phases.append(bool(config_data[base + _OUTPUT_PHASE_OFFSET]))
 
     # Mute: bitmasks in config footer
     input_mute_mask = config_data[_INPUT_MUTE_BITMASK_OFFSET] + config_data[_INPUT_MUTE_BITMASK_OFFSET + 1] * 256
@@ -267,7 +274,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     for i in range(4):
         mutes.append(bool(output_mute_mask & (1 << i)))
 
-    return {"gains": gains, "mutes": mutes}
+    return {"gains": gains, "mutes": mutes, "phases": phases}
 
 
 # --- Gain conversion ---
