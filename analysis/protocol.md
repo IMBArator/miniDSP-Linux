@@ -35,6 +35,7 @@ Reverse-engineered from Wireshark USBPcap sessions (all in `usb_captures/`):
 
 **Phase invert:**
 - `capture_20260405_000924_input_channel_phase_invert.pcapng` — InC phase toggled normal↔inverted (opcode 0x36 discovery)
+- `capture_20260405_003445_output_channel_phase_invert.pcapng` — Out4 phase toggled (confirms 0x36 works for outputs, config byte 68 in output block)
 
 **Other:**
 - `miniDSP USBTree output.txt` — USB device descriptor (VID/PID/endpoints)
@@ -809,7 +810,8 @@ Offset  Size  Field
 62–63    2    Always 0x0000
 64–65    2    Unknown (49 = 0x0031)
 66–67    2    **Output gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
-68–69    2    Always 0x00 (mute state is NOT here — see footer bitmasks)
+68       1    **Phase invert**: 0x00=normal, 0x01=inverted (same as 0x36 command)
+69       1    Always 0x00 (mute state is NOT here — see footer bitmasks)
 70–71    2    Unknown (280 = 0x0118 in default, 40 in modified Out1)
 72       1    Routing/link flags (same scheme as input)
 73       1    Always 0x00

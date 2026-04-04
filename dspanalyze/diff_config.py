@@ -41,7 +41,8 @@ _OUTPUT_FIELDS = [
     (14, 28, "peq_bands"),
     (42, 2, "unknown_post_peq_a"),
     (66, 2, "gain"),
-    (68, 2, "unknown_post_gain"),
+    (68, 1, "phase"),
+    (69, 1, "unknown_post_gain"),
     (70, 2, "unknown_tail"),
 ]
 
