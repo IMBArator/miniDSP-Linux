@@ -24,6 +24,7 @@ from .protocol import (
     cmd_gain,
     cmd_init,
     cmd_mute,
+    cmd_phase,
     cmd_poll,
     cmd_preset_header,
     cmd_preset_index,
@@ -160,6 +161,17 @@ class DSPmini:
         Returns True if the device ACK'd.
         """
         payload = self._send_recv(cmd_gain(channel, raw_value))
+        if payload is None:
+            return False
+        return is_ack(payload)
+
+    def set_phase(self, channel: int, inverted: bool) -> bool:
+        """Set phase invert for a channel (unified index: inputs 0-3, outputs 4-7).
+
+        inverted: True=180° inverted, False=normal.
+        Returns True if the device ACK'd.
+        """
+        payload = self._send_recv(cmd_phase(channel, inverted))
         if payload is None:
             return False
         return is_ack(payload)
