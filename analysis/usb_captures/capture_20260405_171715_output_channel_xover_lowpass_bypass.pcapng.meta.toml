@@ -1,0 +1,11 @@
+[capture]
+file = "capture_20260405_171715_output_channel_xover_lowpass_bypass.pcapng"
+format = "pcapng"
+created = "2026-04-05T17:17:41"
+source_machine = "windows"
+interface = "\\\\.\\USBPcap1"
+device_address = 13
+
+[description]
+feature = "output channel xover lowpass bypass"
+notes = "captured output channel 3 xover low pass bypass; change bypassed to not bypassed to bypassed to not bypassed (bypass enabled is default); restartet application"
