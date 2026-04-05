@@ -1,0 +1,11 @@
+[capture]
+file = "capture_20260405_171114_output_channel_xover_lowpass.pcapng"
+format = "pcapng"
+created = "2026-04-05T17:11:51"
+source_machine = "windows"
+interface = "\\\\.\\USBPcap1"
+device_address = 13
+
+[description]
+feature = "output channel xover lowpass"
+notes = "captured output channel 3 xover low pass max to min to max to min (the default value max frequency) and restartet application"

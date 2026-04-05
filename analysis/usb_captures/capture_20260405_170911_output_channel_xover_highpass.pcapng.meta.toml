@@ -1,0 +1,11 @@
+[capture]
+file = "capture_20260405_170911_output_channel_xover_highpass.pcapng"
+format = "pcapng"
+created = "2026-04-05T17:09:46"
+source_machine = "windows"
+interface = "\\\\.\\USBPcap1"
+device_address = 13
+
+[description]
+feature = "output channel xover"
+notes = "captured output channel 3 xover high pass min to max to min to max and restartet application"
