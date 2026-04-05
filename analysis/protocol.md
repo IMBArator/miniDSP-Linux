@@ -44,6 +44,7 @@ Reverse-engineered from Wireshark USBPcap sessions (all in `usb_captures/`):
 - `capture_20260405_010640_output_channel_gate_release.pcapng` — InC gate release swept 1→3000 ms
 - `capture_20260405_011619_output_channel_gate_threshold_2.pcapng` — InC threshold (disambiguated: bytes 8-9)
 - `capture_20260405_011722_output_channel_gate_attack_2.pcapng` — InC attack (disambiguated: bytes 2-3)
+- `capture_20260405_122541_output_channel_gate_all_params.pcapng` — InC all 4 params swept min→max→min→max (corrected hold min=9, release min=0)
 
 **Other:**
 - `miniDSP USBTree output.txt` — USB device descriptor (VID/PID/endpoints)
@@ -691,8 +692,8 @@ All parameters are uint16 LE.
 | Field | Bytes | Raw Range | UI Range | Formula |
 |---|---|---|---|---|
 | Attack | 2–3 | 34–998 | 1–999 ms | ~1:1 (raw ≈ ms) |
-| Release | 4–5 | 103–2999 | 1–3000 ms | ~1:1 (raw ≈ ms) |
-| Hold | 6–7 | 43–998 | 10–999 ms | ~1:1 (raw ≈ ms) |
+| Release | 4–5 | 0–2999 | 0–3000 ms | ~1:1 (raw ≈ ms) |
+| Hold | 6–7 | 9–998 | 10–999 ms | ~1:1 (raw ≈ ms) |
 | Threshold | 8–9 | 1–180 | −90.0 to 0.0 dB | dB = raw × 0.5 − 90.0 |
 
 **Channel byte:** input channels only (0x00–0x03).
@@ -800,8 +801,8 @@ Offset  Size  Field
  0       3    Channel name (ASCII: "InA", "InB", "InC", "InD")
  3       7    Zero padding
 10–11    2    **Gate attack**, LE uint16, raw 34–998 (1–999 ms, same as 0x3E command)
-12–13    2    **Gate release**, LE uint16, raw 103–2999 (1–3000 ms)
-14–15    2    **Gate hold**, LE uint16, raw 43–998 (10–999 ms)
+12–13    2    **Gate release**, LE uint16, raw 0–2999 (0–3000 ms)
+14–15    2    **Gate hold**, LE uint16, raw 9–998 (10–999 ms)
 16–17    2    **Gate threshold**, LE uint16, raw 1–180 (−90.0 to 0.0 dB, 0.5 dB/step)
 18–19    2    **Input gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
 20       1    **Phase invert**: 0x00=normal, 0x01=inverted (same as 0x36 command)

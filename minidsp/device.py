@@ -183,8 +183,8 @@ class DSPmini:
 
         channel: 0-indexed input (0–3)
         attack: raw 34–998 (1–999 ms)
-        release: raw 103–2999 (1–3000 ms)
-        hold: raw 43–998 (10–999 ms)
+        release: raw 0–2999 (0–3000 ms)
+        hold: raw 9–998 (10–999 ms)
         threshold: raw 1–180 (−90.0 to 0.0 dB, 0.5 dB/step)
         Returns True if the device ACK'd.
         """

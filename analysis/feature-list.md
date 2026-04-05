@@ -33,8 +33,8 @@ Compiled from: manufacturer tool screenshots (`analysis/resources/`), PDF user m
 **Gate parameters:**
 - Threshold: -90.0 to 0.0 dB
 - Attack: 1 to 999 ms
-- Hold: 10 to 999 ms
-- Release: 1 to 3000 ms
+- Hold: 10 to 999 ms (raw 9–998)
+- Release: 0 to 3000 ms (raw 0–2999)
 
 **Signal chain (from Matrix tab):** GAIN -> GATE -> PHASE -> MUTE -> routing matrix
 

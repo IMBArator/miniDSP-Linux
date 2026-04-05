@@ -235,8 +235,8 @@ verified = true
 [opcodes.0x3e.fields.request]
 channel = { offset = 1, size = 1, format = "channel" }
 attack = { offset = 2, size = 2, format = "gate_time", note = "raw 34-998, maps to 1-999 ms" }
-release = { offset = 4, size = 2, format = "gate_time", note = "raw 103-2999, maps to 1-3000 ms" }
-hold = { offset = 6, size = 2, format = "gate_time", note = "raw 43-998, maps to 10-999 ms" }
+release = { offset = 4, size = 2, format = "gate_time", note = "raw 0-2999, maps to 0-3000 ms" }
+hold = { offset = 6, size = 2, format = "gate_time", note = "raw 9-998, maps to 10-999 ms" }
 threshold = { offset = 8, size = 2, format = "gate_threshold", note = "raw 1-180, -90.0 to 0.0 dB" }
 
 [opcodes.0x3a]
