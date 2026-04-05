@@ -1,16 +1,16 @@
 [capture]
-file = "capture_20260405_010538_output_channel_gate_hold.pcapng"
+file = "capture_20260405_011619_output_channel_gate_threshold_2.pcapng"
 format = "pcapng"
 
 [description]
-feature = "output channel gate hold"
-notes = "captured input channel 3 gate hold configuration 10ms to 999ms and restartet application"
+feature = "output channel gate threshold 2"
+notes = "captured input channel 3 gate threshold configuration -90.0dB to +0.0dB and restartet application"
 
 [analysis]
-packet_count = 366
-out_packets = 183
-in_packets = 183
-duration_seconds = 27.62
+packet_count = 648
+out_packets = 324
+in_packets = 324
+duration_seconds = 27.9
 opcodes_seen = [
     "0x01",
     "0x10",
@@ -27,13 +27,13 @@ opcodes_seen = [
 ]
 has_unknown_opcodes = true
 has_checksum_errors = false
-last_analyzed = "2026-04-05T01:10:09"
+last_analyzed = "2026-04-05T01:25:23"
 
 [analysis.opcode_counts]
-0x40 = 128
+0x01 = 182
+0x3e = 180
 0x29 = 120
-0x01 = 31
-0x3e = 29
+0x40 = 108
 0x27 = 18
 0x24 = 18
 0x10 = 4
