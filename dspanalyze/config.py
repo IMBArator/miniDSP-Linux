@@ -118,7 +118,7 @@ def convert_value(raw_value: int, fmt: str, config: ProtocolConfig) -> str:
         return f"{db:+.1f} dB"
 
     if fmt == "freq_log":
-        hz = 19.70 * (20160.0 / 19.70) ** (raw_value / 1000.0)
+        hz = 19.70 * (20160.0 / 19.70) ** (raw_value / 300.0)
         return f"{hz:.0f} Hz (raw {raw_value})"
 
     if fmt == "q_log":

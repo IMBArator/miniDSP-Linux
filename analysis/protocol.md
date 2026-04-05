@@ -49,6 +49,11 @@ Reverse-engineered from Wireshark USBPcap sessions (all in `usb_captures/`):
 **Output delay:**
 - `capture_20260405_123925_output_channel_delay.pcapng` — Out4 delay swept 0→680→0→680 ms (opcode 0x38 discovery, sample-based encoding)
 
+**Crossover filters:**
+- `capture_20260405_170911_output_channel_xover_highpass.pcapng` — Out3 hi-pass freq swept raw 0→300→0→300 (opcode 0x32, first capture verification on 4x4 Mini)
+- `capture_20260405_171114_output_channel_xover_lowpass.pcapng` — Out3 lo-pass freq swept raw 300→0→300→0 (opcode 0x31, confirmed config bytes 12–13)
+- `capture_20260405_174550_output_channel_xover_highpass_2.pcapng` — Out3 hi-pass to ~50% fader (raw 128 = 379 Hz, confirmed formula Hz = 19.70 × (20160/19.70)^(raw/300))
+
 **Other:**
 - `miniDSP USBTree output.txt` — USB device descriptor (VID/PID/endpoints)
 
@@ -509,8 +514,8 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x27` | 2 | OUT | Read config page | `27 [page]` — device responds `24 [page] [50 bytes]` |
 | `0x29` | 2 | OUT | Read preset name | `29 [slot]` — device responds `29 [slot] [14 char name]` |
 | `0x2c` | 1 | OUT | Device info | `2c` — device responds `2c` + 7 bytes |
-| `0x31` | 5 | OUT | Lo-pass filter | `31 [ch] [freq_lo] [freq_hi] [slope]` (*) |
-| `0x32` | 5 | OUT | Hi-pass filter | `32 [ch] [freq_lo] [freq_hi] [enable]` (*) |
+| `0x31` | 5 | OUT | Lo-pass filter | `31 [ch] [freq_lo] [freq_hi] [slope]` — log freq 0–1000 |
+| `0x32` | 5 | OUT | Hi-pass filter | `32 [ch] [freq_lo] [freq_hi] [byte4]` — log freq 0–1000 |
 | `0x33` | 10 | OUT | PEQ band | `33 [ch] [band] [gain] 00 [freq_lo] [freq_hi] [Q] [type] [bypass]` (*) |
 | `0x34` | 4 | OUT | Gain | `34 [ch] [val_lo] [val_hi]` — LE uint16, 0–400 |
 | `0x35` | 3 | OUT | Mute | `35 [ch] [state]` — 0x00=off, 0x01=on |
@@ -568,17 +573,27 @@ Payload (5 bytes): 48 [ch] [band] [value] 00
 Payload (5 bytes): 31 [ch] [freq_lo] [freq_hi] [slope]
 ```
 
-- **Frequency:** same log-scale LE uint16 as PEQ (0–1000). Set to 1000 (max) to disable.
-- **Slope** (byte, 0–19): `BW -6, BW -12, ..., BW -48, LR -12, LR -24, LR -36, LR -48, BS -6, ..., BS -48`
+- **Channel:** output channels 0x04–0x07
+- **Frequency:** log-scale LE uint16, raw 0–300 on 4x4 Mini. Hz = 19.70 × (20160/19.70)^(raw/300).
+  DSP 408 uses 0–1000 with /1000 denominator; same frequency range, fewer steps.
+- **Slope** (byte): captured as `0x00` = BW-6 on 4x4 Mini. dsp-408-ui defines 20 indices; 4x4 Mini has 10.
+- **Config storage:** output block bytes 12–13
+
+**Capture-verified:** Out3 freq swept raw 300→0→300→0 (slope=BW-6 throughout).
 
 ### 0x32 — Hi-Pass Crossover Filter
 
 ```
-Payload (5 bytes): 32 [ch] [freq_lo] [freq_hi] [enable]
+Payload (5 bytes): 32 [ch] [freq_lo] [freq_hi] [byte4]
 ```
 
-- **Frequency:** same log-scale LE uint16 as PEQ
-- **Enable:** `0x01`=on, `0x00`=off
+- **Channel:** output channels 0x04–0x07
+- **Frequency:** log-scale LE uint16, raw 0–300. Hz = 19.70 × (20160/19.70)^(raw/300).
+  Verified: raw 128 = 379.1 Hz (user reported 378.9 Hz at ~50% fader).
+- **Byte 4:** always `0x00` in captures. dsp-408-ui labels "enable" but could be slope. Needs investigation.
+- **Config storage:** output block bytes 10–11
+
+**Capture-verified:** Out3 freq swept raw 0→300→0→300 (byte4=0x00 throughout).
 
 ### 0x3a — Matrix Routing
 
@@ -757,7 +772,10 @@ Confirmed by diff-config comparing config page reads before/after:
       Captured: InC toggled normal↔inverted. InA+InB were already inverted.
 - [x] **Noise gate:** Opcode `0x3E` — 10-byte payload with attack/release/hold/threshold.
       Config stored at input block bytes 10–17 (4 × uint16 LE). 6 captures verified.
-- [ ] **Verify PEQ/GEQ/crossover/routing on 4x4 Mini:** Commands from `dsp-408-ui`
+- [x] **Crossover filters:** Opcodes `0x31`/`0x32` capture-verified on 4x4 Mini.
+      Raw 0–300 maps to 19.7–20160 Hz via Hz = 19.70 × (20160/19.70)^(raw/300).
+      DSP 408 uses 0–1000; same range, different step count.
+- [ ] **Verify PEQ/GEQ/routing on 4x4 Mini:** Commands from `dsp-408-ui`
       need capture verification on our device.
 
 ---
@@ -864,8 +882,8 @@ Offset  Size  Field
  4       4    Zero padding
  8       1    Routing byte (Out1=0x01, Out2=0x02, Out3=0x04, Out4=0x08)
  9       1    Always 0x00
-10–11    2    Parameter A, LE uint16 (Out1/2=20, Out3/4=0)
-12–13    2    Always 300 (0x012C) — possibly compressor threshold
+10–11    2    **Crossover hi-pass freq**, LE uint16, raw 0–300 (same as 0x32 command)
+12–13    2    **Crossover lo-pass freq**, LE uint16, raw 0–300 (same as 0x31 command, default 300 = 20.16 kHz)
 14–15    2    Parameter B, LE uint16 (Out1/2=10, Out3/4=0)
 16–17    2    Crossover/filter param (Out1/2=203, Out3/4=120)
 18–19    2    Crossover/filter param (Out1/2=89, Out3/4=31)
@@ -905,8 +923,8 @@ The fixed file size of 13010 bytes is likely a firmware/software requirement.
 - [x] ~~Mute state location~~ → Footer bitmasks at preset offsets 408–409 (input) and 410–411 (output), NOT in per-channel blocks. Verified by comparing startup captures with In4+Out4 muted vs unmuted.
 - [x] ~~Input block bytes 10–17~~ → Noise gate parameters: attack (10–11), release (12–13), hold (14–15), threshold (16–17), all LE uint16
 - [ ] Output EQ band count and parameter mapping (frequency in Hz, gain in dB, Q factor)
-- [ ] Whether output block bytes 12–13 (always 300) represent compressor threshold
+- [x] ~~Output block bytes 12–13 (always 300)~~ → Lo-pass crossover frequency (raw 300 = 20.16 kHz = default/max)
 - [ ] Purpose of the "4x4D Amplifier" product string vs "Dsp Process" USB string
 - [ ] Whether the file can hold more than 2 presets (count byte at 0x11)
-- [ ] Crossover type/slope encoded in Out1/Out2 extra parameters
+- [x] ~~Crossover type/slope~~ → bytes 10–11 = hi-pass freq, 12–13 = lo-pass freq. Slope sent as byte 4 in 0x31 command (not stored separately in config?)
 - [x] ~~Output block bytes 70–71~~ → Output delay in samples at 48 kHz (uint16 LE, 0–32640 = 0–680 ms)

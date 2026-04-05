@@ -1,0 +1,11 @@
+[capture]
+file = "capture_20260405_174550_output_channel_xover_highpass_2.pcapng"
+format = "pcapng"
+created = "2026-04-05T17:46:16"
+source_machine = "windows"
+interface = "\\\\.\\USBPcap1"
+device_address = 13
+
+[description]
+feature = "output channel xover highpass 2"
+notes = "captured output channel 3 xover high pass min to ~50% of fader equals 378.9Hz"

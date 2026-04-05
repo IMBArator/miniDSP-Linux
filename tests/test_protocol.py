@@ -10,6 +10,8 @@ from minidsp.protocol import (
     cmd_delay,
     cmd_gain,
     cmd_gate,
+    cmd_hipass,
+    cmd_lopass,
     cmd_mute,
     cmd_phase,
     cmd_poll,
@@ -131,6 +133,43 @@ def test_cmd_gain():
     assert frame[6] == 0x02
     assert frame[7] == 0x90  # 400 & 0xFF
     assert frame[8] == 0x01  # 400 >> 8
+
+
+def test_cmd_lopass():
+    # Out3 (channel 6), freq raw 300 (20160 Hz max), slope BW-6 (0)
+    # Verified from capture: 31 06 2c 01 00
+    frame = cmd_lopass(6, 300, 0)
+    assert frame[5] == 0x31   # opcode
+    assert frame[6] == 0x06   # channel (Out3)
+    assert frame[7] == 0x2C   # 300 & 0xFF
+    assert frame[8] == 0x01   # 300 >> 8
+    assert frame[9] == 0x00   # slope BW-6
+
+    # Clamping: above 300 should clamp to 300
+    frame = cmd_lopass(6, 9999)
+    assert frame[7] == 0x2C   # 300 & 0xFF
+    assert frame[8] == 0x01   # 300 >> 8
+
+
+def test_cmd_hipass():
+    # Out3 (channel 6), freq raw 128 (~379 Hz, verified from UI at ~50% fader)
+    # Capture payload: 32 06 80 00 00
+    frame = cmd_hipass(6, 128, 0)
+    assert frame[5] == 0x32   # opcode
+    assert frame[6] == 0x06   # channel (Out3)
+    assert frame[7] == 0x80   # 128 & 0xFF
+    assert frame[8] == 0x00   # 128 >> 8
+    assert frame[9] == 0x00   # enable/byte4
+
+    # Max frequency: raw 300 (20160 Hz)
+    frame = cmd_hipass(6, 300)
+    assert frame[7] == 0x2C   # 300 & 0xFF
+    assert frame[8] == 0x01   # 300 >> 8
+
+    # Min frequency: raw 0 (19.7 Hz)
+    frame = cmd_hipass(6, 0)
+    assert frame[7] == 0x00
+    assert frame[8] == 0x00
 
 
 def test_cmd_delay():
@@ -334,6 +373,11 @@ def test_parse_preset_params_from_unt():
         assert "threshold" in gate
     # Delay should be present for 4 output channels
     assert len(result["delays"]) == 4
+    # Crossover should be present for 4 output channels
+    assert len(result["crossovers"]) == 4
+    for xover in result["crossovers"]:
+        assert "hipass" in xover
+        assert "lopass" in xover
 
 
 def test_parse_preset_params_modified():

@@ -94,8 +94,8 @@ The 4x4 Mini has PEQ on output channels only (no GEQ, no input EQ).
 
 | Feature | Details                                       | Protocol Status |
 |---|-----------------------------------------------|---|
-| **High-Pass** | 19.7 Hz to 20.16 kHz, Per-output, with bypass | Protocol: likely `0x32`; NOT yet captured |
-| **Low-Pass** | 19.7 Hz to 20.16 kHz, Per-output, with bypass | Protocol: likely `0x31`; NOT yet captured |
+| **High-Pass** | 19.7 Hz to 20.16 kHz, Per-output, with bypass | **Captured & implemented** (`0x32`, raw 0–300) |
+| **Low-Pass** | 19.7 Hz to 20.16 kHz, Per-output, with bypass | **Captured & implemented** (`0x31`, raw 0–300) |
 
 **Slope types (from screenshots, 10 options):**
 | Slope | Types available |
@@ -168,6 +168,7 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 - Phase invert (input + output)
 - Noise gate (input: attack, release, hold, threshold)
 - Output delay (0–680 ms, sample-based)
+- Crossover hi/lo pass (raw 0–300, 19.7 Hz–20.16 kHz)
 - Level metering (8 channels + limiter indicators)
 - Config read (9 pages)
 - Preset name reading (30 slots)
@@ -175,7 +176,6 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 
 ### Protocol likely known but NOT yet or not fully captured on our device:
 - PEQ (`0x33`) - 7 bands per output
-- Crossover hi/lo pass (`0x32`/`0x31`)
 - Matrix routing (`0x3a`)
 - Preset load/store (`0x20`/`0x21`/`0x26`)
 - Channel linking (`0x3b`/`0x2a`)

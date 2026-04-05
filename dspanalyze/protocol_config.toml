@@ -161,8 +161,8 @@ verified = true
 [opcodes.0x31]
 name = "lopass_crossover"
 direction = "out"
-description = "Low-pass crossover filter (freq=1000 disables)"
-verified = false
+description = "Low-pass crossover filter (log freq 0-1000, slope index)"
+verified = true
 
 [opcodes.0x31.fields.request]
 channel = { offset = 1, size = 1, format = "channel" }
@@ -172,8 +172,8 @@ slope = { offset = 4, size = 1, format = "slope_index" }
 [opcodes.0x32]
 name = "hipass_crossover"
 direction = "out"
-description = "High-pass crossover filter"
-verified = false
+description = "High-pass crossover filter (log freq 0-1000)"
+verified = true
 
 [opcodes.0x32.fields.request]
 channel = { offset = 1, size = 1, format = "channel" }
@@ -347,9 +347,9 @@ values = { "0" = "Peak", "1" = "Low Shelf", "2" = "High Shelf", "3" = "LP-6", "4
 [formats.freq_log]
 type = "uint16le"
 min = 0
-max = 1000
+max = 300
 unit = "Hz"
-note = "Hz = 19.70 * (20160/19.70)^(raw/1000)"
+note = "Hz = 19.70 * (20160/19.70)^(raw/300). 4x4 Mini uses 0-300 (DSP 408 uses 0-1000)."
 
 [formats.q_log]
 type = "uint8"

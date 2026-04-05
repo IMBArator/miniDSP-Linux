@@ -24,7 +24,9 @@ from .protocol import (
     cmd_delay,
     cmd_gain,
     cmd_gate,
+    cmd_hipass,
     cmd_init,
+    cmd_lopass,
     cmd_mute,
     cmd_phase,
     cmd_poll,
@@ -174,6 +176,32 @@ class DSPmini:
         Returns True if the device ACK'd.
         """
         payload = self._send_recv(cmd_phase(channel, inverted))
+        if payload is None:
+            return False
+        return is_ack(payload)
+
+    def set_lopass(self, channel: int, freq_raw: int, slope: int = 0) -> bool:
+        """Set low-pass crossover frequency for an output channel.
+
+        channel: unified index (outputs 4–7)
+        freq_raw: 0–300 (log scale, Hz = 19.70 × (20160/19.70)^(raw/300), 19.7 Hz–20.16 kHz)
+        slope: filter slope index (0=BW-6)
+        Returns True if the device ACK'd.
+        """
+        payload = self._send_recv(cmd_lopass(channel, freq_raw, slope))
+        if payload is None:
+            return False
+        return is_ack(payload)
+
+    def set_hipass(self, channel: int, freq_raw: int, enable: int = 0) -> bool:
+        """Set high-pass crossover frequency for an output channel.
+
+        channel: unified index (outputs 4–7)
+        freq_raw: 0–300 (log scale, Hz = 19.70 × (20160/19.70)^(raw/300), 19.7 Hz–20.16 kHz)
+        enable: byte 4 (0x00 observed, purpose TBD)
+        Returns True if the device ACK'd.
+        """
+        payload = self._send_recv(cmd_hipass(channel, freq_raw, enable))
         if payload is None:
             return False
         return is_ack(payload)

@@ -22,6 +22,8 @@ OP_PRESET_HEADER = 0x22
 OP_READ_CONFIG = 0x27
 OP_READ_NAME = 0x29
 OP_DEVICE_INFO = 0x2C
+OP_LOPASS = 0x31
+OP_HIPASS = 0x32
 OP_GAIN = 0x34
 OP_MUTE = 0x35
 OP_PHASE = 0x36
@@ -79,6 +81,32 @@ def parse_frame(data: bytes) -> tuple[int, int, int, bytes] | None:
 def cmd_poll() -> bytes:
     """Build a level-poll command (0x40)."""
     return build_frame(bytes([OP_POLL]))
+
+
+def cmd_lopass(channel: int, freq_raw: int, slope: int = 0) -> bytes:
+    """Build a low-pass crossover command (0x31).
+
+    channel: unified index (outputs 0x04–0x07)
+    freq_raw: 0–300 (log scale, Hz = 19.70 × (20160/19.70)^(raw/300), 19.7 Hz–20.16 kHz)
+    slope: filter slope index (0=BW-6, see protocol_config.toml)
+    """
+    freq_raw = max(0, min(300, freq_raw))
+    lo = freq_raw & 0xFF
+    hi = (freq_raw >> 8) & 0xFF
+    return build_frame(bytes([OP_LOPASS, channel, lo, hi, slope]))
+
+
+def cmd_hipass(channel: int, freq_raw: int, enable: int = 0) -> bytes:
+    """Build a high-pass crossover command (0x32).
+
+    channel: unified index (outputs 0x04–0x07)
+    freq_raw: 0–300 (log scale, Hz = 19.70 × (20160/19.70)^(raw/300), 19.7 Hz–20.16 kHz)
+    enable: byte 4 (0x00 observed in captures, purpose TBD)
+    """
+    freq_raw = max(0, min(300, freq_raw))
+    lo = freq_raw & 0xFF
+    hi = (freq_raw >> 8) & 0xFF
+    return build_frame(bytes([OP_HIPASS, channel, lo, hi, enable]))
 
 
 def cmd_mute(channel: int, mute: bool) -> bytes:
@@ -246,6 +274,8 @@ _INPUT_PHASE_OFFSET = 20    # 0x00=normal, 0x01=inverted
 
 _PRESET_OUTPUT_START = 112  # 4 × 74-byte output blocks
 _OUTPUT_BLOCK_SIZE = 74
+_OUTPUT_HIPASS_OFFSET = 10  # uint16 LE, crossover hi-pass freq (raw 0–300 on 4x4 Mini)
+_OUTPUT_LOPASS_OFFSET = 12  # uint16 LE, crossover lo-pass freq (raw 0–300 on 4x4 Mini)
 _OUTPUT_GAIN_OFFSET = 66    # uint16 LE within output block
 _OUTPUT_PHASE_OFFSET = 68   # 0x00=normal, 0x01=inverted
 _OUTPUT_DELAY_OFFSET = 70   # uint16 LE, raw 0–32640 (samples at 48 kHz, 0–680 ms)
@@ -277,8 +307,9 @@ def parse_preset_params(config_data: bytes) -> dict | None:
       'gains' (list[8], raw 0–400), 'mutes' (list[8], bool),
       'phases' (list[8], bool — True=inverted),
       'gates' (list[4], dict with attack/release/hold/threshold raw values),
-      'delays' (list[4], int — raw samples 0–32640, ms = raw / 48).
-    Channel order: inputs 0–3, outputs 4–7 (gates input-only, delays output-only).
+      'delays' (list[4], int — raw samples 0–32640, ms = raw / 48),
+      'crossovers' (list[4], dict with hipass/lopass raw freq 0–300).
+    Channel order: inputs 0–3, outputs 4–7 (gates input-only; delays, crossovers output-only).
     """
     if len(config_data) < _OUTPUT_MUTE_BITMASK_OFFSET + 2:
         return None
@@ -288,6 +319,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     phases: list[bool] = []
     gates: list[dict[str, int]] = []
     delays: list[int] = []
+    crossovers: list[dict[str, int]] = []
 
     # Input channels: gain, phase, gate from per-channel blocks
     for i in range(4):
@@ -302,13 +334,17 @@ def parse_preset_params(config_data: bytes) -> dict | None:
             "threshold": config_data[base + _INPUT_GATE_THRESH_OFFSET] + config_data[base + _INPUT_GATE_THRESH_OFFSET + 1] * 256,
         })
 
-    # Output channels: gain, phase, delay from per-channel blocks
+    # Output channels: gain, phase, delay, crossover from per-channel blocks
     for i in range(4):
         base = _PRESET_OUTPUT_START + i * _OUTPUT_BLOCK_SIZE
         gain = config_data[base + _OUTPUT_GAIN_OFFSET] + config_data[base + _OUTPUT_GAIN_OFFSET + 1] * 256
         gains.append(gain)
         phases.append(bool(config_data[base + _OUTPUT_PHASE_OFFSET]))
         delays.append(config_data[base + _OUTPUT_DELAY_OFFSET] + config_data[base + _OUTPUT_DELAY_OFFSET + 1] * 256)
+        crossovers.append({
+            "hipass": config_data[base + _OUTPUT_HIPASS_OFFSET] + config_data[base + _OUTPUT_HIPASS_OFFSET + 1] * 256,
+            "lopass": config_data[base + _OUTPUT_LOPASS_OFFSET] + config_data[base + _OUTPUT_LOPASS_OFFSET + 1] * 256,
+        })
 
     # Mute: bitmasks in config footer
     input_mute_mask = config_data[_INPUT_MUTE_BITMASK_OFFSET] + config_data[_INPUT_MUTE_BITMASK_OFFSET + 1] * 256
@@ -319,7 +355,8 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     for i in range(4):
         mutes.append(bool(output_mute_mask & (1 << i)))
 
-    return {"gains": gains, "mutes": mutes, "phases": phases, "gates": gates, "delays": delays}
+    return {"gains": gains, "mutes": mutes, "phases": phases, "gates": gates,
+            "delays": delays, "crossovers": crossovers}
 
 
 # --- Gain conversion ---
