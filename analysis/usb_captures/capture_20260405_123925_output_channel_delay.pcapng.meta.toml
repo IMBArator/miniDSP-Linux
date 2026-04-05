@@ -1,0 +1,11 @@
+[capture]
+file = "capture_20260405_123925_output_channel_delay.pcapng"
+format = "pcapng"
+created = "2026-04-05T12:40:33"
+source_machine = "windows"
+interface = "\\\\.\\USBPcap1"
+device_address = 13
+
+[description]
+feature = "output channel delay"
+notes = "captured output channel 4 delay all params min to max to min to max and restart application"
