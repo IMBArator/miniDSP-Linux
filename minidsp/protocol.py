@@ -25,6 +25,7 @@ OP_DEVICE_INFO = 0x2C
 OP_GAIN = 0x34
 OP_MUTE = 0x35
 OP_PHASE = 0x36
+OP_DELAY = 0x38
 OP_GATE = 0x3E
 OP_POLL = 0x40
 
@@ -108,6 +109,18 @@ def cmd_phase(channel: int, inverted: bool) -> bytes:
     inverted: True=180° inverted, False=normal
     """
     return build_frame(bytes([OP_PHASE, channel, 0x01 if inverted else 0x00]))
+
+
+def cmd_delay(channel: int, samples: int) -> bytes:
+    """Build an output delay command (0x38).
+
+    channel: unified index (outputs 0x04–0x07)
+    samples: 0–32640 (delay in samples at 48 kHz; ms = samples / 48)
+    """
+    samples = max(0, min(32640, samples))
+    lo = samples & 0xFF
+    hi = (samples >> 8) & 0xFF
+    return build_frame(bytes([OP_DELAY, channel, lo, hi]))
 
 
 def cmd_gate(channel: int, attack: int, release: int, hold: int, threshold: int) -> bytes:
@@ -235,6 +248,7 @@ _PRESET_OUTPUT_START = 112  # 4 × 74-byte output blocks
 _OUTPUT_BLOCK_SIZE = 74
 _OUTPUT_GAIN_OFFSET = 66    # uint16 LE within output block
 _OUTPUT_PHASE_OFFSET = 68   # 0x00=normal, 0x01=inverted
+_OUTPUT_DELAY_OFFSET = 70   # uint16 LE, raw 0–32640 (samples at 48 kHz, 0–680 ms)
 
 # Mute bitmasks in the config footer (after channel blocks)
 _INPUT_MUTE_BITMASK_OFFSET = 408   # uint16 LE, bit 0=In1 .. bit 3=In4
@@ -256,14 +270,15 @@ def parse_config_page(payload: bytes) -> tuple[int, bytes] | None:
 
 
 def parse_preset_params(config_data: bytes) -> dict | None:
-    """Extract gain, mute, phase, and gate params from stitched config data.
+    """Extract gain, mute, phase, gate, and delay from stitched config data.
 
     config_data: 450 bytes (9 pages × 50 bytes) from read_config().
     Returns dict with:
       'gains' (list[8], raw 0–400), 'mutes' (list[8], bool),
       'phases' (list[8], bool — True=inverted),
-      'gates' (list[4], dict with attack/release/hold/threshold raw values).
-    Channel order: inputs 0–3, outputs 4–7 (gates are input-only).
+      'gates' (list[4], dict with attack/release/hold/threshold raw values),
+      'delays' (list[4], int — raw samples 0–32640, ms = raw / 48).
+    Channel order: inputs 0–3, outputs 4–7 (gates input-only, delays output-only).
     """
     if len(config_data) < _OUTPUT_MUTE_BITMASK_OFFSET + 2:
         return None
@@ -272,6 +287,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     mutes: list[bool] = []
     phases: list[bool] = []
     gates: list[dict[str, int]] = []
+    delays: list[int] = []
 
     # Input channels: gain, phase, gate from per-channel blocks
     for i in range(4):
@@ -286,12 +302,13 @@ def parse_preset_params(config_data: bytes) -> dict | None:
             "threshold": config_data[base + _INPUT_GATE_THRESH_OFFSET] + config_data[base + _INPUT_GATE_THRESH_OFFSET + 1] * 256,
         })
 
-    # Output channels: gain + phase from per-channel blocks
+    # Output channels: gain, phase, delay from per-channel blocks
     for i in range(4):
         base = _PRESET_OUTPUT_START + i * _OUTPUT_BLOCK_SIZE
         gain = config_data[base + _OUTPUT_GAIN_OFFSET] + config_data[base + _OUTPUT_GAIN_OFFSET + 1] * 256
         gains.append(gain)
         phases.append(bool(config_data[base + _OUTPUT_PHASE_OFFSET]))
+        delays.append(config_data[base + _OUTPUT_DELAY_OFFSET] + config_data[base + _OUTPUT_DELAY_OFFSET + 1] * 256)
 
     # Mute: bitmasks in config footer
     input_mute_mask = config_data[_INPUT_MUTE_BITMASK_OFFSET] + config_data[_INPUT_MUTE_BITMASK_OFFSET + 1] * 256
@@ -302,7 +319,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     for i in range(4):
         mutes.append(bool(output_mute_mask & (1 << i)))
 
-    return {"gains": gains, "mutes": mutes, "phases": phases, "gates": gates}
+    return {"gains": gains, "mutes": mutes, "phases": phases, "gates": gates, "delays": delays}
 
 
 # --- Gain conversion ---

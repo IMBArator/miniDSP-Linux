@@ -21,6 +21,7 @@ from .protocol import (
     cmd_activate,
     cmd_device_info,
     cmd_firmware,
+    cmd_delay,
     cmd_gain,
     cmd_gate,
     cmd_init,
@@ -173,6 +174,18 @@ class DSPmini:
         Returns True if the device ACK'd.
         """
         payload = self._send_recv(cmd_phase(channel, inverted))
+        if payload is None:
+            return False
+        return is_ack(payload)
+
+    def set_delay(self, channel: int, samples: int) -> bool:
+        """Set output delay for a channel.
+
+        channel: unified index (outputs 4–7)
+        samples: 0–32640 (delay in samples at 48 kHz; ms = samples / 48)
+        Returns True if the device ACK'd.
+        """
+        payload = self._send_recv(cmd_delay(channel, samples))
         if payload is None:
             return False
         return is_ack(payload)

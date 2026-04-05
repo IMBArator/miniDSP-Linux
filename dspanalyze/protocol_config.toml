@@ -226,6 +226,16 @@ verified = true
 channel = { offset = 1, size = 1, format = "channel" }
 state = { offset = 2, size = 1, format = "phase_state" }
 
+[opcodes.0x38]
+name = "delay"
+direction = "out"
+description = "Set output channel delay (samples at 48 kHz, 0-32640 = 0-680 ms)"
+verified = true
+
+[opcodes.0x38.fields.request]
+channel = { offset = 1, size = 1, format = "channel" }
+samples = { offset = 2, size = 2, format = "delay_samples" }
+
 [opcodes.0x3e]
 name = "gate"
 direction = "out"
@@ -351,6 +361,11 @@ note = "Q = 0.40 * 320^(raw/255)"
 type = "uint8"
 unit = "dB"
 note = "dB = (value - 120) / 10.0, range -12.0 to +12.0"
+
+[formats.delay_samples]
+type = "uint16le"
+unit = "samples"
+note = "ms = raw / 48 (48 kHz sample rate). Range 0-32640 = 0-680 ms"
 
 [formats.gate_time]
 type = "uint16le"

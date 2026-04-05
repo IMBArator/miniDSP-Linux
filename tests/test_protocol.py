@@ -7,6 +7,7 @@ from minidsp.protocol import (
     _ch_level,
     build_frame,
     checksum,
+    cmd_delay,
     cmd_gain,
     cmd_gate,
     cmd_mute,
@@ -130,6 +131,35 @@ def test_cmd_gain():
     assert frame[6] == 0x02
     assert frame[7] == 0x90  # 400 & 0xFF
     assert frame[8] == 0x01  # 400 >> 8
+
+
+def test_cmd_delay():
+    # Out4 (channel 7), 32640 samples = 680 ms max
+    # Verified from capture: 38 07 80 7f
+    frame = cmd_delay(7, 32640)
+    assert frame[5] == 0x38   # opcode
+    assert frame[6] == 0x07   # channel (Out4)
+    assert frame[7] == 0x80   # 32640 & 0xFF
+    assert frame[8] == 0x7F   # 32640 >> 8
+
+    # Out1 (channel 4), 0 samples = 0 ms
+    frame = cmd_delay(4, 0)
+    assert frame[5] == 0x38
+    assert frame[6] == 0x04
+    assert frame[7] == 0x00
+    assert frame[8] == 0x00
+
+    # Out2 (channel 5), 4800 samples = 100 ms
+    frame = cmd_delay(5, 4800)
+    assert frame[5] == 0x38
+    assert frame[6] == 0x05
+    assert frame[7] == 0xC0   # 4800 & 0xFF = 192 = 0xC0
+    assert frame[8] == 0x12   # 4800 >> 8 = 18 = 0x12
+
+    # Clamping: above 32640 should clamp
+    frame = cmd_delay(7, 99999)
+    assert frame[7] == 0x80
+    assert frame[8] == 0x7F
 
 
 def test_cmd_gate():
@@ -302,6 +332,8 @@ def test_parse_preset_params_from_unt():
         assert "release" in gate
         assert "hold" in gate
         assert "threshold" in gate
+    # Delay should be present for 4 output channels
+    assert len(result["delays"]) == 4
 
 
 def test_parse_preset_params_modified():

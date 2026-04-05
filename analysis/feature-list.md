@@ -46,7 +46,7 @@ Compiled from: manufacturer tool screenshots (`analysis/resources/`), PDF user m
 | **Mute** | Per-channel on/off | **Captured & implemented** (`0x35`) |
 | **Phase Invert** | 180 degree polarity flip | **Captured & implemented** (`0x36`) |
 | **Compressor** | Per-output: Threshold, Attack, Ratio, Release, Knee | Visible in screenshots & manual; protocol unknown |
-| **Output Delay** | Per-output, configurable in ms / meters / feet | Visible in screenshots & manual; protocol unknown |
+| **Output Delay** | Per-output, 0–680 ms in sample steps | **Captured & implemented** (`0x38`) |
 | **Level Meter** | Real-time level with clip + limiter active indicators | **Captured & implemented** (`0x40`, limiter bitmask at byte 25) |
 
 **Compressor parameters:**
@@ -57,8 +57,8 @@ Compiled from: manufacturer tool screenshots (`analysis/resources/`), PDF user m
 - Knee: 0 to 12 dB (1 dB increments)
 
 **Delay:**
-- Range: 0.000 ms to 680.000 ms per output in ~0.021 ms varying increments. (needs further investigation)
-- Unit selector: ms, m (meters), ft (feet)
+- Range: 0.000 ms to 680.000 ms per output (raw 0–32640 samples at 48 kHz, ~0.02083 ms/step)
+- Unit selector: ms, m (meters), ft (feet) — display-only, protocol always uses samples
 
 **Signal chain (from Matrix tab):** XOVER -> PEQ -> GAIN -> COMP -> PHASE -> DELAY -> MUTE -> output
 
@@ -167,6 +167,7 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 - Mute (input + output)
 - Phase invert (input + output)
 - Noise gate (input: attack, release, hold, threshold)
+- Output delay (0–680 ms, sample-based)
 - Level metering (8 channels + limiter indicators)
 - Config read (9 pages)
 - Preset name reading (30 slots)
@@ -181,6 +182,5 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 
 ### Completely unknown protocol:
 - Compressor settings (output)
-- Output Delay
 - Test Tone Generator
 - Device Lock/Password (careful. DO NOT TOUCH! could lock us out.)

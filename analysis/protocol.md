@@ -46,6 +46,9 @@ Reverse-engineered from Wireshark USBPcap sessions (all in `usb_captures/`):
 - `capture_20260405_011722_input_channel_gate_attack_2.pcapng` — InC attack (disambiguated: bytes 2-3)
 - `capture_20260405_122541_input_channel_gate_all_params.pcapng` — InC all 4 params swept min→max→min→max (corrected hold min=9, release min=0)
 
+**Output delay:**
+- `capture_20260405_123925_output_channel_delay.pcapng` — Out4 delay swept 0→680→0→680 ms (opcode 0x38 discovery, sample-based encoding)
+
 **Other:**
 - `miniDSP USBTree output.txt` — USB device descriptor (VID/PID/endpoints)
 
@@ -512,6 +515,7 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x34` | 4 | OUT | Gain | `34 [ch] [val_lo] [val_hi]` — LE uint16, 0–400 |
 | `0x35` | 3 | OUT | Mute | `35 [ch] [state]` — 0x00=off, 0x01=on |
 | `0x36` | 3 | OUT | Phase invert | `36 [ch] [state]` — 0x00=normal, 0x01=inverted |
+| `0x38` | 4 | OUT | Output delay | `38 [ch] [samples_lo] [samples_hi]` — LE uint16, 0–32640 (samples @ 48 kHz) |
 | `0x3e` | 10 | OUT | Noise gate | `3e [ch] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [hold_lo] [hold_hi] [thr_lo] [thr_hi]` |
 | `0x3b` | 3 | OUT | Channel link | `3b [ch] [link_flags]` — see below |
 | `0x3a` | 3 | OUT | Matrix routing | `3a [output_ch] [input_bitmask]` (*) |
@@ -680,6 +684,28 @@ Stores current config to the specified slot (1-based).
 Payload (15 bytes): 26 [14 chars ASCII, space-padded]
 ```
 
+### 0x38 — Output Delay
+
+```
+Payload (4 bytes): 38 [ch] [samples_lo] [samples_hi]
+```
+
+Sets the per-output delay in samples at the 48 kHz sample rate.
+
+| Field | Bytes | Type | Range | Formula |
+|---|---|---|---|---|
+| Channel | 1 | uint8 | 0x04–0x07 | Outputs only (Out1–Out4) |
+| Samples | 2–3 | uint16 LE | 0–32640 | ms = raw / 48 |
+
+**Max delay:** 32640 samples = 680.000 ms (exactly 680 × 48).
+
+**Config storage:** output block bytes 70–71 (uint16 LE, same value as command).
+
+**Capture-verified:** Out4 swept 0→32640→0→32640, config diff confirmed
+offset 70–71 changed to 0x80,0x7f = 32640.
+
+**Note:** This opcode was not previously known even in the `dsp-408-ui` project.
+
 ### 0x3E — Noise Gate (Input Channels)
 
 ```
@@ -722,7 +748,8 @@ Confirmed by diff-config comparing config page reads before/after:
 - [ ] **Status flags (offsets 10, 22):** Not clip indicators (disproven). Only appear
       during init phase. Exact meaning unknown — startup artifact?
 - [ ] **Firmware version:** Is the footer `0x000abc8d` a version number?
-- [ ] **Delay command:** Not yet reverse-engineered even in `dsp-408-ui`.
+- [x] **Delay command:** Opcode `0x38` — `38 [ch] [samples_lo] [samples_hi]`, uint16 LE samples at 48 kHz.
+      Config stored at output block bytes 70–71. First known implementation (not in dsp-408-ui).
 - [ ] **Compressor/Limiter:** Not yet reverse-engineered. Likely encoded in the
       22-byte post-PEQ tail of output channel config blocks.
 - [x] **Phase invert:** Opcode `0x36` — `36 [ch] [state]`, 0x00=normal, 0x01=inverted.
@@ -849,7 +876,7 @@ Offset  Size  Field
 66–67    2    **Output gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
 68       1    **Phase invert**: 0x00=normal, 0x01=inverted (same as 0x36 command)
 69       1    Always 0x00 (mute state is NOT here — see footer bitmasks)
-70–71    2    Unknown (280 = 0x0118 in default, 40 in modified Out1)
+70–71    2    **Output delay**, LE uint16, samples at 48 kHz (0–32640 = 0–680 ms, same as 0x38 command)
 72       1    Routing/link flags (same scheme as input)
 73       1    Always 0x00
 ```
@@ -882,4 +909,4 @@ The fixed file size of 13010 bytes is likely a firmware/software requirement.
 - [ ] Purpose of the "4x4D Amplifier" product string vs "Dsp Process" USB string
 - [ ] Whether the file can hold more than 2 presets (count byte at 0x11)
 - [ ] Crossover type/slope encoded in Out1/Out2 extra parameters
-- [ ] Output block bytes 70–71: purpose (delay? polarity? varies between presets)
+- [x] ~~Output block bytes 70–71~~ → Output delay in samples at 48 kHz (uint16 LE, 0–32640 = 0–680 ms)
