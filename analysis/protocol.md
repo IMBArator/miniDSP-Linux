@@ -38,13 +38,13 @@ Reverse-engineered from Wireshark USBPcap sessions (all in `usb_captures/`):
 - `capture_20260405_003445_output_channel_phase_invert.pcapng` — Out4 phase toggled (confirms 0x36 works for outputs, config byte 68 in output block)
 
 **Noise gate:**
-- `capture_20260405_010105_output_channel_gate_threshold.pcapng` — InC gate threshold swept −90.0→0.0 dB (opcode 0x3e discovery)
-- `capture_20260405_010241_output_channel_gate_attack.pcapng` — InC gate attack swept 1→999 ms
-- `capture_20260405_010538_output_channel_gate_hold.pcapng` — InC gate hold swept 10→999 ms
-- `capture_20260405_010640_output_channel_gate_release.pcapng` — InC gate release swept 1→3000 ms
-- `capture_20260405_011619_output_channel_gate_threshold_2.pcapng` — InC threshold (disambiguated: bytes 8-9)
-- `capture_20260405_011722_output_channel_gate_attack_2.pcapng` — InC attack (disambiguated: bytes 2-3)
-- `capture_20260405_122541_output_channel_gate_all_params.pcapng` — InC all 4 params swept min→max→min→max (corrected hold min=9, release min=0)
+- `capture_20260405_010105_input_channel_gate_threshold.pcapng` — InC gate threshold swept −90.0→0.0 dB (opcode 0x3e discovery)
+- `capture_20260405_010241_input_channel_gate_attack.pcapng` — InC gate attack swept 1→999 ms
+- `capture_20260405_010538_input_channel_gate_hold.pcapng` — InC gate hold swept 10→999 ms
+- `capture_20260405_010640_input_channel_gate_release.pcapng` — InC gate release swept 1→3000 ms
+- `capture_20260405_011619_input_channel_gate_threshold_2.pcapng` — InC threshold (disambiguated: bytes 8-9)
+- `capture_20260405_011722_input_channel_gate_attack_2.pcapng` — InC attack (disambiguated: bytes 2-3)
+- `capture_20260405_122541_input_channel_gate_all_params.pcapng` — InC all 4 params swept min→max→min→max (corrected hold min=9, release min=0)
 
 **Other:**
 - `miniDSP USBTree output.txt` — USB device descriptor (VID/PID/endpoints)

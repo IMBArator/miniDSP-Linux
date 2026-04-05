@@ -1,16 +1,16 @@
 [capture]
-file = "capture_20260405_011722_output_channel_gate_attack_2.pcapng"
+file = "capture_20260405_010241_input_channel_gate_attack.pcapng"
 format = "pcapng"
 
 [description]
-feature = "output channel gate attack 2"
+feature = "output channel gate attack"
 notes = "captured input channel 3 gate attack configuration 1ms to 999ms and restartet application"
 
 [analysis]
-packet_count = 338
-out_packets = 169
-in_packets = 169
-duration_seconds = 24.77
+packet_count = 400
+out_packets = 200
+in_packets = 200
+duration_seconds = 35.6
 opcodes_seen = [
     "0x01",
     "0x10",
@@ -27,13 +27,13 @@ opcodes_seen = [
 ]
 has_unknown_opcodes = true
 has_checksum_errors = false
-last_analyzed = "2026-04-05T01:25:26"
+last_analyzed = "2026-04-05T01:10:07"
 
 [analysis.opcode_counts]
+0x40 = 162
 0x29 = 120
-0x40 = 102
-0x01 = 30
-0x3e = 28
+0x01 = 31
+0x3e = 29
 0x27 = 18
 0x24 = 18
 0x10 = 4

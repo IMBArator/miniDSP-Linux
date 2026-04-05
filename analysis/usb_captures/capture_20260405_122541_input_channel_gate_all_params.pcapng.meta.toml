@@ -1,5 +1,5 @@
 [capture]
-file = "capture_20260405_122541_output_channel_gate_all_params.pcapng"
+file = "capture_20260405_122541_input_channel_gate_all_params.pcapng"
 format = "pcapng"
 created = "2026-04-05T12:26:27"
 source_machine = "windows"

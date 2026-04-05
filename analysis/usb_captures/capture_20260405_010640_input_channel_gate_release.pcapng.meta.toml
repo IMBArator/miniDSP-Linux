@@ -1,5 +1,5 @@
 [capture]
-file = "capture_20260405_010640_output_channel_gate_release.pcapng"
+file = "capture_20260405_010640_input_channel_gate_release.pcapng"
 format = "pcapng"
 
 [description]
