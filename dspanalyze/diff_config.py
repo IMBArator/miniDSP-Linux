@@ -21,10 +21,10 @@ _INPUT_BLOCK_START = 16
 _INPUT_BLOCK_SIZE = 24
 _INPUT_FIELDS = [
     (0, 3, "name"),
-    (10, 1, "unknown_param_a"),
-    (12, 2, "unknown_param_b"),
-    (14, 1, "unknown_param_c"),
-    (15, 2, "unknown_param_d"),
+    (10, 2, "gate_attack"),
+    (12, 2, "gate_release"),
+    (14, 2, "gate_hold"),
+    (16, 2, "gate_threshold"),
     (18, 2, "gain"),
     (20, 1, "phase"),
     (22, 1, "routing_flags"),

@@ -27,7 +27,7 @@ Compiled from: manufacturer tool screenshots (`analysis/resources/`), PDF user m
 | **Gain** | -60.0 to +12.0 dB, dual resolution (0.5 dB/step below -20 dB, 0.1 dB/step above) | **Captured & implemented** (`0x34`) |
 | **Mute** | Per-channel on/off | **Captured & implemented** (`0x35`) |
 | **Phase Invert** | 180 degree polarity flip ("Normal" / "Inverse" button) | **Captured & implemented** (`0x36`) |
-| **Noise Gate** | Per-input: Threshold, Attack, Hold, Release | Visible in screenshots & manual; protocol unknown |
+| **Noise Gate** | Per-input: Threshold, Attack, Hold, Release | **Captured & implemented** (`0x3E`) |
 | **Level Meter** | Real-time level with clip indicator | **Captured & implemented** (`0x40`) |
 
 **Gate parameters:**
@@ -166,6 +166,7 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 - Gain (input + output)
 - Mute (input + output)
 - Phase invert (input + output)
+- Noise gate (input: attack, release, hold, threshold)
 - Level metering (8 channels + limiter indicators)
 - Config read (9 pages)
 - Preset name reading (30 slots)
@@ -179,7 +180,6 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 - Channel linking (`0x3b`/`0x2a`)
 
 ### Completely unknown protocol:
-- Noise Gate (input)
 - Compressor settings (output)
 - Output Delay
 - Test Tone Generator

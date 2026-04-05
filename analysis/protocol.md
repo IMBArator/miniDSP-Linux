@@ -37,6 +37,14 @@ Reverse-engineered from Wireshark USBPcap sessions (all in `usb_captures/`):
 - `capture_20260405_000924_input_channel_phase_invert.pcapng` — InC phase toggled normal↔inverted (opcode 0x36 discovery)
 - `capture_20260405_003445_output_channel_phase_invert.pcapng` — Out4 phase toggled (confirms 0x36 works for outputs, config byte 68 in output block)
 
+**Noise gate:**
+- `capture_20260405_010105_output_channel_gate_threshold.pcapng` — InC gate threshold swept −90.0→0.0 dB (opcode 0x3e discovery)
+- `capture_20260405_010241_output_channel_gate_attack.pcapng` — InC gate attack swept 1→999 ms
+- `capture_20260405_010538_output_channel_gate_hold.pcapng` — InC gate hold swept 10→999 ms
+- `capture_20260405_010640_output_channel_gate_release.pcapng` — InC gate release swept 1→3000 ms
+- `capture_20260405_011619_output_channel_gate_threshold_2.pcapng` — InC threshold (disambiguated: bytes 8-9)
+- `capture_20260405_011722_output_channel_gate_attack_2.pcapng` — InC attack (disambiguated: bytes 2-3)
+
 **Other:**
 - `miniDSP USBTree output.txt` — USB device descriptor (VID/PID/endpoints)
 
@@ -503,6 +511,7 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x34` | 4 | OUT | Gain | `34 [ch] [val_lo] [val_hi]` — LE uint16, 0–400 |
 | `0x35` | 3 | OUT | Mute | `35 [ch] [state]` — 0x00=off, 0x01=on |
 | `0x36` | 3 | OUT | Phase invert | `36 [ch] [state]` — 0x00=normal, 0x01=inverted |
+| `0x3e` | 10 | OUT | Noise gate | `3e [ch] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [hold_lo] [hold_hi] [thr_lo] [thr_hi]` |
 | `0x3b` | 3 | OUT | Channel link | `3b [ch] [link_flags]` — see below |
 | `0x3a` | 3 | OUT | Matrix routing | `3a [output_ch] [input_bitmask]` (*) |
 | `0x40` | 1 | OUT | Poll levels | `40` — request only, no parameters |
@@ -670,6 +679,33 @@ Stores current config to the specified slot (1-based).
 Payload (15 bytes): 26 [14 chars ASCII, space-padded]
 ```
 
+### 0x3E — Noise Gate (Input Channels)
+
+```
+Payload (10 bytes): 3e [ch] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [hold_lo] [hold_hi] [thr_lo] [thr_hi]
+```
+
+Sets all 4 noise gate parameters for an input channel in a single command.
+All parameters are uint16 LE.
+
+| Field | Bytes | Raw Range | UI Range | Formula |
+|---|---|---|---|---|
+| Attack | 2–3 | 34–998 | 1–999 ms | ~1:1 (raw ≈ ms) |
+| Release | 4–5 | 103–2999 | 1–3000 ms | ~1:1 (raw ≈ ms) |
+| Hold | 6–7 | 43–998 | 10–999 ms | ~1:1 (raw ≈ ms) |
+| Threshold | 8–9 | 1–180 | −90.0 to 0.0 dB | dB = raw × 0.5 − 90.0 |
+
+**Channel byte:** input channels only (0x00–0x03).
+
+**Config storage:** input block bytes 10–17 (4 × uint16 LE in the same order as the command).
+
+**Capture-verified:** 6 captures on InC sweeping each parameter independently.
+Confirmed by diff-config comparing config page reads before/after:
+- Attack → config bytes 10–11 (e.g. max 998 = 0xe6,0x03)
+- Release → config bytes 12–13 (e.g. max 2999 = 0xb7,0x0b)
+- Hold → config bytes 14–15 (e.g. max 998 = 0xe6,0x03)
+- Threshold → config bytes 16–17 (e.g. max 180 = 0xb4,0x00)
+
 ---
 
 ## Unknowns / To Investigate
@@ -691,6 +727,8 @@ Payload (15 bytes): 26 [14 chars ASCII, space-padded]
 - [x] **Phase invert:** Opcode `0x36` — `36 [ch] [state]`, 0x00=normal, 0x01=inverted.
       Also stored in config at input block offset 20 (byte within 24-byte block).
       Captured: InC toggled normal↔inverted. InA+InB were already inverted.
+- [x] **Noise gate:** Opcode `0x3E` — 10-byte payload with attack/release/hold/threshold.
+      Config stored at input block bytes 10–17 (4 × uint16 LE). 6 captures verified.
 - [ ] **Verify PEQ/GEQ/crossover/routing on 4x4 Mini:** Commands from `dsp-408-ui`
       need capture verification on our device.
 
@@ -761,12 +799,10 @@ Offset  Size  Field
 ──────  ────  ─────────────────────────────────────
  0       3    Channel name (ASCII: "InA", "InB", "InC", "InD")
  3       7    Zero padding
-10       1    Unknown param (0x31 = 49 in preset 1, 0x00 in modified channels)
-11       1    Always 0x00
-12–13    2    Unknown param, LE uint16 (499 in preset 1, 665 in modified)
-14       1    Unknown param (99 in preset 1, 9 in modified)
-15–16    2    Unknown param, LE uint16 (0 in preset 1, 140 in modified)
-17       1    Always 0x00
+10–11    2    **Gate attack**, LE uint16, raw 34–998 (1–999 ms, same as 0x3E command)
+12–13    2    **Gate release**, LE uint16, raw 103–2999 (1–3000 ms)
+14–15    2    **Gate hold**, LE uint16, raw 43–998 (10–999 ms)
+16–17    2    **Gate threshold**, LE uint16, raw 1–180 (−90.0 to 0.0 dB, 0.5 dB/step)
 18–19    2    **Input gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
 20       1    **Phase invert**: 0x00=normal, 0x01=inverted (same as 0x36 command)
 21       1    Always 0x00 (mute state is NOT here — see footer bitmasks)
@@ -839,7 +875,7 @@ The fixed file size of 13010 bytes is likely a firmware/software requirement.
 
 - [x] ~~Input/output gain location~~ → Input block bytes 18–19, output block bytes 66–67 (uint16 LE, raw 0–400)
 - [x] ~~Mute state location~~ → Footer bitmasks at preset offsets 408–409 (input) and 410–411 (output), NOT in per-channel blocks. Verified by comparing startup captures with In4+Out4 muted vs unmuted.
-- [ ] Exact meaning of input block bytes 10–16 (EQ? compressor threshold?)
+- [x] ~~Input block bytes 10–17~~ → Noise gate parameters: attack (10–11), release (12–13), hold (14–15), threshold (16–17), all LE uint16
 - [ ] Output EQ band count and parameter mapping (frequency in Hz, gain in dB, Q factor)
 - [ ] Whether output block bytes 12–13 (always 300) represent compressor threshold
 - [ ] Purpose of the "4x4D Amplifier" product string vs "Dsp Process" USB string

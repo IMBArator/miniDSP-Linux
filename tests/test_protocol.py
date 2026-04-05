@@ -8,6 +8,7 @@ from minidsp.protocol import (
     build_frame,
     checksum,
     cmd_gain,
+    cmd_gate,
     cmd_mute,
     cmd_phase,
     cmd_poll,
@@ -129,6 +130,29 @@ def test_cmd_gain():
     assert frame[6] == 0x02
     assert frame[7] == 0x90  # 400 & 0xFF
     assert frame[8] == 0x01  # 400 >> 8
+
+
+def test_cmd_gate():
+    # InC (channel 2): attack=998, release=2999, hold=998, threshold=180
+    # Verified from capture: 3e 02 e6 03 b7 0b e6 03 b4 00
+    frame = cmd_gate(2, 998, 2999, 998, 180)
+    assert frame[5] == 0x3E   # opcode
+    assert frame[6] == 0x02   # channel
+    assert frame[7] == 0xE6   # attack lo (998 & 0xFF)
+    assert frame[8] == 0x03   # attack hi (998 >> 8)
+    assert frame[9] == 0xB7   # release lo (2999 & 0xFF)
+    assert frame[10] == 0x0B  # release hi (2999 >> 8)
+    assert frame[11] == 0xE6  # hold lo (998 & 0xFF)
+    assert frame[12] == 0x03  # hold hi (998 >> 8)
+    assert frame[13] == 0xB4  # threshold lo (180 & 0xFF)
+    assert frame[14] == 0x00  # threshold hi (180 >> 8)
+
+    # InA defaults: attack=49, release=9, hold=9, threshold=0
+    frame = cmd_gate(0, 49, 9, 9, 0)
+    assert frame[5] == 0x3E
+    assert frame[6] == 0x00
+    assert frame[7] == 0x31  # 49 & 0xFF
+    assert frame[8] == 0x00
 
 
 # --- Level parsing ---
@@ -271,6 +295,13 @@ def test_parse_preset_params_from_unt():
     assert result["gains"] == [280, 280, 280, 280, 280, 280, 280, 280]
     assert result["mutes"] == [False, False, False, False, False, False, False, False]
     assert result["phases"] == [False, False, False, False, False, False, False, False]
+    # Gate params should be present for 4 input channels
+    assert len(result["gates"]) == 4
+    for gate in result["gates"]:
+        assert "attack" in gate
+        assert "release" in gate
+        assert "hold" in gate
+        assert "threshold" in gate
 
 
 def test_parse_preset_params_modified():

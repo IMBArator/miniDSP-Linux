@@ -226,6 +226,19 @@ verified = true
 channel = { offset = 1, size = 1, format = "channel" }
 state = { offset = 2, size = 1, format = "phase_state" }
 
+[opcodes.0x3e]
+name = "gate"
+direction = "out"
+description = "Set input noise gate parameters (attack, release, hold, threshold)"
+verified = true
+
+[opcodes.0x3e.fields.request]
+channel = { offset = 1, size = 1, format = "channel" }
+attack = { offset = 2, size = 2, format = "gate_time", note = "raw 34-998, maps to 1-999 ms" }
+release = { offset = 4, size = 2, format = "gate_time", note = "raw 103-2999, maps to 1-3000 ms" }
+hold = { offset = 6, size = 2, format = "gate_time", note = "raw 43-998, maps to 10-999 ms" }
+threshold = { offset = 8, size = 2, format = "gate_threshold", note = "raw 1-180, -90.0 to 0.0 dB" }
+
 [opcodes.0x3a]
 name = "matrix_routing"
 direction = "out"
@@ -338,6 +351,16 @@ note = "Q = 0.40 * 320^(raw/255)"
 type = "uint8"
 unit = "dB"
 note = "dB = (value - 120) / 10.0, range -12.0 to +12.0"
+
+[formats.gate_time]
+type = "uint16le"
+unit = "ms"
+note = "Raw value in ms (approximately). See per-field notes for exact ranges."
+
+[formats.gate_threshold]
+type = "uint16le"
+unit = "dB"
+note = "dB = raw * 0.5 - 90.0, range -90.0 to 0.0 dB (0.5 dB/step)"
 
 [formats.level_uint16]
 type = "uint16le"

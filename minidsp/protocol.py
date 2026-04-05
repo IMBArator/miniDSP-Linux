@@ -25,6 +25,7 @@ OP_DEVICE_INFO = 0x2C
 OP_GAIN = 0x34
 OP_MUTE = 0x35
 OP_PHASE = 0x36
+OP_GATE = 0x3E
 OP_POLL = 0x40
 
 
@@ -107,6 +108,24 @@ def cmd_phase(channel: int, inverted: bool) -> bytes:
     inverted: True=180° inverted, False=normal
     """
     return build_frame(bytes([OP_PHASE, channel, 0x01 if inverted else 0x00]))
+
+
+def cmd_gate(channel: int, attack: int, release: int, hold: int, threshold: int) -> bytes:
+    """Build a noise gate command (0x3E).
+
+    channel: 0-indexed input channel (0–3)
+    attack: raw 34–998 (maps to 1–999 ms)
+    release: raw 103–2999 (maps to 1–3000 ms)
+    hold: raw 43–998 (maps to 10–999 ms)
+    threshold: raw 1–180 (maps to −90.0 to 0.0 dB, 0.5 dB/step)
+    """
+    return build_frame(bytes([
+        OP_GATE, channel,
+        attack & 0xFF, (attack >> 8) & 0xFF,
+        release & 0xFF, (release >> 8) & 0xFF,
+        hold & 0xFF, (hold >> 8) & 0xFF,
+        threshold & 0xFF, (threshold >> 8) & 0xFF,
+    ]))
 
 
 def cmd_init() -> bytes:
@@ -206,6 +225,10 @@ OP_CONFIG_RESP = 0x24
 _PRESET_INPUT_START = 16    # 4 × 24-byte input blocks
 _INPUT_BLOCK_SIZE = 24
 _INPUT_GAIN_OFFSET = 18     # uint16 LE within input block
+_INPUT_GATE_ATTACK_OFFSET = 10  # uint16 LE, raw 34–998 (1–999 ms)
+_INPUT_GATE_RELEASE_OFFSET = 12 # uint16 LE, raw 103–2999 (1–3000 ms)
+_INPUT_GATE_HOLD_OFFSET = 14    # uint16 LE, raw 43–998 (10–999 ms)
+_INPUT_GATE_THRESH_OFFSET = 16  # uint16 LE, raw 1–180 (−90.0 to 0.0 dB, 0.5 dB/step)
 _INPUT_PHASE_OFFSET = 20    # 0x00=normal, 0x01=inverted
 
 _PRESET_OUTPUT_START = 112  # 4 × 74-byte output blocks
@@ -233,16 +256,14 @@ def parse_config_page(payload: bytes) -> tuple[int, bytes] | None:
 
 
 def parse_preset_params(config_data: bytes) -> dict | None:
-    """Extract gain, mute, and phase for all 8 channels from stitched config data.
+    """Extract gain, mute, phase, and gate params from stitched config data.
 
     config_data: 450 bytes (9 pages × 50 bytes) from read_config().
-    Returns dict with 'gains' (list[8], raw 0–400), 'mutes' (list[8], bool),
-    and 'phases' (list[8], bool — True=inverted).
-    Channel order: inputs 0–3, outputs 4–7.
-
-    Mute state is read from bitmasks in the config footer (offsets 408-411),
-    not from the per-channel blocks. Phase is per-channel: input block byte 20,
-    output block byte 68.
+    Returns dict with:
+      'gains' (list[8], raw 0–400), 'mutes' (list[8], bool),
+      'phases' (list[8], bool — True=inverted),
+      'gates' (list[4], dict with attack/release/hold/threshold raw values).
+    Channel order: inputs 0–3, outputs 4–7 (gates are input-only).
     """
     if len(config_data) < _OUTPUT_MUTE_BITMASK_OFFSET + 2:
         return None
@@ -250,13 +271,20 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     gains: list[int] = []
     mutes: list[bool] = []
     phases: list[bool] = []
+    gates: list[dict[str, int]] = []
 
-    # Input channels: gain + phase from per-channel blocks
+    # Input channels: gain, phase, gate from per-channel blocks
     for i in range(4):
         base = _PRESET_INPUT_START + i * _INPUT_BLOCK_SIZE
         gain = config_data[base + _INPUT_GAIN_OFFSET] + config_data[base + _INPUT_GAIN_OFFSET + 1] * 256
         gains.append(gain)
         phases.append(bool(config_data[base + _INPUT_PHASE_OFFSET]))
+        gates.append({
+            "attack": config_data[base + _INPUT_GATE_ATTACK_OFFSET] + config_data[base + _INPUT_GATE_ATTACK_OFFSET + 1] * 256,
+            "release": config_data[base + _INPUT_GATE_RELEASE_OFFSET] + config_data[base + _INPUT_GATE_RELEASE_OFFSET + 1] * 256,
+            "hold": config_data[base + _INPUT_GATE_HOLD_OFFSET] + config_data[base + _INPUT_GATE_HOLD_OFFSET + 1] * 256,
+            "threshold": config_data[base + _INPUT_GATE_THRESH_OFFSET] + config_data[base + _INPUT_GATE_THRESH_OFFSET + 1] * 256,
+        })
 
     # Output channels: gain + phase from per-channel blocks
     for i in range(4):
@@ -274,7 +302,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     for i in range(4):
         mutes.append(bool(output_mute_mask & (1 << i)))
 
-    return {"gains": gains, "mutes": mutes, "phases": phases}
+    return {"gains": gains, "mutes": mutes, "phases": phases, "gates": gates}
 
 
 # --- Gain conversion ---

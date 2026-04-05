@@ -22,6 +22,7 @@ from .protocol import (
     cmd_device_info,
     cmd_firmware,
     cmd_gain,
+    cmd_gate,
     cmd_init,
     cmd_mute,
     cmd_phase,
@@ -172,6 +173,22 @@ class DSPmini:
         Returns True if the device ACK'd.
         """
         payload = self._send_recv(cmd_phase(channel, inverted))
+        if payload is None:
+            return False
+        return is_ack(payload)
+
+    def set_gate(self, channel: int, attack: int, release: int,
+                 hold: int, threshold: int) -> bool:
+        """Set noise gate parameters for an input channel.
+
+        channel: 0-indexed input (0–3)
+        attack: raw 34–998 (1–999 ms)
+        release: raw 103–2999 (1–3000 ms)
+        hold: raw 43–998 (10–999 ms)
+        threshold: raw 1–180 (−90.0 to 0.0 dB, 0.5 dB/step)
+        Returns True if the device ACK'd.
+        """
+        payload = self._send_recv(cmd_gate(channel, attack, release, hold, threshold))
         if payload is None:
             return False
         return is_ack(payload)
