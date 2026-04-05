@@ -31,6 +31,22 @@ OP_DELAY = 0x38
 OP_GATE = 0x3E
 OP_POLL = 0x40
 
+# Crossover slope/bypass values (byte 4 of 0x31/0x32)
+# 0x00 = filter bypassed; non-zero = active with slope type.
+# NOTE: when bypassed, the slope selection is lost on the device — the
+# application must remember the last-active slope and re-send it on un-bypass.
+SLOPE_BYPASS = 0x00
+SLOPE_BW6 = 0x01   # Butterworth 6 dB/oct
+SLOPE_BL6 = 0x02   # Bessel 6 dB/oct
+SLOPE_BW12 = 0x03  # Butterworth 12 dB/oct
+SLOPE_BL12 = 0x04  # Bessel 12 dB/oct
+SLOPE_LR12 = 0x05  # Linkwitz-Riley 12 dB/oct
+SLOPE_BW18 = 0x06  # Butterworth 18 dB/oct
+SLOPE_BL18 = 0x07  # Bessel 18 dB/oct
+SLOPE_BW24 = 0x08  # Butterworth 24 dB/oct
+SLOPE_BL24 = 0x09  # Bessel 24 dB/oct
+SLOPE_LR24 = 0x0A  # Linkwitz-Riley 24 dB/oct (device default)
+
 
 def checksum(length: int, payload: bytes) -> int:
     """XOR of length byte and all payload bytes."""
@@ -83,12 +99,12 @@ def cmd_poll() -> bytes:
     return build_frame(bytes([OP_POLL]))
 
 
-def cmd_lopass(channel: int, freq_raw: int, slope: int = 0) -> bytes:
+def cmd_lopass(channel: int, freq_raw: int, slope: int = SLOPE_BYPASS) -> bytes:
     """Build a low-pass crossover command (0x31).
 
     channel: unified index (outputs 0x04–0x07)
     freq_raw: 0–300 (log scale, Hz = 19.70 × (20160/19.70)^(raw/300), 19.7 Hz–20.16 kHz)
-    slope: filter slope index (0=BW-6, see protocol_config.toml)
+    slope: 0x00=bypassed, 0x01–0x0a=active with slope type (see SLOPE_* constants)
     """
     freq_raw = max(0, min(300, freq_raw))
     lo = freq_raw & 0xFF
@@ -96,17 +112,17 @@ def cmd_lopass(channel: int, freq_raw: int, slope: int = 0) -> bytes:
     return build_frame(bytes([OP_LOPASS, channel, lo, hi, slope]))
 
 
-def cmd_hipass(channel: int, freq_raw: int, enable: int = 0) -> bytes:
+def cmd_hipass(channel: int, freq_raw: int, slope: int = SLOPE_BYPASS) -> bytes:
     """Build a high-pass crossover command (0x32).
 
     channel: unified index (outputs 0x04–0x07)
     freq_raw: 0–300 (log scale, Hz = 19.70 × (20160/19.70)^(raw/300), 19.7 Hz–20.16 kHz)
-    enable: byte 4 (0x00 observed in captures, purpose TBD)
+    slope: 0x00=bypassed, 0x01–0x0a=active with slope type (see SLOPE_* constants)
     """
     freq_raw = max(0, min(300, freq_raw))
     lo = freq_raw & 0xFF
     hi = (freq_raw >> 8) & 0xFF
-    return build_frame(bytes([OP_HIPASS, channel, lo, hi, enable]))
+    return build_frame(bytes([OP_HIPASS, channel, lo, hi, slope]))
 
 
 def cmd_mute(channel: int, mute: bool) -> bytes:
@@ -276,6 +292,8 @@ _PRESET_OUTPUT_START = 112  # 4 × 74-byte output blocks
 _OUTPUT_BLOCK_SIZE = 74
 _OUTPUT_HIPASS_OFFSET = 10  # uint16 LE, crossover hi-pass freq (raw 0–300 on 4x4 Mini)
 _OUTPUT_LOPASS_OFFSET = 12  # uint16 LE, crossover lo-pass freq (raw 0–300 on 4x4 Mini)
+_OUTPUT_HIPASS_SLOPE_OFFSET = 14  # uint8, 0x00=bypassed, 0x01–0x0a=slope (SLOPE_* constants)
+_OUTPUT_LOPASS_SLOPE_OFFSET = 15  # uint8, 0x00=bypassed, 0x01–0x0a=slope (SLOPE_* constants)
 _OUTPUT_GAIN_OFFSET = 66    # uint16 LE within output block
 _OUTPUT_PHASE_OFFSET = 68   # 0x00=normal, 0x01=inverted
 _OUTPUT_DELAY_OFFSET = 70   # uint16 LE, raw 0–32640 (samples at 48 kHz, 0–680 ms)
@@ -308,7 +326,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
       'phases' (list[8], bool — True=inverted),
       'gates' (list[4], dict with attack/release/hold/threshold raw values),
       'delays' (list[4], int — raw samples 0–32640, ms = raw / 48),
-      'crossovers' (list[4], dict with hipass/lopass raw freq 0–300).
+      'crossovers' (list[4], dict with hipass/lopass freq and slope per filter).
     Channel order: inputs 0–3, outputs 4–7 (gates input-only; delays, crossovers output-only).
     """
     if len(config_data) < _OUTPUT_MUTE_BITMASK_OFFSET + 2:
@@ -342,8 +360,10 @@ def parse_preset_params(config_data: bytes) -> dict | None:
         phases.append(bool(config_data[base + _OUTPUT_PHASE_OFFSET]))
         delays.append(config_data[base + _OUTPUT_DELAY_OFFSET] + config_data[base + _OUTPUT_DELAY_OFFSET + 1] * 256)
         crossovers.append({
-            "hipass": config_data[base + _OUTPUT_HIPASS_OFFSET] + config_data[base + _OUTPUT_HIPASS_OFFSET + 1] * 256,
-            "lopass": config_data[base + _OUTPUT_LOPASS_OFFSET] + config_data[base + _OUTPUT_LOPASS_OFFSET + 1] * 256,
+            "hipass_freq": config_data[base + _OUTPUT_HIPASS_OFFSET] + config_data[base + _OUTPUT_HIPASS_OFFSET + 1] * 256,
+            "lopass_freq": config_data[base + _OUTPUT_LOPASS_OFFSET] + config_data[base + _OUTPUT_LOPASS_OFFSET + 1] * 256,
+            "hipass_slope": config_data[base + _OUTPUT_HIPASS_SLOPE_OFFSET],
+            "lopass_slope": config_data[base + _OUTPUT_LOPASS_SLOPE_OFFSET],
         })
 
     # Mute: bitmasks in config footer

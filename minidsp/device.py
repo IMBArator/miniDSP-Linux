@@ -181,11 +181,11 @@ class DSPmini:
         return is_ack(payload)
 
     def set_lopass(self, channel: int, freq_raw: int, slope: int = 0) -> bool:
-        """Set low-pass crossover frequency for an output channel.
+        """Set low-pass crossover for an output channel.
 
         channel: unified index (outputs 4–7)
-        freq_raw: 0–300 (log scale, Hz = 19.70 × (20160/19.70)^(raw/300), 19.7 Hz–20.16 kHz)
-        slope: filter slope index (0=BW-6)
+        freq_raw: 0–300 (log scale, Hz = 19.70 × (20160/19.70)^(raw/300))
+        slope: 0x00=bypassed, 0x01–0x0a=active with slope type (see SLOPE_* constants)
         Returns True if the device ACK'd.
         """
         payload = self._send_recv(cmd_lopass(channel, freq_raw, slope))
@@ -193,15 +193,15 @@ class DSPmini:
             return False
         return is_ack(payload)
 
-    def set_hipass(self, channel: int, freq_raw: int, enable: int = 0) -> bool:
-        """Set high-pass crossover frequency for an output channel.
+    def set_hipass(self, channel: int, freq_raw: int, slope: int = 0) -> bool:
+        """Set high-pass crossover for an output channel.
 
         channel: unified index (outputs 4–7)
-        freq_raw: 0–300 (log scale, Hz = 19.70 × (20160/19.70)^(raw/300), 19.7 Hz–20.16 kHz)
-        enable: byte 4 (0x00 observed, purpose TBD)
+        freq_raw: 0–300 (log scale, Hz = 19.70 × (20160/19.70)^(raw/300))
+        slope: 0x00=bypassed, 0x01–0x0a=active with slope type (see SLOPE_* constants)
         Returns True if the device ACK'd.
         """
-        payload = self._send_recv(cmd_hipass(channel, freq_raw, enable))
+        payload = self._send_recv(cmd_hipass(channel, freq_raw, slope))
         if payload is None:
             return False
         return is_ack(payload)

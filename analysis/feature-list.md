@@ -96,16 +96,19 @@ The 4x4 Mini has PEQ on output channels only (no GEQ, no input EQ).
 |---|-----------------------------------------------|---|
 | **High-Pass** | 19.7 Hz to 20.16 kHz, Per-output, with bypass | **Captured & implemented** (`0x32`, raw 0–300) |
 | **Low-Pass** | 19.7 Hz to 20.16 kHz, Per-output, with bypass | **Captured & implemented** (`0x31`, raw 0–300) |
+| **Slope selection** | 10 slope types per filter (BW/BL/LR) | **Captured & implemented** (byte 4 of 0x31/0x32, verified all 10 types) |
+| **Bypass** | Per-filter bypass toggle | **Captured & implemented** (slope=0x00=bypass; app must remember slope on un-bypass) |
 
-**Slope types (from screenshots, 10 options):**
-| Slope | Types available |
-|---|---|
-| -6 dB/oct | BW (Butterworth), BL (Bessel) |
-| -12 dB/oct | BW, BL, LK (Linkwitz-Riley) |
-| -18 dB/oct | BW, BL |
-| -24 dB/oct | BW, BL, LK |
+**Slope types (verified from capture, 10 options):**
+| Raw | Slope | Types |
+|---|---|---|
+| 0x01–0x02 | -6 dB/oct | BW (Butterworth), BL (Bessel) |
+| 0x03–0x05 | -12 dB/oct | BW, BL, LR (Linkwitz-Riley) |
+| 0x06–0x07 | -18 dB/oct | BW, BL |
+| 0x08–0x0a | -24 dB/oct | BW, BL, LR (**LR-24 = 0x0a = device default**) |
 
 Note: The DSP 408 has 20 slope types (up to -48 dB/oct). The 4x4 Mini has only 10.
+Bypass behavior: slope=0x00 disables the filter. The device does not retain the previous slope — the app must track and re-send it. After app restart with a bypassed filter, slope resets to LR-24.
 
 ### 5. Routing Matrix (4x4)
 
@@ -168,7 +171,7 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 - Phase invert (input + output)
 - Noise gate (input: attack, release, hold, threshold)
 - Output delay (0–680 ms, sample-based)
-- Crossover hi/lo pass (raw 0–300, 19.7 Hz–20.16 kHz)
+- Crossover hi/lo pass (raw 0–300, 19.7 Hz–20.16 kHz, 10 slope types, bypass)
 - Level metering (8 channels + limiter indicators)
 - Config read (9 pages)
 - Preset name reading (30 slots)

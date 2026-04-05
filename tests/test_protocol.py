@@ -21,6 +21,9 @@ from minidsp.protocol import (
     parse_levels,
     parse_preset_params,
     raw_to_db,
+    SLOPE_BYPASS,
+    SLOPE_BW6,
+    SLOPE_LR24,
 )
 
 
@@ -136,14 +139,18 @@ def test_cmd_gain():
 
 
 def test_cmd_lopass():
-    # Out3 (channel 6), freq raw 300 (20160 Hz max), slope BW-6 (0)
+    # Out3 (channel 6), freq raw 300 (20160 Hz max), bypassed
     # Verified from capture: 31 06 2c 01 00
-    frame = cmd_lopass(6, 300, 0)
+    frame = cmd_lopass(6, 300, SLOPE_BYPASS)
     assert frame[5] == 0x31   # opcode
     assert frame[6] == 0x06   # channel (Out3)
     assert frame[7] == 0x2C   # 300 & 0xFF
     assert frame[8] == 0x01   # 300 >> 8
-    assert frame[9] == 0x00   # slope BW-6
+    assert frame[9] == 0x00   # bypassed
+
+    # Active with LR-24 (default slope): 31 06 2c 01 0a
+    frame = cmd_lopass(6, 300, SLOPE_LR24)
+    assert frame[9] == 0x0A   # LR-24
 
     # Clamping: above 300 should clamp to 300
     frame = cmd_lopass(6, 9999)
@@ -152,14 +159,23 @@ def test_cmd_lopass():
 
 
 def test_cmd_hipass():
-    # Out3 (channel 6), freq raw 128 (~379 Hz, verified from UI at ~50% fader)
-    # Capture payload: 32 06 80 00 00
-    frame = cmd_hipass(6, 128, 0)
+    # Out3 (channel 6), freq raw 0, bypassed (default state)
+    # Verified from capture: 32 06 00 00 00
+    frame = cmd_hipass(6, 0, SLOPE_BYPASS)
     assert frame[5] == 0x32   # opcode
     assert frame[6] == 0x06   # channel (Out3)
-    assert frame[7] == 0x80   # 128 & 0xFF
-    assert frame[8] == 0x00   # 128 >> 8
-    assert frame[9] == 0x00   # enable/byte4
+    assert frame[7] == 0x00   # 0 & 0xFF
+    assert frame[8] == 0x00   # 0 >> 8
+    assert frame[9] == 0x00   # bypassed
+
+    # Active with LR-24: 32 06 00 00 0a
+    # Verified from bypass capture: un-bypass sends 0x0a
+    frame = cmd_hipass(6, 0, SLOPE_LR24)
+    assert frame[9] == 0x0A   # LR-24
+
+    # Slope BL-24 (0x09): verified from slope capture
+    frame = cmd_hipass(6, 0, 0x09)
+    assert frame[9] == 0x09
 
     # Max frequency: raw 300 (20160 Hz)
     frame = cmd_hipass(6, 300)
@@ -376,8 +392,10 @@ def test_parse_preset_params_from_unt():
     # Crossover should be present for 4 output channels
     assert len(result["crossovers"]) == 4
     for xover in result["crossovers"]:
-        assert "hipass" in xover
-        assert "lopass" in xover
+        assert "hipass_freq" in xover
+        assert "lopass_freq" in xover
+        assert "hipass_slope" in xover
+        assert "lopass_slope" in xover
 
 
 def test_parse_preset_params_modified():

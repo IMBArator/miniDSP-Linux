@@ -53,6 +53,9 @@ Reverse-engineered from Wireshark USBPcap sessions (all in `usb_captures/`):
 - `capture_20260405_170911_output_channel_xover_highpass.pcapng` — Out3 hi-pass freq swept raw 0→300→0→300 (opcode 0x32, first capture verification on 4x4 Mini)
 - `capture_20260405_171114_output_channel_xover_lowpass.pcapng` — Out3 lo-pass freq swept raw 300→0→300→0 (opcode 0x31, confirmed config bytes 12–13)
 - `capture_20260405_174550_output_channel_xover_highpass_2.pcapng` — Out3 hi-pass to ~50% fader (raw 128 = 379 Hz, confirmed formula Hz = 19.70 × (20160/19.70)^(raw/300))
+- `capture_20260405_171715_output_channel_xover_lowpass_bypass.pcapng` — Out3 lo-pass bypass toggled (confirmed slope byte 0x00=bypass, 0x0a=LR-24 active)
+- `capture_20260405_171839_output_channel_xover_highpass_bypass.pcapng` — Out3 hi-pass bypass toggled (same encoding, config byte 14)
+- `capture_20260405_172431_output_channel_xover_highpass_slope.pcapng` — Out3 hi-pass slope swept through all 10 types (LR-24→BW-6→LR-24, verified full enum)
 
 **Other:**
 - `miniDSP USBTree output.txt` — USB device descriptor (VID/PID/endpoints)
@@ -514,8 +517,8 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x27` | 2 | OUT | Read config page | `27 [page]` — device responds `24 [page] [50 bytes]` |
 | `0x29` | 2 | OUT | Read preset name | `29 [slot]` — device responds `29 [slot] [14 char name]` |
 | `0x2c` | 1 | OUT | Device info | `2c` — device responds `2c` + 7 bytes |
-| `0x31` | 5 | OUT | Lo-pass filter | `31 [ch] [freq_lo] [freq_hi] [slope]` — log freq 0–1000 |
-| `0x32` | 5 | OUT | Hi-pass filter | `32 [ch] [freq_lo] [freq_hi] [byte4]` — log freq 0–1000 |
+| `0x31` | 5 | OUT | Lo-pass filter | `31 [ch] [freq_lo] [freq_hi] [slope]` — log freq 0–300, slope 0=bypass |
+| `0x32` | 5 | OUT | Hi-pass filter | `32 [ch] [freq_lo] [freq_hi] [slope]` — log freq 0–300, slope 0=bypass |
 | `0x33` | 10 | OUT | PEQ band | `33 [ch] [band] [gain] 00 [freq_lo] [freq_hi] [Q] [type] [bypass]` (*) |
 | `0x34` | 4 | OUT | Gain | `34 [ch] [val_lo] [val_hi]` — LE uint16, 0–400 |
 | `0x35` | 3 | OUT | Mute | `35 [ch] [state]` — 0x00=off, 0x01=on |
@@ -576,24 +579,51 @@ Payload (5 bytes): 31 [ch] [freq_lo] [freq_hi] [slope]
 - **Channel:** output channels 0x04–0x07
 - **Frequency:** log-scale LE uint16, raw 0–300 on 4x4 Mini. Hz = 19.70 × (20160/19.70)^(raw/300).
   DSP 408 uses 0–1000 with /1000 denominator; same frequency range, fewer steps.
-- **Slope** (byte): captured as `0x00` = BW-6 on 4x4 Mini. dsp-408-ui defines 20 indices; 4x4 Mini has 10.
-- **Config storage:** output block bytes 12–13
+- **Slope** (byte): combined bypass + slope type. See slope table below.
+- **Config storage:** output block bytes 12–13 (freq), byte 15 (slope)
 
-**Capture-verified:** Out3 freq swept raw 300→0→300→0 (slope=BW-6 throughout).
+**Capture-verified:** Out3 freq swept raw 300→0→300→0; bypass toggled; slope sweep on hi-pass (same encoding).
 
 ### 0x32 — Hi-Pass Crossover Filter
 
 ```
-Payload (5 bytes): 32 [ch] [freq_lo] [freq_hi] [byte4]
+Payload (5 bytes): 32 [ch] [freq_lo] [freq_hi] [slope]
 ```
 
 - **Channel:** output channels 0x04–0x07
 - **Frequency:** log-scale LE uint16, raw 0–300. Hz = 19.70 × (20160/19.70)^(raw/300).
   Verified: raw 128 = 379.1 Hz (user reported 378.9 Hz at ~50% fader).
-- **Byte 4:** always `0x00` in captures. dsp-408-ui labels "enable" but could be slope. Needs investigation.
-- **Config storage:** output block bytes 10–11
+- **Slope** (byte): combined bypass + slope type. See slope table below.
+- **Config storage:** output block bytes 10–11 (freq), byte 14 (slope)
 
-**Capture-verified:** Out3 freq swept raw 0→300→0→300 (byte4=0x00 throughout).
+**Capture-verified:** Out3 freq swept raw 0→300→0→300; bypass toggled; slope swept through all 10 types.
+
+#### Crossover Slope Encoding (byte 4 of 0x31 and 0x32)
+
+Both commands use the same encoding for the slope byte:
+
+| Raw | Slope | Filter type |
+|-----|-------|-------------|
+| 0x00 | **Bypassed** | Filter disabled |
+| 0x01 | BW-6 | Butterworth 6 dB/oct |
+| 0x02 | BL-6 | Bessel 6 dB/oct |
+| 0x03 | BW-12 | Butterworth 12 dB/oct |
+| 0x04 | BL-12 | Bessel 12 dB/oct |
+| 0x05 | LR-12 | Linkwitz-Riley 12 dB/oct |
+| 0x06 | BW-18 | Butterworth 18 dB/oct |
+| 0x07 | BL-18 | Bessel 18 dB/oct |
+| 0x08 | BW-24 | Butterworth 24 dB/oct |
+| 0x09 | BL-24 | Bessel 24 dB/oct |
+| 0x0a | LR-24 | Linkwitz-Riley 24 dB/oct (**device default**) |
+
+**Bypass behavior:** When slope=0x00, the filter is bypassed. The device does not retain
+the previously selected slope — on bypass, the slope value is overwritten with 0x00 in
+config storage. The PC application must track the last-active slope and re-send it when
+un-bypassing. After an application restart with a bypassed filter, the slope resets to
+LR-24 (0x0a, the default).
+
+Pattern: grouped by filter order (6→12→18→24 dB/oct), within each order: BW, BL, then
+LR (LR only at even orders 12/24, which is physically correct for Linkwitz-Riley filters).
 
 ### 0x3a — Matrix Routing
 
@@ -884,7 +914,8 @@ Offset  Size  Field
  9       1    Always 0x00
 10–11    2    **Crossover hi-pass freq**, LE uint16, raw 0–300 (same as 0x32 command)
 12–13    2    **Crossover lo-pass freq**, LE uint16, raw 0–300 (same as 0x31 command, default 300 = 20.16 kHz)
-14–15    2    Parameter B, LE uint16 (Out1/2=10, Out3/4=0)
+14       1    **Crossover hi-pass slope**, 0x00=bypassed, 0x01–0x0a=active slope type (see slope table)
+15       1    **Crossover lo-pass slope**, 0x00=bypassed, 0x01–0x0a=active slope type (see slope table)
 16–17    2    Crossover/filter param (Out1/2=203, Out3/4=120)
 18–19    2    Crossover/filter param (Out1/2=89, Out3/4=31)
 20–21    2    Crossover/filter param (Out1/2=272, Out3/4=25)

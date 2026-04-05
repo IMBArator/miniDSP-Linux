@@ -161,7 +161,7 @@ verified = true
 [opcodes.0x31]
 name = "lopass_crossover"
 direction = "out"
-description = "Low-pass crossover filter (log freq 0-1000, slope index)"
+description = "Low-pass crossover filter (log freq 0-300, slope/bypass byte)"
 verified = true
 
 [opcodes.0x31.fields.request]
@@ -172,13 +172,13 @@ slope = { offset = 4, size = 1, format = "slope_index" }
 [opcodes.0x32]
 name = "hipass_crossover"
 direction = "out"
-description = "High-pass crossover filter (log freq 0-1000)"
+description = "High-pass crossover filter (log freq 0-300, slope/bypass byte)"
 verified = true
 
 [opcodes.0x32.fields.request]
 channel = { offset = 1, size = 1, format = "channel" }
 frequency = { offset = 2, size = 2, format = "freq_log" }
-enable = { offset = 4, size = 1, format = "bool" }
+slope = { offset = 4, size = 1, format = "slope_index" }
 
 [opcodes.0x33]
 name = "peq"
@@ -384,5 +384,5 @@ note = "dB = 20*log10(level/1153), 63 dB range. 0dBu~188, -30dBu~5"
 
 [formats.slope_index]
 type = "enum"
-values = { "0" = "BW-6", "1" = "BW-12", "2" = "BW-18", "3" = "BW-24", "4" = "BW-36", "5" = "BW-48", "6" = "LR-12", "7" = "LR-24", "8" = "LR-36", "9" = "LR-48", "10" = "BS-6", "11" = "BS-12", "12" = "BS-18", "13" = "BS-24", "14" = "BS-36", "15" = "BS-48" }
-note = "4x4 Mini has only 10 slopes (no -36/-48). Mapping needs verification."
+values = { "0" = "off", "1" = "BW-6", "2" = "BL-6", "3" = "BW-12", "4" = "BL-12", "5" = "LR-12", "6" = "BW-18", "7" = "BL-18", "8" = "BW-24", "9" = "BL-24", "10" = "LR-24" }
+note = "0=bypassed, 1-10=active slope. Verified from slope sweep capture. LR-24 (0x0a) is device default. Bypass loses slope state — app must remember and re-send on un-bypass."
