@@ -14,7 +14,7 @@
 - remember that claude usage is expensive, try to be economical when processing data. use agents with lower grade modles if bulk processing is needed.
 - always feel free to suggest improvements to the code and to the process!
 - be more explanative so the humans can learn along the way.
-- always remember to update the protocol implementation and documentation. but always make sure the results are verified before changing docs and code. and always ask. it is curcial to never change protocol docs and code without confirmation!
+- always remember to update the protocol implementation and documentation as well as the feature list. but always make sure the results are verified before changing docs and code. and always ask. it is curcial to never change protocol docs and code without confirmation!
 
 ## Project Goal
 
