@@ -4,3 +4,4 @@ __pycache__/
 .idea/
 *.egg-info/
 python-embed/
+uv.lock
