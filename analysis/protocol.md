@@ -32,6 +32,9 @@ Reverse-engineered from Wireshark USBPcap sessions (all in `usb_captures/`):
 - `miniDSP Capture - link unlink out channel 1 and 2.txt`
 - `miniDSP Capture - link unlink out channel 3 and 4.txt`
 - `miniDSP Capture - link unlink out channel 1,2,3 and 4.txt`
+- `capture_20260407_190307_link_input_ch1_and_ch2.pcapng` — link input Ch1+Ch2 then restart
+- `capture_20260407_190414_link_input_ch1_ch2_and_ch3.pcapng` — link input Ch1+Ch2+Ch3 then restart
+- `capture_20260407_190705_link_output_ch1_and_ch2.pcapng` — link output Ch1+Ch2 then restart
 
 **Phase invert:**
 - `capture_20260405_000924_input_channel_phase_invert.pcapng` — InC phase toggled normal↔inverted (opcode 0x36 discovery)
@@ -56,6 +59,25 @@ Reverse-engineered from Wireshark USBPcap sessions (all in `usb_captures/`):
 - `capture_20260405_171715_output_channel_xover_lowpass_bypass.pcapng` — Out3 lo-pass bypass toggled (confirmed slope byte 0x00=bypass, 0x0a=LR-24 active)
 - `capture_20260405_171839_output_channel_xover_highpass_bypass.pcapng` — Out3 hi-pass bypass toggled (same encoding, config byte 14)
 - `capture_20260405_172431_output_channel_xover_highpass_slope.pcapng` — Out3 hi-pass slope swept through all 10 types (LR-24→BW-6→LR-24, verified full enum)
+
+**Output compressor:**
+- `capture_20260407_184757_output_channel_compressor_threshold.pcapng` — Out3 compressor threshold +20→−90→+20→−90 dB (opcode 0x30 discovery, 87 occurrences)
+- `capture_20260407_184842_output_channel_compressor_attack.pcapng` — Out3 compressor attack 50→1→999→1 ms
+- `capture_20260407_185003_output_channel_compressor_release.pcapng` — Out3 compressor release 500→10→3000→1 ms
+- `capture_20260407_185056_output_channel_compressor_ratio.pcapng` — Out3 compressor ratio 1:1.0→1:20→Limit→1:1.1
+- `capture_20260407_185154_output_channel_compressor_knee.pcapng` — Out3 compressor knee 0→12→0→1 dB in 1 dB steps
+
+**Preset management:**
+- `capture_20260407_185424_load_preset_f00.pcapng` — load factory preset F00 (Default Preset)
+- `capture_20260407_185541_load_preset_u01.pcapng` — load user preset U01 (DIY Mon)
+- `capture_20260407_185634_load_preset_u30.pcapng` — load user preset U30 (empty user preset)
+- `capture_20260407_185756_load_preset_change_from_u01_to_u02.pcapng` — switch from U01→U02 mid-session then restart
+- `capture_20260407_190042_store_preset_u30.pcapng` — store settings to U30 with name "Capture Test"
+
+**Routing matrix:**
+- `capture_20260407_191659_matrix_Out1_from_InA_and_InB.pcapng` — Out1 routed from InA+InB (default: 1:1 diagonal)
+- `capture_20260407_191838_matrix_Out1_from_InA_InB_InC_InD.pcapng` — Out1 summed from all 4 inputs
+- `capture_20260407_192739_matrix_remove_source_of_Out1.pcapng` — Out1 silenced (no source); no init sequence included
 
 **Other:**
 - `miniDSP USBTree output.txt` — USB device descriptor (VID/PID/endpoints)
