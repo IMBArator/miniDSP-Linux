@@ -27,7 +27,7 @@ _INPUT_FIELDS = [
     (16, 2, "gate_threshold"),
     (18, 2, "gain"),
     (20, 1, "phase"),
-    (22, 1, "routing_flags"),
+    (22, 1, "link_flags"),
 ]
 
 _OUTPUT_BLOCK_START = 112
@@ -47,6 +47,7 @@ _OUTPUT_FIELDS = [
     (68, 1, "phase"),
     (69, 1, "unknown_post_gain"),
     (70, 2, "delay"),
+    (72, 1, "link_flags"),
 ]
 
 _FOOTER_FIELDS = [

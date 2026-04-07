@@ -33,6 +33,8 @@ OP_MUTE = 0x35
 OP_PHASE = 0x36
 OP_DELAY = 0x38
 OP_MATRIX = 0x3A
+OP_LINK = 0x3B       # channel link state; send OP_PREPARE_LINK first when linking
+OP_PREPARE_LINK = 0x2A  # declare master↔slave pair before 0x3B (linking only, not unlinking)
 OP_GATE = 0x3E
 OP_POLL = 0x40
 
@@ -199,6 +201,44 @@ def cmd_matrix_route(output_ch: int, input_mask: int) -> bytes:
     input_mask: bitmask of sources (InA=0x01, InB=0x02, InC=0x04, InD=0x08; 0x00=silence)
     """
     return build_frame(bytes([OP_MATRIX, output_ch, input_mask & 0x0F]))
+
+
+def cmd_prepare_link(master_ch: int, slave_ch: int) -> bytes:
+    """Build a prepare-link command (0x2A).
+
+    Must be sent once per master↔slave pair immediately before cmd_channel_link()
+    when linking channels. Not sent when unlinking.
+
+    master_ch: unified channel index of the master (inputs 0-3, outputs 4-7)
+    slave_ch:  unified channel index of the slave
+
+    For N-channel links send one cmd_prepare_link per slave, then all cmd_channel_link calls.
+    Example — link InA+InB+InC:
+        cmd_prepare_link(0, 1)  # InA→InB
+        cmd_prepare_link(0, 2)  # InA→InC
+        cmd_channel_link(0, 0x07)  # InA master: bits 0|1|2
+        cmd_channel_link(1, 0x00)  # InB slave
+        cmd_channel_link(2, 0x00)  # InC slave
+        cmd_activate()
+    """
+    return build_frame(bytes([OP_PREPARE_LINK, master_ch & 0xFF, slave_ch & 0xFF]))
+
+
+def cmd_channel_link(channel: int, link_flags: int) -> bytes:
+    """Build a channel link state command (0x3B).
+
+    Sets the link bitmask for one channel. Send for every affected channel
+    (both master and all slaves). Preceded by cmd_prepare_link() per slave pair
+    when linking; no prepare needed when unlinking.
+
+    channel:    unified channel index (inputs 0-3, outputs 4-7)
+    link_flags: bitmask within the 4-channel group:
+                  inputs:  InA=0x01, InB=0x02, InC=0x04, InD=0x08
+                  outputs: Out1=0x01, Out2=0x02, Out3=0x04, Out4=0x08
+                Master gets OR of all linked bits; slaves get 0x00.
+                Standalone (unlinked) channel gets its own bit only (e.g. InA=0x01).
+    """
+    return build_frame(bytes([OP_LINK, channel & 0xFF, link_flags & 0x0F]))
 
 
 def cmd_gate(channel: int, attack: int, release: int, hold: int, threshold: int) -> bytes:
@@ -388,6 +428,7 @@ _INPUT_GATE_RELEASE_OFFSET = 12 # uint16 LE, raw 0–2999 (0–3000 ms)
 _INPUT_GATE_HOLD_OFFSET = 14    # uint16 LE, raw 9–998 (10–999 ms)
 _INPUT_GATE_THRESH_OFFSET = 16  # uint16 LE, raw 1–180 (−90.0 to 0.0 dB, 0.5 dB/step)
 _INPUT_PHASE_OFFSET = 20    # 0x00=normal, 0x01=inverted
+_INPUT_LINK_FLAGS_OFFSET = 22  # bitmask: bit0=InA, bit1=InB, bit2=InC, bit3=InD; master=OR, slave=0x00
 
 _PRESET_OUTPUT_START = 112  # 4 × 74-byte output blocks
 _OUTPUT_BLOCK_SIZE = 74
@@ -398,6 +439,7 @@ _OUTPUT_LOPASS_SLOPE_OFFSET = 15  # uint8, 0x00=bypassed, 0x01–0x0a=slope (SLO
 _OUTPUT_GAIN_OFFSET = 66    # uint16 LE within output block
 _OUTPUT_PHASE_OFFSET = 68   # 0x00=normal, 0x01=inverted
 _OUTPUT_DELAY_OFFSET = 70   # uint16 LE, raw 0–32640 (samples at 48 kHz, 0–680 ms)
+_OUTPUT_LINK_FLAGS_OFFSET = 72  # bitmask: bit0=Out1, bit1=Out2, bit2=Out3, bit3=Out4; master=OR, slave=0x00
 
 # Mute bitmasks in the config footer (after channel blocks)
 _INPUT_MUTE_BITMASK_OFFSET = 408   # uint16 LE, bit 0=In1 .. bit 3=In4
