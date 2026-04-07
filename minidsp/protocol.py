@@ -22,6 +22,7 @@ OP_PRESET_HEADER = 0x22
 OP_READ_CONFIG = 0x27
 OP_READ_NAME = 0x29
 OP_DEVICE_INFO = 0x2C
+OP_COMPRESSOR = 0x30
 OP_LOPASS = 0x31
 OP_HIPASS = 0x32
 OP_GAIN = 0x34
@@ -46,6 +47,24 @@ SLOPE_BL18 = 0x07  # Bessel 18 dB/oct
 SLOPE_BW24 = 0x08  # Butterworth 24 dB/oct
 SLOPE_BL24 = 0x09  # Bessel 24 dB/oct
 SLOPE_LR24 = 0x0A  # Linkwitz-Riley 24 dB/oct (device default)
+
+# Compressor ratio indices (byte 2 of 0x30 payload)
+COMP_RATIO_1_1  = 0x00  # 1:1.0 — no compression (default)
+COMP_RATIO_1_11 = 0x01  # 1:1.1
+COMP_RATIO_1_13 = 0x02  # 1:1.3
+COMP_RATIO_1_15 = 0x03  # 1:1.5
+COMP_RATIO_1_17 = 0x04  # 1:1.7
+COMP_RATIO_1_2  = 0x05  # 1:2.0
+COMP_RATIO_1_25 = 0x06  # 1:2.5
+COMP_RATIO_1_3  = 0x07  # 1:3.0
+COMP_RATIO_1_35 = 0x08  # 1:3.5
+COMP_RATIO_1_4  = 0x09  # 1:4.0
+COMP_RATIO_1_5  = 0x0A  # 1:5.0
+COMP_RATIO_1_6  = 0x0B  # 1:6.0
+COMP_RATIO_1_8  = 0x0C  # 1:8.0
+COMP_RATIO_1_10 = 0x0D  # 1:10.0
+COMP_RATIO_1_20 = 0x0E  # 1:20.0
+COMP_RATIO_LIMIT = 0x0F # Hard limiter
 
 
 def checksum(length: int, payload: bytes) -> int:
@@ -181,6 +200,35 @@ def cmd_gate(channel: int, attack: int, release: int, hold: int, threshold: int)
         attack & 0xFF, (attack >> 8) & 0xFF,
         release & 0xFF, (release >> 8) & 0xFF,
         hold & 0xFF, (hold >> 8) & 0xFF,
+        threshold & 0xFF, (threshold >> 8) & 0xFF,
+    ]))
+
+
+def cmd_compressor(
+    channel: int,
+    ratio: int,
+    knee: int,
+    attack: int,
+    release: int,
+    threshold: int,
+) -> bytes:
+    """Build a compressor/limiter command (0x30).
+
+    All 5 compressor parameters are sent in one frame.
+
+    channel:   output channel (0x04–0x07)
+    ratio:     0–15 enum (see COMP_RATIO_* constants; 0=1:1.0, 15=Limit)
+    knee:      0–12 (direct dB, 0=hard knee, 12=softest)
+    attack:    raw 0–998 (ms = raw + 1, range 1–999 ms)
+    release:   raw 9–2999 (ms = raw + 1, range 10–3000 ms)
+    threshold: raw 0–220 (dB = raw/2 − 90, range −90.0 to +20.0 dB, 0.5 dB/step)
+    """
+    return build_frame(bytes([
+        OP_COMPRESSOR, channel,
+        ratio & 0xFF,
+        knee & 0xFF,
+        attack & 0xFF, (attack >> 8) & 0xFF,
+        release & 0xFF, (release >> 8) & 0xFF,
         threshold & 0xFF, (threshold >> 8) & 0xFF,
     ]))
 

@@ -539,6 +539,7 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x27` | 2 | OUT | Read config page | `27 [page]` — device responds `24 [page] [50 bytes]` |
 | `0x29` | 2 | OUT | Read preset name | `29 [slot]` — device responds `29 [slot] [14 char name]` |
 | `0x2c` | 1 | OUT | Device info | `2c` — device responds `2c` + 7 bytes |
+| `0x30` | 10 | OUT | Compressor/limiter | `30 [ch] [ratio] [knee] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [thr_lo] [thr_hi]` |
 | `0x31` | 5 | OUT | Lo-pass filter | `31 [ch] [freq_lo] [freq_hi] [slope]` — log freq 0–300, slope 0=bypass |
 | `0x32` | 5 | OUT | Hi-pass filter | `32 [ch] [freq_lo] [freq_hi] [slope]` — log freq 0–300, slope 0=bypass |
 | `0x33` | 10 | OUT | PEQ band | `33 [ch] [band] [gain] 00 [freq_lo] [freq_hi] [Q] [type] [bypass]` (*) |
@@ -817,8 +818,14 @@ Confirmed by diff-config comparing config page reads before/after:
 - [ ] **Firmware version:** Is the footer `0x000abc8d` a version number?
 - [x] **Delay command:** Opcode `0x38` — `38 [ch] [samples_lo] [samples_hi]`, uint16 LE samples at 48 kHz.
       Config stored at output block bytes 70–71. First known implementation (not in dsp-408-ui).
-- [ ] **Compressor/Limiter:** Not yet reverse-engineered. Likely encoded in the
-      22-byte post-PEQ tail of output channel config blocks.
+- [x] **Compressor/Limiter:** Opcode `0x30` — 10-byte payload, all 5 params sent in one frame.
+      `30 [ch] [ratio] [knee] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [thr_lo] [thr_hi]`
+      Threshold (bytes 8–9): uint16 LE, `dB = raw/2 − 90`, range 0–220 (−90 to +20 dB, 0.5 dB/step).
+      Attack (bytes 4–5): uint16 LE, `ms = raw + 1`, range 0–998 (1–999 ms).
+      Release (bytes 6–7): uint16 LE, `ms = raw + 1`, range 9–2999 (10–3000 ms).
+      Ratio (byte 2): uint8 enum 0–15 (0=1:1.0 … 14=1:20.0, 15=Limit).
+      Knee (byte 3): uint8 direct dB, 0–12.
+      Config storage location in output block: not yet reverse-engineered.
 - [x] **Phase invert:** Opcode `0x36` — `36 [ch] [state]`, 0x00=normal, 0x01=inverted.
       Also stored in config at input block offset 20 (byte within 24-byte block).
       Captured: InC toggled normal↔inverted. InA+InB were already inverted.
