@@ -45,16 +45,16 @@ Compiled from: manufacturer tool screenshots (`analysis/resources/`), PDF user m
 | **Gain** | -60.0 to +12.0 dB (same encoding as input) | **Captured & implemented** (`0x34`) |
 | **Mute** | Per-channel on/off | **Captured & implemented** (`0x35`) |
 | **Phase Invert** | 180 degree polarity flip | **Captured & implemented** (`0x36`) |
-| **Compressor** | Per-output: Threshold, Attack, Ratio, Release, Knee | Visible in screenshots & manual; protocol unknown |
+| **Compressor** | Per-output: Threshold, Attack, Ratio, Release, Knee | **Captured & implemented** (`0x30`, all 5 params in one frame) |
 | **Output Delay** | Per-output, 0–680 ms in sample steps | **Captured & implemented** (`0x38`) |
 | **Level Meter** | Real-time level with clip + limiter active indicators | **Captured & implemented** (`0x40`, limiter bitmask at byte 25) |
 
-**Compressor parameters:**
-- Threshold: -90.0 to 20 dB
-- Attack: 1 to 999 ms
-- Ratio: 1:1.0, 1:1.1, 1:1.3, 1:1.5, 1:1.7, 1:2.0, 1:2.5, 1:3.0, 1:3.5, 1:4.0, 1:5.0, 1:6.0, 1:8.0, 1:10.0, 1:20.0, limit
-- Release: 10 to 3000 ms
-- Knee: 0 to 12 dB (1 dB increments)
+**Compressor parameters (all sent together in one `0x30` frame):**
+- Threshold (bytes 8–9): −90.0 to +20.0 dB — `raw = 2 × (dB + 90)`, uint16 LE, range 0–220, 0.5 dB/step
+- Attack (bytes 4–5): 1 to 999 ms — `raw = ms − 1`, uint16 LE, range 0–998
+- Release (bytes 6–7): 10 to 3000 ms — `raw = ms − 1`, uint16 LE, range 9–2999
+- Ratio (byte 2): 16-value enum, 0=1:1.0, 1=1:1.1, 2=1:1.3, 3=1:1.5, 4=1:1.7, 5=1:2.0, 6=1:2.5, 7=1:3.0, 8=1:3.5, 9=1:4.0, 10=1:5.0, 11=1:6.0, 12=1:8.0, 13=1:10.0, 14=1:20.0, 15=Limit
+- Knee (byte 3): 0 to 12 dB — direct uint8 value, 1 dB steps
 
 **Delay:**
 - Range: 0.000 ms to 680.000 ms per output (raw 0–32640 samples at 48 kHz, ~0.02083 ms/step)
