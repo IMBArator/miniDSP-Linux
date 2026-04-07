@@ -1,0 +1,46 @@
+[capture]
+file = "capture_20260407_190307_link_input_ch1_and_ch2.pcapng"
+format = "pcapng"
+
+[description]
+feature = "link input ch1 and ch2"
+notes = "link input channel 1 and 2 and restart application"
+
+[analysis]
+packet_count = 374
+out_packets = 187
+in_packets = 187
+duration_seconds = 23.69
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2a",
+    "0x2c",
+    "0x3b",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-07T22:46:07"
+
+[analysis.opcode_counts]
+0x29 = 180
+0x40 = 102
+0x27 = 27
+0x24 = 27
+0x01 = 7
+0x22 = 6
+0x14 = 6
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x12 = 4
+0x3b = 2
+0x2a = 1

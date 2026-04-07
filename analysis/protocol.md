@@ -709,6 +709,7 @@ When linked, the master gets the OR of all linked channel bits; slaves get `0x00
 | Action | Commands |
 |---|---|
 | Link InA+InB | `2a 00 01` + `3b 00 03` + `3b 01 00` + `12` |
+| Link InA+InB+InC | `2a 00 01` + `2a 00 02` + `3b 00 07` + `3b 01 00` + `3b 02 00` + `12` |
 | Unlink InA+InB | `3b 00 01` + `3b 01 02` + `12` |
 | Link Out1+Out2 | `2a 04 05` + `3b 04 03` + `3b 05 00` + `12` |
 | Unlink Out1+Out2 | `3b 04 01` + `3b 05 02` + `12` |
@@ -735,6 +736,7 @@ commands. One `0x2a` is sent per master↔slave pair. For multi-channel links
 | Link action | 0x2a commands |
 |---|---|
 | Link InA+InB | `2a 00 01` |
+| Link InA+InB+InC | `2a 00 01` + `2a 00 02` |
 | Link Out1+Out2 | `2a 04 05` |
 | Link Out2+Out3 | `2a 05 06` |
 | Link Out3+Out4 | `2a 06 07` |

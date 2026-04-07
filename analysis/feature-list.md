@@ -182,9 +182,7 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 
 ### Protocol likely known but NOT yet or not fully captured on our device:
 - PEQ (`0x33`) - 7 bands per output
-- Channel linking (`0x3b`/`0x2a`)
 
 ### Completely unknown protocol:
-- Compressor settings (output)
 - Test Tone Generator
 - Device Lock/Password (careful. DO NOT TOUCH! could lock us out.)
