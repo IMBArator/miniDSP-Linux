@@ -436,6 +436,12 @@ _OUTPUT_HIPASS_OFFSET = 10  # uint16 LE, crossover hi-pass freq (raw 0–300 on 
 _OUTPUT_LOPASS_OFFSET = 12  # uint16 LE, crossover lo-pass freq (raw 0–300 on 4x4 Mini)
 _OUTPUT_HIPASS_SLOPE_OFFSET = 14  # uint8, 0x00=bypassed, 0x01–0x0a=slope (SLOPE_* constants)
 _OUTPUT_LOPASS_SLOPE_OFFSET = 15  # uint8, 0x00=bypassed, 0x01–0x0a=slope (SLOPE_* constants)
+# Bytes 16–57: PEQ band data (likely 7 × 6 bytes = 42 bytes, unverified — needs PEQ capture)
+_OUTPUT_COMP_RATIO_OFFSET = 58   # uint8 enum 0–15 (see COMP_RATIO_* constants)
+_OUTPUT_COMP_KNEE_OFFSET = 59    # uint8, 0–12 (direct dB, 0=hard knee)
+_OUTPUT_COMP_ATTACK_OFFSET = 60  # uint16 LE, raw 0–998 (ms = raw + 1, range 1–999 ms)
+_OUTPUT_COMP_RELEASE_OFFSET = 62 # uint16 LE, raw 9–2999 (ms = raw + 1, range 10–3000 ms)
+_OUTPUT_COMP_THRESH_OFFSET = 64  # uint16 LE, raw 0–220 (dB = raw/2 − 90, range −90 to +20 dB)
 _OUTPUT_GAIN_OFFSET = 66    # uint16 LE within output block
 _OUTPUT_PHASE_OFFSET = 68   # 0x00=normal, 0x01=inverted
 _OUTPUT_DELAY_OFFSET = 70   # uint16 LE, raw 0–32640 (samples at 48 kHz, 0–680 ms)
@@ -469,8 +475,9 @@ def parse_preset_params(config_data: bytes) -> dict | None:
       'phases' (list[8], bool — True=inverted),
       'gates' (list[4], dict with attack/release/hold/threshold raw values),
       'delays' (list[4], int — raw samples 0–32640, ms = raw / 48),
-      'crossovers' (list[4], dict with hipass/lopass freq and slope per filter).
-    Channel order: inputs 0–3, outputs 4–7 (gates input-only; delays, crossovers output-only).
+      'crossovers' (list[4], dict with hipass/lopass freq and slope per filter),
+      'compressors' (list[4], dict with ratio/knee/attack/release/threshold raw values).
+    Channel order: inputs 0–3, outputs 4–7 (gates input-only; delays/crossovers/compressors output-only).
     """
     if len(config_data) < _OUTPUT_MUTE_BITMASK_OFFSET + 2:
         return None
@@ -481,6 +488,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     gates: list[dict[str, int]] = []
     delays: list[int] = []
     crossovers: list[dict[str, int]] = []
+    compressors: list[dict[str, int]] = []
 
     # Input channels: gain, phase, gate from per-channel blocks
     for i in range(4):
@@ -495,7 +503,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
             "threshold": config_data[base + _INPUT_GATE_THRESH_OFFSET] + config_data[base + _INPUT_GATE_THRESH_OFFSET + 1] * 256,
         })
 
-    # Output channels: gain, phase, delay, crossover from per-channel blocks
+    # Output channels: gain, phase, delay, crossover, compressor from per-channel blocks
     for i in range(4):
         base = _PRESET_OUTPUT_START + i * _OUTPUT_BLOCK_SIZE
         gain = config_data[base + _OUTPUT_GAIN_OFFSET] + config_data[base + _OUTPUT_GAIN_OFFSET + 1] * 256
@@ -508,6 +516,13 @@ def parse_preset_params(config_data: bytes) -> dict | None:
             "hipass_slope": config_data[base + _OUTPUT_HIPASS_SLOPE_OFFSET],
             "lopass_slope": config_data[base + _OUTPUT_LOPASS_SLOPE_OFFSET],
         })
+        compressors.append({
+            "ratio": config_data[base + _OUTPUT_COMP_RATIO_OFFSET],
+            "knee": config_data[base + _OUTPUT_COMP_KNEE_OFFSET],
+            "attack": config_data[base + _OUTPUT_COMP_ATTACK_OFFSET] + config_data[base + _OUTPUT_COMP_ATTACK_OFFSET + 1] * 256,
+            "release": config_data[base + _OUTPUT_COMP_RELEASE_OFFSET] + config_data[base + _OUTPUT_COMP_RELEASE_OFFSET + 1] * 256,
+            "threshold": config_data[base + _OUTPUT_COMP_THRESH_OFFSET] + config_data[base + _OUTPUT_COMP_THRESH_OFFSET + 1] * 256,
+        })
 
     # Mute: bitmasks in config footer
     input_mute_mask = config_data[_INPUT_MUTE_BITMASK_OFFSET] + config_data[_INPUT_MUTE_BITMASK_OFFSET + 1] * 256
@@ -519,7 +534,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
         mutes.append(bool(output_mute_mask & (1 << i)))
 
     return {"gains": gains, "mutes": mutes, "phases": phases, "gates": gates,
-            "delays": delays, "crossovers": crossovers}
+            "delays": delays, "crossovers": crossovers, "compressors": compressors}
 
 
 # --- Gain conversion ---

@@ -396,6 +396,14 @@ def test_parse_preset_params_from_unt():
         assert "lopass_freq" in xover
         assert "hipass_slope" in xover
         assert "lopass_slope" in xover
+    # Compressor should be present for 4 output channels
+    assert len(result["compressors"]) == 4
+    for comp in result["compressors"]:
+        assert "ratio" in comp
+        assert "knee" in comp
+        assert "attack" in comp
+        assert "release" in comp
+        assert "threshold" in comp
 
 
 def test_parse_preset_params_modified():
