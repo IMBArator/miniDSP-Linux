@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260407_185056_output_channel_compressor_ratio.pcapng"
+format = "pcapng"
+
+[description]
+feature = "output channel compressor ratio"
+notes = "captured output channel 3 compressor ratio 1:1.0, ..., 1:20, Limit, back to 1:1.0, to 1:1.1 (default is 1:1.0) and restartet application"
+
+[analysis]
+packet_count = 408
+out_packets = 204
+in_packets = 204
+duration_seconds = 32.8
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x30",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-07T21:21:16"
+
+[analysis.opcode_counts]
+0x40 = 166
+0x29 = 120
+0x01 = 33
+0x30 = 31
+0x27 = 18
+0x24 = 18
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x12 = 2

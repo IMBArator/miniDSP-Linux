@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260407_184842_output_channel_compressor_attack.pcapng"
+format = "pcapng"
+
+[description]
+feature = "output channel compressor attack"
+notes = "captured output channel 3 compressor attack 50ms to 1ms (min) to 999ms (max) to 1ms (default is 50ms) and restartet application"
+
+[analysis]
+packet_count = 396
+out_packets = 198
+in_packets = 198
+duration_seconds = 21.6
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x30",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-07T21:21:33"
+
+[analysis.opcode_counts]
+0x29 = 120
+0x40 = 98
+0x01 = 61
+0x30 = 59
+0x27 = 18
+0x24 = 18
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x12 = 2

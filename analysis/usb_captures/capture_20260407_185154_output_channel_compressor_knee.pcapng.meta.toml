@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260407_185154_output_channel_compressor_knee.pcapng"
+format = "pcapng"
+
+[description]
+feature = "output channel compressor knee"
+notes = "captured output channel 3 compressor knee 0dB to 12db to 0dB to 1dB in 1dB increments (default is 0dB) and restartet application"
+
+[analysis]
+packet_count = 360
+out_packets = 180
+in_packets = 180
+duration_seconds = 26.88
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x30",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-07T21:21:18"
+
+[analysis.opcode_counts]
+0x40 = 130
+0x29 = 120
+0x01 = 27
+0x30 = 25
+0x27 = 18
+0x24 = 18
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x12 = 2
