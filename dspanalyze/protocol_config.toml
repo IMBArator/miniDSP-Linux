@@ -158,6 +158,20 @@ direction = "both"
 description = "Device info query (out) / response (in) — contains 0x270F (9999), purpose unknown"
 verified = true
 
+[opcodes.0x30]
+name = "compressor"
+direction = "out"
+description = "Output channel compressor/limiter — sends all 5 params in one frame (threshold, attack, release, ratio, knee)"
+verified = true
+
+[opcodes.0x30.fields.request]
+channel   = { offset = 1, size = 1, format = "channel" }
+ratio     = { offset = 2, size = 1, format = "hex", note = "TBD: 0x00=1:1.0 default. Verified from attack/release/threshold captures (constant at 0x00)." }
+knee      = { offset = 3, size = 1, format = "hex", note = "TBD: 0x00=0dB default. Verified from attack/release/threshold captures (constant at 0x00)." }
+attack    = { offset = 4, size = 2, format = "hex", note = "TBD: 0x0031=49 (attack 50ms-1). Verified from threshold capture (constant). Attack capture shows this changes." }
+release   = { offset = 6, size = 2, format = "hex", note = "TBD: 0x01f3=499 (release 500ms-1). Verified from threshold capture (constant)." }
+threshold = { offset = 8, size = 2, format = "comp_threshold_raw" }
+
 [opcodes.0x31]
 name = "lopass_crossover"
 direction = "out"
@@ -386,3 +400,10 @@ note = "dB = 20*log10(level/1153), 63 dB range. 0dBu~188, -30dBu~5"
 type = "enum"
 values = { "0" = "off", "1" = "BW-6", "2" = "BL-6", "3" = "BW-12", "4" = "BL-12", "5" = "LR-12", "6" = "BW-18", "7" = "BL-18", "8" = "BW-24", "9" = "BL-24", "10" = "LR-24" }
 note = "0=bypassed, 1-10=active slope. Verified from slope sweep capture. LR-24 (0x0a) is device default. Bypass loses slope state — app must remember and re-send on un-bypass."
+
+[formats.comp_threshold_raw]
+type = "uint16le"
+min = 0
+max = 220
+unit = "dB"
+note = "dB = raw/2 - 90. Range: 0=-90.0dB to 220=+20.0dB, resolution 0.5dB/step. Verified: endpoints confirmed from threshold sweep capture (capture_20260407_184757)."

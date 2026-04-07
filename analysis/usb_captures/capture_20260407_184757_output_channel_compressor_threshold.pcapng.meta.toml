@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260407_184757_output_channel_compressor_threshold.pcapng"
+format = "pcapng"
+
+[description]
+feature = "output channel compressor threshold"
+notes = "captured output channel 3 compressor threshold +20dB (max) to -90dB (min) to max to min (max or +20.0dB is the default) and restartet application"
+
+[analysis]
+packet_count = 474
+out_packets = 237
+in_packets = 237
+duration_seconds = 25.08
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x30",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-07T21:13:12"
+
+[analysis.opcode_counts]
+0x29 = 120
+0x40 = 120
+0x01 = 89
+0x30 = 87
+0x27 = 18
+0x24 = 18
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x12 = 2
