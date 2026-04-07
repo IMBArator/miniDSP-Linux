@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260407_233926_change_name_of_out_3.pcapng"
+format = "pcapng"
+
+[description]
+feature = "change name of out 3"
+notes = "change name of out3 from Out3 to AUSGANG3 and restart application"
+
+[analysis]
+packet_count = 274
+out_packets = 137
+in_packets = 137
+duration_seconds = 21.75
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x3d",
+    "0x40",
+]
+has_unknown_opcodes = true
+has_checksum_errors = false
+last_analyzed = "2026-04-07T23:51:28"
+
+[analysis.opcode_counts]
+0x29 = 120
+0x40 = 92
+0x27 = 18
+0x24 = 18
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x01 = 3
+0x12 = 2
+0x3d = 1
