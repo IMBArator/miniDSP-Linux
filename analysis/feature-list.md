@@ -136,9 +136,9 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 
 | Feature | Details | Protocol Status |
 |---|---|---|
-| **User presets** | U01-U30 (30 slots) | Names: **captured** (`0x29`); load/store: likely `0x20`/`0x21`/`0x26`, NOT captured |
-| **Factory preset** | F00 (read-only) | Visible in screenshots |
-| **Preset names** | Max 15 characters. **Length check critical to avoid crashing DSP!** | From screenshots.md notes |
+| **User presets** | U01-U30 (30 slots) | **Captured & implemented** (`0x20` load, `0x21` store, `0x26` name) |
+| **Factory preset** | F00 (read-only, slot 0) | **⚠ NEVER write to slot 0.** Overwriting F00 may permanently corrupt the device. |
+| **Preset names** | Max **14 characters**, space-padded. **Sending >14 chars crashes the DSP!** | Capture-verified: `0x26` payload is 15 bytes (1 opcode + 14 name chars) |
 | **Quick access** | Address, Preset, Store, Recall buttons in status bar | Visible in screenshots |
 | **File load/save** | .unt preset files on PC | .unt format partially reverse-engineered |
 
@@ -175,11 +175,13 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 - Level metering (8 channels + limiter indicators)
 - Config read (9 pages)
 - Preset name reading (30 slots)
+- Preset load (`0x20`, direct slot index 0=F00/1–30=U01–U30)
+- Preset store (`0x21`, user slots 1–30 only — **never write slot 0/F00**)
+- Preset name store (`0x26`, 14 chars max, space-padded, sent before `0x21`)
 - Initialization sequence
 
 ### Protocol likely known but NOT yet or not fully captured on our device:
 - PEQ (`0x33`) - 7 bands per output
-- Preset load/store (`0x20`/`0x21`/`0x26`)
 - Channel linking (`0x3b`/`0x2a`)
 
 ### Completely unknown protocol:

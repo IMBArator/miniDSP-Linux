@@ -1,0 +1,32 @@
+[capture]
+file = "capture_20260407_185541_load_preset_u01.pcapng"
+format = "pcapng"
+
+[description]
+feature = "load preset u01"
+notes = "load preset U01: DIY Mon"
+
+[analysis]
+packet_count = 52
+out_packets = 26
+in_packets = 26
+duration_seconds = 6.2
+opcodes_seen = [
+    "0x01",
+    "0x12",
+    "0x20",
+    "0x24",
+    "0x27",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-07T22:20:05"
+
+[analysis.opcode_counts]
+0x40 = 30
+0x27 = 9
+0x24 = 9
+0x01 = 2
+0x20 = 1
+0x12 = 1

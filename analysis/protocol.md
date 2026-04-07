@@ -211,10 +211,13 @@ Payload (1 byte): 14
 Full frame:       10 02 00 01 01 14 10 03 15
 ```
 
-Device responds with 2-byte payload: `14 02`.
-The value `0x02` indicates the active preset. In this capture, the config
-pages that followed contained preset "DIY Mon offset" (slot index 1).
-The exact mapping between this value and slot indices needs further testing.
+Device responds with 2-byte payload: `14 [slot]`.
+The slot value uses the same direct index as `0x20`: 0=F00, 1=U01, …, 30=U30.
+
+**Verified examples:**
+- `14 01` → U01 ("DIY Mon") is the active preset
+- `14 02` → U02 ("DIY Mon offset") is the active preset (confirmed after mid-session
+  preset change from U01→U02 and app restart — device remembers the last loaded preset)
 
 ### 0x29 — Read Preset Name
 
@@ -531,11 +534,11 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x12` | 1 | OUT | Activate config | `12` — device responds ACK |
 | `0x13` | 1 | OUT | Firmware string | `13` — device responds ASCII `"4x4MINI V010"` |
 | `0x14` | 1 | OUT | Active preset index | `14` — device responds `14 [idx]` |
-| `0x20` | 2 | OUT | Load preset | `20 [slot+1]` — 1-based index (*) |
+| `0x20` | 2 | OUT | Load preset | `20 [slot]` — direct index: 0=F00, 1=U01…30=U30 |
 | `0x2a` | 3 | OUT | Prepare link | `2a [master_ch] [slave_ch]` — one per pair, sent before linking |
-| `0x21` | 2 | OUT | Store preset | `21 [slot+1]` — 1-based index (*) |
+| `0x21` | 2 | OUT | Store preset | `21 [slot]` — direct index, same as 0x20. **Never use slot 0 (F00)!** |
 | `0x22` | 1 | OUT | Preset header | `22` — device responds `22 ffff` + 28 zeros |
-| `0x26` | 15 | OUT | Store preset name | `26 [14-char name]` — space-padded (*) |
+| `0x26` | 15 | OUT | Store preset name | `26 [14-char name]` — space-padded, sent before 0x21. Max 14 chars! |
 | `0x27` | 2 | OUT | Read config page | `27 [page]` — device responds `24 [page] [50 bytes]` |
 | `0x29` | 2 | OUT | Read preset name | `29 [slot]` — device responds `29 [slot] [14 char name]` |
 | `0x2c` | 1 | OUT | Device info | `2c` — device responds `2c` + 7 bytes |
@@ -740,24 +743,67 @@ commands. One `0x2a` is sent per master↔slave pair. For multi-channel links
 ### 0x20 — Load Preset
 
 ```
-Payload (2 bytes): 20 [slot+1]
+Payload (2 bytes): 20 [slot]
 ```
 
-Uses **1-based** slot index. Loads the preset into the active config.
+Uses a **direct slot index**: 0=F00, 1=U01, 2=U02, …, 30=U30.
+Previous documentation (from DSP 408 cross-reference) incorrectly stated 1-based — our
+captures confirm it is zero-based with F00 at index 0.
+
+> **WARNING — F00 is the factory default preset (read-only).** Never send `0x21` (store)
+> with slot=0. Overwriting F00 could corrupt the device's default state and may be
+> irreversible without a full firmware reflash.
+
+**Verified slot values:**
+| Preset | `0x20` payload |
+|---|---|
+| F00 (factory) | `20 00` |
+| U01 | `20 01` |
+| U02 | `20 02` |
+| U30 | `20 1e` |
+
+**Load sequence (capture-verified):**
+1. `0x20 [slot]` → ACK
+2. `0x27 00` … `0x27 08` → 9× `0x24` config page responses
+3. `0x12` activate → ACK
+
+Mid-session preset change requires no re-init — just step 1→3 above.
+
+**Config page 0 marker bytes (bytes 0–1 of the 450-byte config blob):**
+- `ff ff` — user preset with customised content (U01, U02)
+- `ff 00` — factory/default state (F00, or an empty user slot that was never modified)
 
 ### 0x21 — Store Preset
 
 ```
-Payload (2 bytes): 21 [slot+1]
+Payload (2 bytes): 21 [slot]
 ```
 
-Stores current config to the specified slot (1-based).
+Stores the current active config to the specified slot. Same direct slot index as `0x20`
+(1=U01 … 30=U30).
+
+> **WARNING — Never store to slot 0 (F00).** F00 is the factory default preset and must
+> remain read-only. Overwriting it may permanently corrupt the device baseline.
+
+Device ACK is delayed ~2 seconds (device writes to non-volatile flash). The host must
+wait for ACK before proceeding.
+
+**Store sequence (capture-verified):**
+1. `0x26 [name]` → ACK  (set the name first)
+2. `0x21 [slot]` → ACK  (~2 s delay while device writes flash)
+3. `0x12` activate → ACK
 
 ### 0x26 — Store Preset Name
 
 ```
 Payload (15 bytes): 26 [14 chars ASCII, space-padded]
 ```
+
+Sets the name for the currently active preset slot. Must be sent **before** `0x21`.
+Maximum name length is **14 characters** — space-pad shorter names to fill 14 bytes.
+
+> **WARNING — Do not exceed 14 characters.** Sending a longer name is known to crash
+> the DSP firmware and may require a power cycle to recover.
 
 ### 0x38 — Output Delay
 

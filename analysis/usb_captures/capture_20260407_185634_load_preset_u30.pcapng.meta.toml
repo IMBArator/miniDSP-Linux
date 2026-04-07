@@ -1,0 +1,32 @@
+[capture]
+file = "capture_20260407_185634_load_preset_u30.pcapng"
+format = "pcapng"
+
+[description]
+feature = "load preset u30"
+notes = "load preset U30: Default preset (empty user preset)"
+
+[analysis]
+packet_count = 106
+out_packets = 53
+in_packets = 53
+duration_seconds = 14.54
+opcodes_seen = [
+    "0x01",
+    "0x12",
+    "0x20",
+    "0x24",
+    "0x27",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-07T22:20:06"
+
+[analysis.opcode_counts]
+0x40 = 84
+0x27 = 9
+0x24 = 9
+0x01 = 2
+0x20 = 1
+0x12 = 1

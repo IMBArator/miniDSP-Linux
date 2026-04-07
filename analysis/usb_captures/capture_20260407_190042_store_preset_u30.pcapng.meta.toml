@@ -1,0 +1,30 @@
+[capture]
+file = "capture_20260407_190042_store_preset_u30.pcapng"
+format = "pcapng"
+
+[description]
+feature = "store preset u30"
+notes = "store settings to preset u30 with name: Capture Test"
+
+[analysis]
+packet_count = 104
+out_packets = 52
+in_packets = 52
+duration_seconds = 17.27
+opcodes_seen = [
+    "0x01",
+    "0x12",
+    "0x21",
+    "0x26",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-07T22:21:49"
+
+[analysis.opcode_counts]
+0x40 = 98
+0x01 = 3
+0x26 = 1
+0x21 = 1
+0x12 = 1

@@ -1,0 +1,32 @@
+[capture]
+file = "capture_20260407_185424_load_preset_f00.pcapng"
+format = "pcapng"
+
+[description]
+feature = "load preset f00"
+notes = "load preset F00: Default Preset"
+
+[analysis]
+packet_count = 100
+out_packets = 50
+in_packets = 50
+duration_seconds = 13.63
+opcodes_seen = [
+    "0x01",
+    "0x12",
+    "0x20",
+    "0x24",
+    "0x27",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-07T22:20:00"
+
+[analysis.opcode_counts]
+0x40 = 78
+0x27 = 9
+0x24 = 9
+0x01 = 2
+0x20 = 1
+0x12 = 1

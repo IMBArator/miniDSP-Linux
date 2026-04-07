@@ -18,7 +18,10 @@ OP_INIT = 0x10
 OP_ACTIVATE = 0x12
 OP_FIRMWARE = 0x13
 OP_PRESET_INDEX = 0x14
+OP_LOAD_PRESET = 0x20   # direct slot index: 0=F00, 1=U01 … 30=U30
+OP_STORE_PRESET = 0x21  # direct slot index: 1=U01 … 30=U30  (NEVER 0/F00!)
 OP_PRESET_HEADER = 0x22
+OP_STORE_NAME = 0x26    # 14-char name, space-padded; send BEFORE 0x21
 OP_READ_CONFIG = 0x27
 OP_READ_NAME = 0x29
 OP_DEVICE_INFO = 0x2C
@@ -276,6 +279,44 @@ def cmd_read_name(slot: int) -> bytes:
     slot: 0–29.
     """
     return build_frame(bytes([OP_READ_NAME, slot]))
+
+
+def cmd_load_preset(slot: int) -> bytes:
+    """Build a load-preset command (0x20).
+
+    slot: direct index — 0=F00, 1=U01, …, 30=U30.
+    After the device ACKs, read all 9 config pages (0x27) then send cmd_activate().
+    """
+    return build_frame(bytes([OP_LOAD_PRESET, slot & 0xFF]))
+
+
+def cmd_store_preset_name(name: str) -> bytes:
+    """Build a store-preset-name command (0x26).
+
+    name: up to 14 ASCII characters — truncated and space-padded to exactly 14.
+    Must be sent BEFORE cmd_store_preset().
+
+    WARNING: the device crashes if more than 14 characters are sent.
+    """
+    encoded = name[:14].encode("ascii", errors="replace")
+    padded = encoded.ljust(14, b" ")
+    return build_frame(bytes([OP_STORE_NAME]) + padded)
+
+
+def cmd_store_preset(slot: int) -> bytes:
+    """Build a store-preset command (0x21).
+
+    slot: 1=U01, …, 30=U30.
+    Send cmd_store_preset_name() first, then this command, then cmd_activate().
+    The device takes ~2 seconds to ACK while writing to flash — wait for it.
+
+    WARNING: never pass slot=0 (F00 factory preset). Overwriting F00 may
+    permanently corrupt the device's factory default and could require a
+    firmware reflash to recover.
+    """
+    if slot == 0:
+        raise ValueError("slot 0 (F00) is the factory preset and must not be overwritten")
+    return build_frame(bytes([OP_STORE_PRESET, slot & 0xFF]))
 
 
 def cmd_read_config(page: int) -> bytes:

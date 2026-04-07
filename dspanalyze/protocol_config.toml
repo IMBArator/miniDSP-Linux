@@ -80,20 +80,20 @@ index = { offset = 1, size = 1, format = "uint8" }
 [opcodes.0x20]
 name = "load_preset"
 direction = "out"
-description = "Load preset by 1-based slot index"
-verified = false
+description = "Load preset by direct slot index (0=F00, 1=U01 … 30=U30). After ACK: read 9 config pages then send 0x12 activate."
+verified = true
 
 [opcodes.0x20.fields.request]
-slot = { offset = 1, size = 1, format = "uint8", note = "1-based" }
+slot = { offset = 1, size = 1, format = "uint8", note = "direct index: 0=F00, 1=U01, 30=U30" }
 
 [opcodes.0x21]
 name = "store_preset"
 direction = "out"
-description = "Store current config to 1-based slot"
-verified = false
+description = "Store current config to slot (1=U01 … 30=U30). WARNING: never use slot 0 (F00 factory preset — read-only). Device takes ~2s to ACK (flash write). Send 0x26 name first, then 0x21, then 0x12 activate."
+verified = true
 
 [opcodes.0x21.fields.request]
-slot = { offset = 1, size = 1, format = "uint8", note = "1-based" }
+slot = { offset = 1, size = 1, format = "uint8", note = "direct index: 1=U01 … 30=U30. NEVER slot 0 (F00)!" }
 
 [opcodes.0x22]
 name = "preset_header"
@@ -114,8 +114,8 @@ data = { offset = 2, size = 50, format = "hex" }
 [opcodes.0x26]
 name = "set_preset_name"
 direction = "out"
-description = "Set preset name (14-char ASCII, space-padded). Max 15 chars — longer CRASHES the DSP!"
-verified = false
+description = "Set preset name (14-char ASCII, space-padded). Must be sent BEFORE 0x21 (store). WARNING: max 14 characters — longer names CRASH the DSP!"
+verified = true
 
 [opcodes.0x26.fields.request]
 name = { offset = 1, size = 14, format = "ascii" }
