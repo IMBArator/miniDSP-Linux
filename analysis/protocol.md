@@ -880,7 +880,7 @@ Confirmed by diff-config comparing config page reads before/after:
       Release (bytes 6–7): uint16 LE, `ms = raw + 1`, range 9–2999 (10–3000 ms).
       Ratio (byte 2): uint8 enum 0–15 (0=1:1.0 … 14=1:20.0, 15=Limit).
       Knee (byte 3): uint8 direct dB, 0–12.
-      Config storage location in output block: not yet reverse-engineered.
+      Config storage: output block bytes 58–65 (same field order as command payload).
 - [x] **Phase invert:** Opcode `0x36` — `36 [ch] [state]`, 0x00=normal, 0x01=inverted.
       Also stored in config at input block offset 20 (byte within 24-byte block).
       Captured: InC toggled normal↔inverted. InA+InB were already inverted.
@@ -993,19 +993,20 @@ suggesting these bytes contain per-channel gain/EQ parameters that were adjusted
 Offset  Size  Field
 ──────  ────  ─────────────────────────────────────
  0       4    Channel name (ASCII: "Out1"–"Out4")
- 4       4    Zero padding
+ 4–5     2    Zero padding
+ 6–7     2    Unknown (non-zero for some channels; observed 0x0001 for Out1)
  8       1    **Input routing mask** — bitmask of sources feeding this output (InA=0x01, InB=0x02, InC=0x04, InD=0x08). Default diagonal routing makes this look like a channel ID, but it's the `0x3a` input bitmask.
  9       1    Always 0x00
 10–11    2    **Crossover hi-pass freq**, LE uint16, raw 0–300 (same as 0x32 command)
 12–13    2    **Crossover lo-pass freq**, LE uint16, raw 0–300 (same as 0x31 command, default 300 = 20.16 kHz)
 14       1    **Crossover hi-pass slope**, 0x00=bypassed, 0x01–0x0a=active slope type (see slope table)
 15       1    **Crossover lo-pass slope**, 0x00=bypassed, 0x01–0x0a=active slope type (see slope table)
-16–17    2    Crossover/filter param (Out1/2=203, Out3/4=120)
-18–19    2    Crossover/filter param (Out1/2=89, Out3/4=31)
-20–21    2    Crossover/filter param (Out1/2=272, Out3/4=25)
-22–61   40    EQ band data: 6-byte repeating groups (see below)
-62–63    2    Always 0x0000
-64–65    2    Unknown (49 = 0x0031)
+16–57   42    PEQ band data — likely 7 bands × 6 bytes (unverified, needs PEQ capture)
+58       1    **Compressor ratio**, uint8 enum 0–15 (see COMP_RATIO_* constants; 0=1:1.0, 15=Limit)
+59       1    **Compressor knee**, uint8 0–12 (direct dB, 0=hard knee, 12=softest)
+60–61    2    **Compressor attack**, LE uint16, raw 0–998 (ms = raw + 1, range 1–999 ms)
+62–63    2    **Compressor release**, LE uint16, raw 9–2999 (ms = raw + 1, range 10–3000 ms)
+64–65    2    **Compressor threshold**, LE uint16, raw 0–220 (dB = raw/2 − 90, range −90 to +20 dB)
 66–67    2    **Output gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
 68       1    **Phase invert**: 0x00=normal, 0x01=inverted (same as 0x36 command)
 69       1    Always 0x00 (mute state is NOT here — see footer bitmasks)
@@ -1014,18 +1015,21 @@ Offset  Size  Field
 73       1    Always 0x00
 ```
 
-**EQ band data (bytes 22–61, 6 bytes per band, ~7 bands):**
+**PEQ band data (bytes 16–57, 42 bytes):**
 
-Each band appears to be a 6-byte group: `[freq_lo freq_hi] [value_lo value_hi] [Q_lo Q_hi]`
+Likely 7 bands × 6 bytes per band. Each band likely: `[freq_lo freq_hi] [gain_lo gain_hi] [Q_lo Q_hi]`
+(All LE uint16, same encoding as opcode 0x33.) Not yet capture-verified on 4x4 Mini.
 
-All LE uint16. In the default config, bands share frequency=120 and Q=25, with
-varying center values (71, 118, 161, 200, 240, 270), suggesting these are
-EQ center frequencies mapped to a similar 0–400-style raw scale.
+In the default config, observed constant values across bands suggest frequency and Q are pre-set,
+with per-band gain values varying (71, 118, 161, 200, 240, 270 — EQ center frequencies in raw scale).
 
-**Out1/Out2 vs Out3/Out4 differences:**
-Out1/Out2 have additional parameters set in the crossover/filter area (bytes 10–21),
-while Out3/Out4 have these zeroed. This correlates with Out1/Out2 being the
-main stereo outputs with crossover processing, while Out3/Out4 may be aux/sub outputs.
+**Compressor parameters (bytes 58–65):**
+
+Verified by 5 diff-config captures (one per parameter), each showing exactly one field change:
+- threshold default: raw 220 (+20.0 dB) — `capture_20260407_184757`
+- attack default: raw 49 (50 ms) — `capture_20260407_184842`
+- release default: raw 499 (500 ms) — `capture_20260407_185003`
+- ratio/knee: both 0 (no compression, hard knee) — `capture_20260407_185056/185154`
 
 ### Padding
 
@@ -1037,9 +1041,11 @@ The fixed file size of 13010 bytes is likely a firmware/software requirement.
 - [x] ~~Input/output gain location~~ → Input block bytes 18–19, output block bytes 66–67 (uint16 LE, raw 0–400)
 - [x] ~~Mute state location~~ → Footer bitmasks at preset offsets 408–409 (input) and 410–411 (output), NOT in per-channel blocks. Verified by comparing startup captures with In4+Out4 muted vs unmuted.
 - [x] ~~Input block bytes 10–17~~ → Noise gate parameters: attack (10–11), release (12–13), hold (14–15), threshold (16–17), all LE uint16
-- [ ] Output EQ band count and parameter mapping (frequency in Hz, gain in dB, Q factor)
+- [ ] Output EQ band count and parameter mapping — bytes 16–57 (42 bytes, 7 × 6 likely); needs PEQ capture
 - [x] ~~Output block bytes 12–13 (always 300)~~ → Lo-pass crossover frequency (raw 300 = 20.16 kHz = default/max)
 - [ ] Purpose of the "4x4D Amplifier" product string vs "Dsp Process" USB string
 - [ ] Whether the file can hold more than 2 presets (count byte at 0x11)
-- [x] ~~Crossover type/slope~~ → bytes 10–11 = hi-pass freq, 12–13 = lo-pass freq. Slope sent as byte 4 in 0x31 command (not stored separately in config?)
+- [x] ~~Crossover type/slope~~ → bytes 10–11 = hi-pass freq, 12–13 = lo-pass freq, byte 14 = hi-pass slope, byte 15 = lo-pass slope. All stored in config; slope 0x00 = bypassed, 0x01–0x0a = active slope type.
+- [x] ~~Output block compressor location~~ → bytes 58–65: ratio(1B), knee(1B), attack(2B LE), release(2B LE), threshold(2B LE). Verified by 5 diff-config captures.
+- [ ] Output block bytes 6–7 (observed 0x0001 for Out1, 0x0000 for Out3) — unknown purpose
 - [x] ~~Output block bytes 70–71~~ → Output delay in samples at 48 kHz (uint16 LE, 0–32640 = 0–680 ms)
