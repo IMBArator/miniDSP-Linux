@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260407_191838_matrix_Out1_from_InA_InB_InC_InD.pcapng"
+format = "pcapng"
+
+[description]
+feature = "matrix Out1 from InA InB InC InD"
+notes = "configure matrix routing to feed Out1 from InA, InB, InC, InD then restarted the application (the default is: Out1 from InA, Out2 from InB, Out3 from InC and Out4 from InD)"
+
+[analysis]
+packet_count = 257
+out_packets = 129
+in_packets = 128
+duration_seconds = 17.54
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x3a",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-07T21:54:59"
+
+[analysis.opcode_counts]
+0x29 = 120
+0x40 = 71
+0x27 = 18
+0x24 = 18
+0x01 = 5
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x3a = 3
+0x12 = 2

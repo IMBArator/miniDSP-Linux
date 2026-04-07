@@ -114,8 +114,8 @@ Bypass behavior: slope=0x00 disables the filter. The device does not retain the 
 
 | Feature | Details | Protocol Status |
 |---|---|---|
-| **4x4 Matrix** | Any combination of inputs routable to any output | Protocol: likely `0x3a`; NOT yet captured |
-| **Multi-input mixing** | Multiple inputs can feed one output | Expected bitmask-based |
+| **4x4 Matrix** | Any combination of inputs routable to any output | **Captured & implemented** (`0x3a`) |
+| **Multi-input mixing** | Multiple inputs can feed one output | Bitmask: InA=0x01, InB=0x02, InC=0x04, InD=0x08 |
 
 From the screenshots: columns are outputs, rows are inputs. Green = routed.
 
@@ -179,7 +179,6 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 
 ### Protocol likely known but NOT yet or not fully captured on our device:
 - PEQ (`0x33`) - 7 bands per output
-- Matrix routing (`0x3a`)
 - Preset load/store (`0x20`/`0x21`/`0x26`)
 - Channel linking (`0x3b`/`0x2a`)
 

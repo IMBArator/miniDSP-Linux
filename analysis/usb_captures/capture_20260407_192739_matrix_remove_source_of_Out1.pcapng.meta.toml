@@ -1,0 +1,26 @@
+[capture]
+file = "capture_20260407_192739_matrix_remove_source_of_Out1.pcapng"
+format = "pcapng"
+
+[description]
+feature = "matrix remove source of Out1"
+notes = "no init sequence included! configure matrix routing to feed Out1 from no source restarted the application (the default is: Out1 from InA, Out2 from InB, Out3 from InC and Out4 from InD)"
+
+[analysis]
+packet_count = 34
+out_packets = 17
+in_packets = 17
+duration_seconds = 4.7
+opcodes_seen = [
+    "0x01",
+    "0x3a",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-07T21:54:08"
+
+[analysis.opcode_counts]
+0x40 = 32
+0x3a = 1
+0x01 = 1

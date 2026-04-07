@@ -29,6 +29,7 @@ OP_GAIN = 0x34
 OP_MUTE = 0x35
 OP_PHASE = 0x36
 OP_DELAY = 0x38
+OP_MATRIX = 0x3A
 OP_GATE = 0x3E
 OP_POLL = 0x40
 
@@ -184,6 +185,17 @@ def cmd_delay(channel: int, samples: int) -> bytes:
     lo = samples & 0xFF
     hi = (samples >> 8) & 0xFF
     return build_frame(bytes([OP_DELAY, channel, lo, hi]))
+
+
+def cmd_matrix_route(output_ch: int, input_mask: int) -> bytes:
+    """Build a matrix routing command (0x3A).
+
+    Sets which input(s) feed the given output. Sends the full bitmask each time.
+
+    output_ch:  output channel index (0x04=Out1, 0x05=Out2, 0x06=Out3, 0x07=Out4)
+    input_mask: bitmask of sources (InA=0x01, InB=0x02, InC=0x04, InD=0x08; 0x00=silence)
+    """
+    return build_frame(bytes([OP_MATRIX, output_ch, input_mask & 0x0F]))
 
 
 def cmd_gate(channel: int, attack: int, release: int, hold: int, threshold: int) -> bytes:

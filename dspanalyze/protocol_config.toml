@@ -267,7 +267,7 @@ threshold = { offset = 8, size = 2, format = "gate_threshold", note = "raw 1-180
 name = "matrix_routing"
 direction = "out"
 description = "Matrix routing — output gets input bitmask (InA=0x01,InB=0x02,InC=0x04,InD=0x08)"
-verified = false
+verified = true
 
 [opcodes.0x3a.fields.request]
 output = { offset = 1, size = 1, format = "channel" }

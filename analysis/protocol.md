@@ -549,7 +549,7 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x38` | 4 | OUT | Output delay | `38 [ch] [samples_lo] [samples_hi]` — LE uint16, 0–32640 (samples @ 48 kHz) |
 | `0x3e` | 10 | OUT | Noise gate | `3e [ch] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [hold_lo] [hold_hi] [thr_lo] [thr_hi]` |
 | `0x3b` | 3 | OUT | Channel link | `3b [ch] [link_flags]` — see below |
-| `0x3a` | 3 | OUT | Matrix routing | `3a [output_ch] [input_bitmask]` (*) |
+| `0x3a` | 3 | OUT | Matrix routing | `3a [output_ch] [input_bitmask]` |
 | `0x40` | 1 | OUT | Poll levels | `40` — request only, no parameters |
 | `0x48` | 5 | OUT | GEQ band | `48 [ch] [band] [value] 00` — inputs only (*) |
 
@@ -655,7 +655,14 @@ Payload (3 bytes): 3a [output_ch] [input_bitmask]
 ```
 
 - **Output channel:** Out1=0x04, Out2=0x05, Out3=0x06, Out4=0x07
-- **Input bitmask:** InA=0x01, InB=0x02, InC=0x04, InD=0x08 (combinable)
+- **Input bitmask:** InA=0x01, InB=0x02, InC=0x04, InD=0x08 (combinable; 0x00 = no input / silence)
+- **Behavior:** Full bitmask sent each time — not incremental add/remove. Device ACKs with `0x01`.
+- **Config byte:** Output block byte 8 stores the bitmask for each output (default diagonal: Out1=0x01, Out2=0x02, Out3=0x04, Out4=0x08).
+
+**Verified from captures:**
+- `capture_20260407_191659_matrix_Out1_from_InA_and_InB.pcapng` — Out1 mask 0x03 (InA|InB)
+- `capture_20260407_191838_matrix_Out1_from_InA_InB_InC_InD.pcapng` — Out1 mask incremented to 0x07, then 0x0f
+- `capture_20260407_192739_matrix_remove_source_of_Out1.pcapng` — Out1 mask 0x00 (no input)
 
 ### 0x3b — Channel Link
 
@@ -834,8 +841,8 @@ Confirmed by diff-config comparing config page reads before/after:
 - [x] **Crossover filters:** Opcodes `0x31`/`0x32` capture-verified on 4x4 Mini.
       Raw 0–300 maps to 19.7–20160 Hz via Hz = 19.70 × (20160/19.70)^(raw/300).
       DSP 408 uses 0–1000; same range, different step count.
-- [ ] **Verify PEQ/GEQ/routing on 4x4 Mini:** Commands from `dsp-408-ui`
-      need capture verification on our device.
+- [x] **Routing matrix verified on 4x4 Mini:** Opcode `0x3a` capture-confirmed. Config byte 8 of each output block stores the input bitmask. PEQ/GEQ still need verification.
+- [ ] **Verify PEQ/GEQ on 4x4 Mini:** Commands from `dsp-408-ui` need capture verification on our device.
 
 ---
 
@@ -939,7 +946,7 @@ Offset  Size  Field
 ──────  ────  ─────────────────────────────────────
  0       4    Channel name (ASCII: "Out1"–"Out4")
  4       4    Zero padding
- 8       1    Routing byte (Out1=0x01, Out2=0x02, Out3=0x04, Out4=0x08)
+ 8       1    **Input routing mask** — bitmask of sources feeding this output (InA=0x01, InB=0x02, InC=0x04, InD=0x08). Default diagonal routing makes this look like a channel ID, but it's the `0x3a` input bitmask.
  9       1    Always 0x00
 10–11    2    **Crossover hi-pass freq**, LE uint16, raw 0–300 (same as 0x32 command)
 12–13    2    **Crossover lo-pass freq**, LE uint16, raw 0–300 (same as 0x31 command, default 300 = 20.16 kHz)

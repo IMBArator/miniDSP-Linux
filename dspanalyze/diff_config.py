@@ -35,7 +35,8 @@ _OUTPUT_BLOCK_SIZE = 74
 _OUTPUT_FIELDS = [
     (0, 3, "name"),
     (6, 2, "unknown_param_a"),
-    (8, 2, "unknown_param_b"),
+    (8, 1, "routing_mask"),
+    (9, 1, "padding"),
     (10, 2, "xover_hipass_freq"),
     (12, 2, "xover_lopass_freq"),
     (14, 1, "xover_hipass_slope"),
