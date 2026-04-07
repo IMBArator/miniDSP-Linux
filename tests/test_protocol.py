@@ -15,6 +15,7 @@ from minidsp.protocol import (
     cmd_mute,
     cmd_phase,
     cmd_poll,
+    cmd_set_channel_name,
     db_to_raw,
     parse_config_page,
     parse_frame,
@@ -238,6 +239,24 @@ def test_cmd_gate():
     assert frame[6] == 0x00
     assert frame[7] == 0x31  # 49 & 0xFF
     assert frame[8] == 0x00
+
+
+def test_cmd_set_channel_name():
+    # Out3 (channel 6), name "AUSGANG3" — verified from capture: 3d 06 41 55 53 47 41 4e 47 33
+    frame = cmd_set_channel_name(6, "AUSGANG3")
+    assert frame[5] == 0x3D           # opcode
+    assert frame[6] == 0x06           # channel (Out3)
+    assert frame[7:15] == b"AUSGANG3" # 8-byte ASCII name
+
+    # Short name "Out1" (4 chars) — zero-padded to 8 bytes
+    frame = cmd_set_channel_name(4, "Out1")
+    assert frame[5] == 0x3D
+    assert frame[6] == 0x04           # channel (Out1)
+    assert frame[7:15] == b"Out1\x00\x00\x00\x00"
+
+    # Name longer than 8 chars — truncated to 8
+    frame = cmd_set_channel_name(0, "TooLongName")
+    assert frame[7:15] == b"TooLongN"
 
 
 # --- Level parsing ---

@@ -33,8 +33,7 @@ _INPUT_FIELDS = [
 _OUTPUT_BLOCK_START = 112
 _OUTPUT_BLOCK_SIZE = 74
 _OUTPUT_FIELDS = [
-    (0, 3, "name"),
-    (6, 2, "unknown_param_a"),
+    (0, 8, "name"),
     (8, 1, "routing_mask"),
     (9, 1, "padding"),
     (10, 2, "xover_hipass_freq"),

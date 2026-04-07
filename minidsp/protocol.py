@@ -35,6 +35,7 @@ OP_DELAY = 0x38
 OP_MATRIX = 0x3A
 OP_LINK = 0x3B       # channel link state; send OP_PREPARE_LINK first when linking
 OP_PREPARE_LINK = 0x2A  # declare master↔slave pair before 0x3B (linking only, not unlinking)
+OP_SET_CHANNEL_NAME = 0x3D  # set channel display name (8-byte ASCII, zero-padded)
 OP_GATE = 0x3E
 OP_POLL = 0x40
 
@@ -239,6 +240,21 @@ def cmd_channel_link(channel: int, link_flags: int) -> bytes:
                 Standalone (unlinked) channel gets its own bit only (e.g. InA=0x01).
     """
     return build_frame(bytes([OP_LINK, channel & 0xFF, link_flags & 0x0F]))
+
+
+def cmd_set_channel_name(channel: int, name: str) -> bytes:
+    """Build a set-channel-name command (0x3D).
+
+    Sets the display name for a channel (shown in the app's channel strips).
+    Verified from capture: changing Out3 name "Out3"→"AUSGANG3" sends:
+      3d 06 41 55 53 47 41 4e 47 33
+
+    channel: unified index (inputs 0-3, outputs 4-7)
+    name:    up to 8 ASCII characters — truncated and zero-padded to exactly 8 bytes.
+    """
+    encoded = name[:8].encode("ascii", errors="replace")
+    padded = encoded.ljust(8, b"\x00")
+    return build_frame(bytes([OP_SET_CHANNEL_NAME, channel & 0xFF]) + padded)
 
 
 def cmd_gate(channel: int, attack: int, release: int, hold: int, threshold: int) -> bytes:

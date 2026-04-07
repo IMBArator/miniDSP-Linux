@@ -283,6 +283,16 @@ verified = true
 channel = { offset = 1, size = 1, format = "channel" }
 link_flags = { offset = 2, size = 1, format = "link_bitmask" }
 
+[opcodes.0x3d]
+name = "set_channel_name"
+direction = "out"
+description = "Set channel display name (8-byte ASCII, zero-padded). Verified: Out3 'Out3'→'AUSGANG3' sends 3d 06 41 55 53 47 41 4e 47 33"
+verified = true
+
+[opcodes.0x3d.fields.request]
+channel = { offset = 1, size = 1, format = "channel" }
+name = { offset = 2, size = 8, format = "ascii" }
+
 [opcodes.0x40]
 name = "poll"
 direction = "both"

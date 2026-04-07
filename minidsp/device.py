@@ -34,6 +34,7 @@ from .protocol import (
     cmd_preset_index,
     cmd_read_config,
     cmd_read_name,
+    cmd_set_channel_name,
     is_ack,
     OP_ACTIVATE,
     OP_INIT,
@@ -214,6 +215,18 @@ class DSPmini:
         Returns True if the device ACK'd.
         """
         payload = self._send_recv(cmd_delay(channel, samples))
+        if payload is None:
+            return False
+        return is_ack(payload)
+
+    def set_channel_name(self, channel: int, name: str) -> bool:
+        """Set the display name for a channel.
+
+        channel: unified index (inputs 0-3, outputs 4-7)
+        name: up to 8 ASCII characters (zero-padded to 8 bytes)
+        Returns True if the device ACK'd.
+        """
+        payload = self._send_recv(cmd_set_channel_name(channel, name))
         if payload is None:
             return False
         return is_ack(payload)

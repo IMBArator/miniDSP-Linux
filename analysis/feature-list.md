@@ -155,6 +155,7 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 
 | Feature | Details | Protocol Status |
 |---|---|---|
+| **Channel names** | User-defined names per channel (up to 8 ASCII chars) | **Captured & implemented** (`0x3d` — verified: "Out3"→"AUSGANG3") |
 | **Device Lock** | Password protection | Protocol unknown |
 | **Copy settings** | Copy channel parameters between channels | Menu item visible |
 | **Device Address/ID** | Identification (ID: 1 in screenshots) | Visible in status bar |
@@ -178,6 +179,7 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 - Preset load (`0x20`, direct slot index 0=F00/1–30=U01–U30)
 - Preset store (`0x21`, user slots 1–30 only — **never write slot 0/F00**)
 - Preset name store (`0x26`, 14 chars max, space-padded, sent before `0x21`)
+- Channel name set (`0x3d`, 8 chars max, zero-padded)
 - Initialization sequence
 
 ### Protocol likely known but NOT yet or not fully captured on our device:

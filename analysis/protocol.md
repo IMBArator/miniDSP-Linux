@@ -66,6 +66,7 @@ Reverse-engineered from Wireshark USBPcap sessions (all in `usb_captures/`):
 - `capture_20260407_185003_output_channel_compressor_release.pcapng` — Out3 compressor release 500→10→3000→1 ms
 - `capture_20260407_185056_output_channel_compressor_ratio.pcapng` — Out3 compressor ratio 1:1.0→1:20→Limit→1:1.1
 - `capture_20260407_185154_output_channel_compressor_knee.pcapng` — Out3 compressor knee 0→12→0→1 dB in 1 dB steps
+- `capture_20260407_233926_change_name_of_out_3.pcapng` — Out3 name changed "Out3"→"AUSGANG3"; confirmed output channel name is 8 bytes (0–7)
 
 **Preset management:**
 - `capture_20260407_185424_load_preset_f00.pcapng` — load factory preset F00 (Default Preset)
@@ -553,6 +554,7 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x3e` | 10 | OUT | Noise gate | `3e [ch] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [hold_lo] [hold_hi] [thr_lo] [thr_hi]` |
 | `0x3b` | 3 | OUT | Channel link | `3b [ch] [link_flags]` — see below |
 | `0x3a` | 3 | OUT | Matrix routing | `3a [output_ch] [input_bitmask]` |
+| `0x3d` | 10 | OUT | Set channel name | `3d [ch] [8 ASCII bytes]` — zero-padded name |
 | `0x40` | 1 | OUT | Poll levels | `40` — request only, no parameters |
 | `0x48` | 5 | OUT | GEQ band | `48 [ch] [band] [value] 00` — inputs only (*) |
 
@@ -741,6 +743,23 @@ commands. One `0x2a` is sent per master↔slave pair. For multi-channel links
 | Link Out2+Out3 | `2a 05 06` |
 | Link Out3+Out4 | `2a 06 07` |
 | Link Out1+2+3+4 | `2a 04 05` + `2a 04 06` + `2a 04 07` |
+
+### 0x3d — Set Channel Name
+
+Discovered from `capture_20260407_233926_change_name_of_out_3.pcapng` — renaming Out3 from "Out3" to "AUSGANG3".
+
+```
+Payload (10 bytes): 3d [channel] [name_byte_0] … [name_byte_7]
+
+Captured: 3d 06 41 55 53 47 41 4e 47 33
+           op ch  A  U  S  G  A  N  G  3
+```
+
+**Channel byte:** unified numbering — inputs 0x00–0x03, outputs 0x04–0x07 (Out3 = 0x06).
+
+**Name field:** 8-byte ASCII, zero-padded. Up to 8 characters. The same 8 bytes are also stored at output block bytes 0–7 in the `.unt` config (and input block bytes 0–2 for the 3-char input names — see `.unt` section).
+
+Device responds with `0x01` ACK.
 
 ### 0x20 — Load Preset
 
@@ -992,9 +1011,7 @@ suggesting these bytes contain per-channel gain/EQ parameters that were adjusted
 ```
 Offset  Size  Field
 ──────  ────  ─────────────────────────────────────
- 0       4    Channel name (ASCII: "Out1"–"Out4")
- 4–5     2    Zero padding
- 6–7     2    Unknown (non-zero for some channels; observed 0x0001 for Out1)
+ 0–7     8    Channel name (8-byte ASCII, zero-padded: "Out1"–"Out4"; up to 8 chars e.g. "AUSGANG3")
  8       1    **Input routing mask** — bitmask of sources feeding this output (InA=0x01, InB=0x02, InC=0x04, InD=0x08). Default diagonal routing makes this look like a channel ID, but it's the `0x3a` input bitmask.
  9       1    Always 0x00
 10–11    2    **Crossover hi-pass freq**, LE uint16, raw 0–300 (same as 0x32 command)
@@ -1047,5 +1064,5 @@ The fixed file size of 13010 bytes is likely a firmware/software requirement.
 - [ ] Whether the file can hold more than 2 presets (count byte at 0x11)
 - [x] ~~Crossover type/slope~~ → bytes 10–11 = hi-pass freq, 12–13 = lo-pass freq, byte 14 = hi-pass slope, byte 15 = lo-pass slope. All stored in config; slope 0x00 = bypassed, 0x01–0x0a = active slope type.
 - [x] ~~Output block compressor location~~ → bytes 58–65: ratio(1B), knee(1B), attack(2B LE), release(2B LE), threshold(2B LE). Verified by 5 diff-config captures.
-- [ ] Output block bytes 6–7 (observed 0x0001 for Out1, 0x0000 for Out3) — unknown purpose
+- [x] ~~Output block bytes 6–7~~ → bytes 0–7 are the full 8-byte channel name field (verified: "Out3" → "AUSGANG3" changes all 8 bytes)
 - [x] ~~Output block bytes 70–71~~ → Output delay in samples at 48 kHz (uint16 LE, 0–32640 = 0–680 ms)
