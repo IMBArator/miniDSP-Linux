@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260407_234815_change_name_of_in_c.pcapng"
+format = "pcapng"
+
+[description]
+feature = "change name of in c"
+notes = "change name of InC from InC to EINGANGC and restart application"
+
+[analysis]
+packet_count = 278
+out_packets = 139
+in_packets = 139
+duration_seconds = 21.65
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x3d",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-09T18:07:26"
+
+[analysis.opcode_counts]
+0x29 = 120
+0x40 = 96
+0x27 = 18
+0x24 = 18
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x01 = 3
+0x12 = 2
+0x3d = 1
