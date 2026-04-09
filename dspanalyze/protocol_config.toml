@@ -77,6 +77,15 @@ verified = true
 [opcodes.0x14.fields.response]
 index = { offset = 1, size = 1, format = "uint8" }
 
+[opcodes.0x15]
+name = "set_delay_unit"
+direction = "out"
+description = "Set delay display unit (display-only — protocol always uses samples for 0x38). Response: ACK. Persisted at config offset 424."
+verified = true
+
+[opcodes.0x15.fields.request]
+unit = { offset = 1, size = 1, format = "uint8", note = "0x00=ms (default), 0x01=m (meters), 0x02=ft (feet)" }
+
 [opcodes.0x20]
 name = "load_preset"
 direction = "out"

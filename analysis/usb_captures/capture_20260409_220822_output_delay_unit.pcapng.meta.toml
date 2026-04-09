@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260409_220822_output_delay_unit.pcapng"
+format = "pcapng"
+
+[description]
+feature = "output delay unit"
+notes = "start aplication; set output delay (ms to m to ft to ms to m; m=meter ft=feat); restart application"
+
+[analysis]
+packet_count = 282
+out_packets = 141
+in_packets = 141
+duration_seconds = 21.6
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x15",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x40",
+]
+has_unknown_opcodes = true
+has_checksum_errors = false
+last_analyzed = "2026-04-09T23:23:30"
+
+[analysis.opcode_counts]
+0x29 = 120
+0x40 = 94
+0x27 = 18
+0x24 = 18
+0x01 = 6
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x15 = 4
+0x12 = 2

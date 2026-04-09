@@ -43,6 +43,10 @@ from .protocol import (
     cmd_peq_channel_bypass,
     cmd_submit_pin,
     cmd_set_lock_pin,
+    cmd_set_delay_unit,
+    DELAY_UNIT_MS,
+    DELAY_UNIT_M,
+    DELAY_UNIT_FT,
     is_ack,
     OP_ACTIVATE,
     OP_INIT,
@@ -225,6 +229,17 @@ class DSPmini:
         Returns True if the device ACK'd.
         """
         payload = self._send_recv(cmd_delay(channel, samples))
+        if payload is None:
+            return False
+        return is_ack(payload)
+
+    def set_delay_unit(self, unit: int) -> bool:
+        """Set the delay display unit (display-only — protocol uses samples).
+
+        unit: DELAY_UNIT_MS=0x00, DELAY_UNIT_M=0x01, DELAY_UNIT_FT=0x02
+        Returns True if the device ACK'd.
+        """
+        payload = self._send_recv(cmd_set_delay_unit(unit))
         if payload is None:
             return False
         return is_ack(payload)

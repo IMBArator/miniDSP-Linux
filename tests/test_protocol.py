@@ -18,6 +18,10 @@ from minidsp.protocol import (
     cmd_set_channel_name,
     cmd_submit_pin,
     cmd_set_lock_pin,
+    cmd_set_delay_unit,
+    DELAY_UNIT_MS,
+    DELAY_UNIT_M,
+    DELAY_UNIT_FT,
     parse_device_info,
     parse_pin_response,
     LOCK_PIN_CORRECT,
@@ -610,6 +614,32 @@ def test_parse_pin_response_wrong():
 def test_parse_pin_response_invalid():
     assert parse_pin_response(bytes([0x01, 0x00])) is None  # wrong opcode
     assert parse_pin_response(bytes([0x2D, 0x00])) is None   # too short
+
+
+def test_cmd_set_delay_unit_ms():
+    # payload=1500 from capture (unit ms=0x00): 10 02 00 01 02 15 00 10 03 17
+    frame = cmd_set_delay_unit(DELAY_UNIT_MS)
+    payload = frame[5:7]
+    assert payload == bytes([0x15, 0x00])
+    assert frame[7] == 0x10 and frame[8] == 0x03
+    # checksum: LEN=0x02 ^ 0x15 ^ 0x00 = 0x17
+    assert frame[9] == 0x17
+
+
+def test_cmd_set_delay_unit_m():
+    # payload=1501 from capture (unit m=0x01): 10 02 00 01 02 15 01 10 03 16
+    frame = cmd_set_delay_unit(DELAY_UNIT_M)
+    payload = frame[5:7]
+    assert payload == bytes([0x15, 0x01])
+    assert frame[9] == 0x16
+
+
+def test_cmd_set_delay_unit_ft():
+    # payload=1502 from capture (unit ft=0x02): 10 02 00 01 02 15 02 10 03 15
+    frame = cmd_set_delay_unit(DELAY_UNIT_FT)
+    payload = frame[5:7]
+    assert payload == bytes([0x15, 0x02])
+    assert frame[9] == 0x15
 
 
 if __name__ == "__main__":

@@ -51,6 +51,7 @@ Reverse-engineered from Wireshark USBPcap sessions (all in `usb_captures/`):
 
 **Output delay:**
 - `capture_20260405_123925_output_channel_delay.pcapng` — Out4 delay swept 0→680→0→680 ms (opcode 0x38 discovery, sample-based encoding)
+- `capture_20260409_220822_output_delay_unit.pcapng` — delay unit cycled ms→m→ft→ms→m (opcode 0x15 discovery; config byte 424 confirmed)
 
 **Crossover filters:**
 - `capture_20260405_170911_output_channel_xover_highpass.pcapng` — Out3 hi-pass freq swept raw 0→300→0→300 (opcode 0x32, first capture verification on 4x4 Mini)
@@ -276,6 +277,33 @@ The slot value uses the same direct index as `0x20`: 0=F00, 1=U01, …, 30=U30.
 - `14 01` → U01 ("DIY Mon") is the active preset
 - `14 02` → U02 ("DIY Mon offset") is the active preset (confirmed after mid-session
   preset change from U01→U02 and app restart — device remembers the last loaded preset)
+
+### 0x15 — Set Delay Display Unit
+
+```
+Payload (2 bytes): 15 [unit]
+```
+
+Sets the delay display unit shown in the application UI. This is a **display-only** setting — the delay value itself is always transmitted in samples via opcode `0x38` regardless of the selected unit.
+
+| Field | Byte | Type | Values |
+|---|---|---|---|
+| Unit | 1 | uint8 | `0x00`=ms (milliseconds, default), `0x01`=m (meters), `0x02`=ft (feet) |
+
+Device responds with ACK (`0x01`).
+
+**Config storage:** persisted at config offset **424** (page 8, byte 24). Value 0x00/0x01/0x02 matches the unit enum above.
+
+**Verified from capture** `capture_20260409_220822_output_delay_unit.pcapng`:
+
+| Frame | Raw frame | Meaning |
+|---|---|---|
+| #223 | `10 02 00 01 02 15 01 10 03 16` | set unit → m |
+| #247 | `10 02 00 01 02 15 02 10 03 15` | set unit → ft |
+| #271 | `10 02 00 01 02 15 00 10 03 17` | set unit → ms |
+| #307 | `10 02 00 01 02 15 01 10 03 16` | set unit → m |
+
+The diff-config between the two config reads in that capture shows only byte 424 changing (0x00→0x01), confirming the unit is the only thing stored.
 
 ### 0x29 — Read Preset Name
 
@@ -592,6 +620,7 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x12` | 1 | OUT | Activate config | `12` — device responds ACK |
 | `0x13` | 1 | OUT | Firmware string | `13` — device responds ASCII `"4x4MINI V010"` |
 | `0x14` | 1 | OUT | Active preset index | `14` — device responds `14 [idx]` |
+| `0x15` | 2 | OUT | Delay display unit | `15 [unit]` — 0x00=ms, 0x01=m, 0x02=ft; display-only |
 | `0x20` | 2 | OUT | Load preset | `20 [slot]` — direct index: 0=F00, 1=U01…30=U30 |
 | `0x2a` | 3 | OUT | Prepare link | `2a [master_ch] [slave_ch]` — one per pair, sent before linking |
 | `0x21` | 2 | OUT | Store preset | `21 [slot]` — direct index, same as 0x20. **Never use slot 0 (F00)!** |
@@ -1009,7 +1038,7 @@ Confirmed by diff-config comparing config page reads before/after:
       DSP 408 uses 0–1000; same range, different step count.
 - [x] **Routing matrix verified on 4x4 Mini:** Opcode `0x3a` capture-confirmed. Config byte 8 of each output block stores the input bitmask.
 - [x] **Output PEQ verified on 4x4 Mini:** Opcode `0x33` — 10-byte payload. 7 bands per output channel. Gain ±12dB (raw 0–240, 0.1dB step), freq raw 0–300 (same scale as crossover), Q raw 0–100 (log Q=0.4×320^(raw/100)), 7 filter types (Peak/Low Shelf/High Shelf/Low Pass/High Pass/Allpass 1st/Allpass 2nd). Band bypass in footer bitmask. Channel bypass via `0x3c` command. Confirmed from 7 captures.
-- [x] **Footer bytes 416–427:** Always zero across all 5 presets analyzed (F00, U01, U02, U30 in 2 .unt files). Likely reserved/unused; no known feature maps to these bytes.
+- [x] **Footer bytes 416–427:** Bytes 416–423 and 425–427 are always zero (padding). Byte 424 = delay display unit (0x00=ms default, 0x01=m, 0x02=ft), set by opcode `0x15`, verified from `capture_20260409_220822_output_delay_unit.pcapng` diff-config. Note: all 5 previously analyzed presets had byte 424=0x00 (ms was selected), explaining why it appeared to be all-zero.
 
 ---
 
@@ -1083,7 +1112,9 @@ Offset  Size  Field
 413      1    Out2 PEQ band bypass bitmask
 414      1    Out3 PEQ band bypass bitmask
 415      1    Out4 PEQ band bypass bitmask
-416     12    Always 0x00 — reserved, purpose unknown
+416      8    Always 0x00 — reserved (padding)
+424      1    **Delay display unit**: 0x00=ms, 0x01=m, 0x02=ft (set by `0x15` command)
+425      3    Always 0x00 — reserved (padding)
 428      1    Out1 PEQ channel bypass (0x00=active, 0x01=all bands bypassed)
 [429–449 NOT stored — slot ends with CRLF at absolute position 430–431]
 ```
@@ -1188,7 +1219,7 @@ The fixed file size of 13010 bytes (50 + 30 × 432) is a software requirement.
 - [x] ~~Header bytes 0x1D–0x20~~ → Device lock PIN (4 ASCII digits). Old file has "1234", new file has "7654" matching our device-lock capture.
 - [x] ~~Input block unknown bytes (8–9, 21, 23)~~ → Always zero (pure padding). Verified across 5 presets.
 - [x] ~~Output block unknown bytes (9, 69, 73)~~ → Always zero (pure padding). Verified across 5 presets.
-- [x] ~~Footer bytes 416–427~~ → Always zero across all presets. Reserved/unused.
+- [x] ~~Footer bytes 416–427~~ → Bytes 416–423 and 425–427 are padding (always zero). Byte 424 = delay display unit (0x00=ms, 0x01=m, 0x02=ft). All presets analyzed had ms selected (0x00), which appeared as all-zero until the delay unit capture revealed byte 424.
 - [x] ~~Crossover type/slope~~ → bytes 10–11 = hi-pass freq, 12–13 = lo-pass freq, byte 14 = hi-pass slope, byte 15 = lo-pass slope. All stored in config; slope 0x00 = bypassed, 0x01–0x0a = active slope type.
 - [x] ~~Output block compressor location~~ → bytes 58–65: ratio(1B), knee(1B), attack(2B LE), release(2B LE), threshold(2B LE). Verified by 5 diff-config captures.
 - [x] ~~Output block bytes 6–7~~ → bytes 0–7 are the full 8-byte channel name field (verified: "Out3" → "AUSGANG3" changes all 8 bytes)

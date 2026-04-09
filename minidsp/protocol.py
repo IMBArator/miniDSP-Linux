@@ -18,6 +18,7 @@ OP_INIT = 0x10
 OP_ACTIVATE = 0x12
 OP_FIRMWARE = 0x13
 OP_PRESET_INDEX = 0x14
+OP_SET_DELAY_UNIT = 0x15  # set delay display unit (0x00=ms, 0x01=m, 0x02=ft)
 OP_LOAD_PRESET = 0x20   # direct slot index: 0=F00, 1=U01 … 30=U30
 OP_STORE_PRESET = 0x21  # direct slot index: 1=U01 … 30=U30  (NEVER 0/F00!)
 OP_PRESET_HEADER = 0x22
@@ -69,6 +70,11 @@ SLOPE_BL24 = 0x09  # Bessel 24 dB/oct
 SLOPE_LR24 = 0x0A  # Linkwitz-Riley 24 dB/oct (device default)
 
 # Compressor ratio indices (byte 2 of 0x30 payload)
+# Delay display unit values (byte 1 of 0x15 payload; stored at config offset 424)
+DELAY_UNIT_MS = 0x00  # milliseconds (default)
+DELAY_UNIT_M  = 0x01  # meters
+DELAY_UNIT_FT = 0x02  # feet
+
 COMP_RATIO_1_1  = 0x00  # 1:1.0 — no compression (default)
 COMP_RATIO_1_11 = 0x01  # 1:1.1
 COMP_RATIO_1_13 = 0x02  # 1:1.3
@@ -204,6 +210,16 @@ def cmd_delay(channel: int, samples: int) -> bytes:
     lo = samples & 0xFF
     hi = (samples >> 8) & 0xFF
     return build_frame(bytes([OP_DELAY, channel, lo, hi]))
+
+
+def cmd_set_delay_unit(unit: int) -> bytes:
+    """Build a delay display unit command (0x15).
+
+    unit: DELAY_UNIT_MS=0x00, DELAY_UNIT_M=0x01, DELAY_UNIT_FT=0x02
+    Display-only — protocol always transmits delay in samples via 0x38.
+    Persisted at config offset 424.
+    """
+    return build_frame(bytes([OP_SET_DELAY_UNIT, unit & 0xFF]))
 
 
 def cmd_matrix_route(output_ch: int, input_mask: int) -> bytes:

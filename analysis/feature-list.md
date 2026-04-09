@@ -46,7 +46,7 @@ Compiled from: manufacturer tool screenshots (`analysis/resources/`), PDF user m
 | **Mute** | Per-channel on/off | **Captured & implemented** (`0x35`) |
 | **Phase Invert** | 180 degree polarity flip | **Captured & implemented** (`0x36`) |
 | **Compressor** | Per-output: Threshold, Attack, Ratio, Release, Knee | **Captured & implemented** (`0x30`, all 5 params in one frame) |
-| **Output Delay** | Per-output, 0–680 ms in sample steps | **Captured & implemented** (`0x38`) |
+| **Output Delay** | Per-output, 0–680 ms in sample steps | **Captured & implemented** (`0x38`; unit selector `0x15`) |
 | **Level Meter** | Real-time level with clip + limiter active indicators | **Captured & implemented** (`0x40`, limiter bitmask at byte 25) |
 
 **Compressor parameters (all sent together in one `0x30` frame):**
@@ -58,7 +58,7 @@ Compiled from: manufacturer tool screenshots (`analysis/resources/`), PDF user m
 
 **Delay:**
 - Range: 0.000 ms to 680.000 ms per output (raw 0–32640 samples at 48 kHz, ~0.02083 ms/step)
-- Unit selector: ms, m (meters), ft (feet) — display-only, protocol always uses samples
+- Unit selector: ms, m (meters), ft (feet) — `0x15 [0x00/0x01/0x02]`; display-only, protocol always uses samples; persisted at config offset 424
 
 **Signal chain (from Matrix tab):** XOVER -> PEQ -> GAIN -> COMP -> PHASE -> DELAY -> MUTE -> output
 
