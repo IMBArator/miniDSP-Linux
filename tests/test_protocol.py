@@ -19,9 +19,16 @@ from minidsp.protocol import (
     cmd_submit_pin,
     cmd_set_lock_pin,
     cmd_set_delay_unit,
+    cmd_test_tone,
     DELAY_UNIT_MS,
     DELAY_UNIT_M,
     DELAY_UNIT_FT,
+    TONE_OFF,
+    TONE_PINK,
+    TONE_WHITE,
+    TONE_SINE,
+    SINE_FREQ_20HZ,
+    SINE_FREQ_20KHZ,
     parse_device_info,
     parse_pin_response,
     LOCK_PIN_CORRECT,
@@ -640,6 +647,46 @@ def test_cmd_set_delay_unit_ft():
     payload = frame[5:7]
     assert payload == bytes([0x15, 0x02])
     assert frame[9] == 0x15
+
+
+# --- Test Tone Generator (0x39) ---
+
+def test_cmd_test_tone_white_noise():
+    # Capture payload=390200; checksum XOR(len=3, 0x39, 0x02, 0x00) = 0x38
+    frame = cmd_test_tone(TONE_WHITE, SINE_FREQ_20HZ)
+    assert frame[5:8] == bytes([0x39, 0x02, 0x00])
+    assert frame[10] == 0x38
+
+
+def test_cmd_test_tone_pink_noise():
+    # Capture payload=390100; checksum XOR(len=3, 0x39, 0x01, 0x00) = 0x3B
+    frame = cmd_test_tone(TONE_PINK)
+    assert frame[5:8] == bytes([0x39, 0x01, 0x00])
+    assert frame[10] == 0x3B
+
+
+def test_cmd_test_tone_sine_20hz():
+    # From capture: payload=390300, freq index 0x00=20Hz
+    frame = cmd_test_tone(TONE_SINE, SINE_FREQ_20HZ)
+    assert frame[5:8] == bytes([0x39, 0x03, 0x00])
+
+
+def test_cmd_test_tone_sine_20khz():
+    # From capture: payload=39031e, freq index 0x1E=20kHz
+    frame = cmd_test_tone(TONE_SINE, SINE_FREQ_20KHZ)
+    assert frame[5:8] == bytes([0x39, 0x03, 0x1E])
+
+
+def test_cmd_test_tone_off():
+    # From capture: payload=390001 (after sine session at freq 0x01=25Hz)
+    frame = cmd_test_tone(TONE_OFF, 0x01)
+    assert frame[5:8] == bytes([0x39, 0x00, 0x01])
+
+
+def test_cmd_test_tone_freq_index_clamped():
+    # freq_index must be clamped to 0x00-0x1E
+    frame = cmd_test_tone(TONE_SINE, 0xFF)
+    assert frame[7] == 0x1E  # clamped to max
 
 
 if __name__ == "__main__":

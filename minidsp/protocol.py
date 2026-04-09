@@ -41,6 +41,48 @@ OP_PREPARE_LINK = 0x2A  # declare master↔slave pair before 0x3B (linking only,
 OP_PEQ = 0x33            # PEQ band; outputs verified, 7 bands per channel
 OP_PEQ_BYPASS = 0x3C     # PEQ channel bypass (bypasses all bands for that channel)
 OP_SET_CHANNEL_NAME = 0x3D  # set channel display name (8-byte ASCII, zero-padded)
+OP_TEST_TONE = 0x39      # test tone generator (mode + sine freq index); config offset 420/422
+
+# Test tone generator mode values (byte 1 of 0x39 payload)
+# State persisted at config offset 420; sine freq index at offset 422.
+TONE_OFF   = 0x00  # off — pass-through / analog input (default)
+TONE_PINK  = 0x01  # pink noise
+TONE_WHITE = 0x02  # white noise
+TONE_SINE  = 0x03  # sine wave at selected frequency
+
+# Sine wave frequency indices (byte 2 of 0x39 payload when mode=TONE_SINE)
+# ISO 1/3-octave series, 31 steps, 20 Hz to 20 kHz.
+SINE_FREQ_20HZ    = 0x00
+SINE_FREQ_25HZ    = 0x01
+SINE_FREQ_31HZ    = 0x02
+SINE_FREQ_40HZ    = 0x03
+SINE_FREQ_50HZ    = 0x04
+SINE_FREQ_63HZ    = 0x05
+SINE_FREQ_80HZ    = 0x06
+SINE_FREQ_100HZ   = 0x07
+SINE_FREQ_125HZ   = 0x08
+SINE_FREQ_160HZ   = 0x09
+SINE_FREQ_200HZ   = 0x0A
+SINE_FREQ_250HZ   = 0x0B
+SINE_FREQ_315HZ   = 0x0C
+SINE_FREQ_400HZ   = 0x0D
+SINE_FREQ_500HZ   = 0x0E
+SINE_FREQ_630HZ   = 0x0F
+SINE_FREQ_800HZ   = 0x10
+SINE_FREQ_1KHZ    = 0x11
+SINE_FREQ_1K25HZ  = 0x12
+SINE_FREQ_1K6HZ   = 0x13
+SINE_FREQ_2KHZ    = 0x14
+SINE_FREQ_2K5HZ   = 0x15
+SINE_FREQ_3K15HZ  = 0x16
+SINE_FREQ_4KHZ    = 0x17
+SINE_FREQ_5KHZ    = 0x18
+SINE_FREQ_6K3HZ   = 0x19
+SINE_FREQ_8KHZ    = 0x1A
+SINE_FREQ_10KHZ   = 0x1B
+SINE_FREQ_12K5HZ  = 0x1C
+SINE_FREQ_16KHZ   = 0x1D
+SINE_FREQ_20KHZ   = 0x1E
 
 # PEQ filter type values (byte 8 of 0x33 command)
 PEQ_TYPE_PEAK       = 0x00
@@ -220,6 +262,28 @@ def cmd_set_delay_unit(unit: int) -> bytes:
     Persisted at config offset 424.
     """
     return build_frame(bytes([OP_SET_DELAY_UNIT, unit & 0xFF]))
+
+
+def cmd_test_tone(mode: int, freq_index: int = 0) -> bytes:
+    """Build a test tone generator command (0x39).
+
+    Enables or disables the internal signal generator. Device ACKs with 0x01.
+    State is persisted at config offset 420 (mode) and 422 (last sine freq index).
+
+    mode:       TONE_OFF=0x00, TONE_PINK=0x01, TONE_WHITE=0x02, TONE_SINE=0x03
+    freq_index: SINE_FREQ_* constant (0x00=20Hz … 0x1E=20kHz); 0x00 for noise modes.
+                When disabling (mode=TONE_OFF), pass the last used sine freq index
+                so the device retains it in config — or just use 0x00.
+
+    Captured examples:
+      White noise:  39 02 00
+      Pink noise:   39 01 00
+      Sine 20 Hz:   39 03 00
+      Sine 20 kHz:  39 03 1e
+      Off (after sine 25Hz session): 39 00 01
+    """
+    freq_index = max(0, min(0x1E, freq_index))
+    return build_frame(bytes([OP_TEST_TONE, mode & 0xFF, freq_index & 0xFF]))
 
 
 def cmd_matrix_route(output_ch: int, input_mask: int) -> bytes:

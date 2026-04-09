@@ -44,9 +44,14 @@ from .protocol import (
     cmd_submit_pin,
     cmd_set_lock_pin,
     cmd_set_delay_unit,
+    cmd_test_tone,
     DELAY_UNIT_MS,
     DELAY_UNIT_M,
     DELAY_UNIT_FT,
+    TONE_OFF,
+    TONE_PINK,
+    TONE_WHITE,
+    TONE_SINE,
     is_ack,
     OP_ACTIVATE,
     OP_INIT,
@@ -240,6 +245,19 @@ class DSPmini:
         Returns True if the device ACK'd.
         """
         payload = self._send_recv(cmd_set_delay_unit(unit))
+        if payload is None:
+            return False
+        return is_ack(payload)
+
+    def set_test_tone(self, mode: int, freq_index: int = 0) -> bool:
+        """Enable or disable the internal test tone generator.
+
+        mode:       TONE_OFF=0x00, TONE_PINK=0x01, TONE_WHITE=0x02, TONE_SINE=0x03
+        freq_index: sine frequency index (SINE_FREQ_* constants, 0x00=20Hz … 0x1E=20kHz);
+                    ignored for noise modes (pass 0).
+        Returns True if the device ACK'd.
+        """
+        payload = self._send_recv(cmd_test_tone(mode, freq_index))
         if payload is None:
             return False
         return is_ack(payload)
