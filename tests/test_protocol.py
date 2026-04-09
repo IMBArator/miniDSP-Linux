@@ -401,6 +401,8 @@ def test_parse_preset_params_from_unt():
     config_data = file_data[preset_start:preset_start + 459]
     result = parse_preset_params(config_data)
     assert result is not None
+    # Preset 0 "DIY Mon": default channel names
+    assert result["names"] == ["InA", "InB", "InC", "InD", "Out1", "Out2", "Out3", "Out4"]
     # Preset 0 "DIY Mon": all gains = 280 (0 dB), all mutes = False, all phases normal
     assert result["gains"] == [280, 280, 280, 280, 280, 280, 280, 280]
     assert result["mutes"] == [False, False, False, False, False, False, False, False]
@@ -444,6 +446,8 @@ def test_parse_preset_params_modified():
     config_data = file_data[second:second + 459]
     result = parse_preset_params(config_data)
     assert result is not None
+    # Preset 1 "DIY Mon offset": same default channel names
+    assert result["names"] == ["InA", "InB", "InC", "InD", "Out1", "Out2", "Out3", "Out4"]
     # Input gains unchanged (all 280)
     assert result["gains"][:4] == [280, 280, 280, 280]
     # Output gains: Out1=255, Out2=286, Out3=280, Out4=300

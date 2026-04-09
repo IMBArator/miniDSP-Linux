@@ -246,8 +246,9 @@ def cmd_set_channel_name(channel: int, name: str) -> bytes:
     """Build a set-channel-name command (0x3D).
 
     Sets the display name for a channel (shown in the app's channel strips).
-    Verified from capture: changing Out3 name "Out3"→"AUSGANG3" sends:
-      3d 06 41 55 53 47 41 4e 47 33
+    Verified from captures:
+      Out3 "Out3"→"AUSGANG3": 3d 06 41 55 53 47 41 4e 47 33
+      InC  "InC" →"EINGANGC": 3d 02 45 49 4e 47 41 4e 47 43
 
     channel: unified index (inputs 0-3, outputs 4-7)
     name:    up to 8 ASCII characters — truncated and zero-padded to exactly 8 bytes.
@@ -438,6 +439,8 @@ OP_CONFIG_RESP = 0x24
 # Offsets within the 450-byte stitched config blob (preset structure)
 _PRESET_INPUT_START = 16    # 4 × 24-byte input blocks
 _INPUT_BLOCK_SIZE = 24
+_CHANNEL_NAME_OFFSET = 0    # 8-byte ASCII name, zero-padded (shared by input and output blocks)
+_CHANNEL_NAME_SIZE = 8
 _INPUT_GAIN_OFFSET = 18     # uint16 LE within input block
 _INPUT_GATE_ATTACK_OFFSET = 10  # uint16 LE, raw 34–998 (1–999 ms)
 _INPUT_GATE_RELEASE_OFFSET = 12 # uint16 LE, raw 0–2999 (0–3000 ms)
@@ -487,6 +490,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
 
     config_data: 450 bytes (9 pages × 50 bytes) from read_config().
     Returns dict with:
+      'names' (list[8], str — ASCII channel names, null-stripped),
       'gains' (list[8], raw 0–400), 'mutes' (list[8], bool),
       'phases' (list[8], bool — True=inverted),
       'gates' (list[4], dict with attack/release/hold/threshold raw values),
@@ -498,6 +502,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     if len(config_data) < _OUTPUT_MUTE_BITMASK_OFFSET + 2:
         return None
 
+    names: list[str] = []
     gains: list[int] = []
     mutes: list[bool] = []
     phases: list[bool] = []
@@ -506,9 +511,11 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     crossovers: list[dict[str, int]] = []
     compressors: list[dict[str, int]] = []
 
-    # Input channels: gain, phase, gate from per-channel blocks
+    # Input channels: name, gain, phase, gate from per-channel blocks
     for i in range(4):
         base = _PRESET_INPUT_START + i * _INPUT_BLOCK_SIZE
+        raw_name = config_data[base + _CHANNEL_NAME_OFFSET : base + _CHANNEL_NAME_OFFSET + _CHANNEL_NAME_SIZE]
+        names.append(raw_name.rstrip(b"\x00").decode("ascii", errors="replace"))
         gain = config_data[base + _INPUT_GAIN_OFFSET] + config_data[base + _INPUT_GAIN_OFFSET + 1] * 256
         gains.append(gain)
         phases.append(bool(config_data[base + _INPUT_PHASE_OFFSET]))
@@ -519,9 +526,11 @@ def parse_preset_params(config_data: bytes) -> dict | None:
             "threshold": config_data[base + _INPUT_GATE_THRESH_OFFSET] + config_data[base + _INPUT_GATE_THRESH_OFFSET + 1] * 256,
         })
 
-    # Output channels: gain, phase, delay, crossover, compressor from per-channel blocks
+    # Output channels: name, gain, phase, delay, crossover, compressor from per-channel blocks
     for i in range(4):
         base = _PRESET_OUTPUT_START + i * _OUTPUT_BLOCK_SIZE
+        raw_name = config_data[base + _CHANNEL_NAME_OFFSET : base + _CHANNEL_NAME_OFFSET + _CHANNEL_NAME_SIZE]
+        names.append(raw_name.rstrip(b"\x00").decode("ascii", errors="replace"))
         gain = config_data[base + _OUTPUT_GAIN_OFFSET] + config_data[base + _OUTPUT_GAIN_OFFSET + 1] * 256
         gains.append(gain)
         phases.append(bool(config_data[base + _OUTPUT_PHASE_OFFSET]))
@@ -549,8 +558,9 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     for i in range(4):
         mutes.append(bool(output_mute_mask & (1 << i)))
 
-    return {"gains": gains, "mutes": mutes, "phases": phases, "gates": gates,
-            "delays": delays, "crossovers": crossovers, "compressors": compressors}
+    return {"names": names, "gains": gains, "mutes": mutes, "phases": phases,
+            "gates": gates, "delays": delays, "crossovers": crossovers,
+            "compressors": compressors}
 
 
 # --- Gain conversion ---
