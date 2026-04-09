@@ -25,6 +25,8 @@ OP_STORE_NAME = 0x26    # 14-char name, space-padded; send BEFORE 0x21
 OP_READ_CONFIG = 0x27
 OP_READ_NAME = 0x29
 OP_DEVICE_INFO = 0x2C
+OP_SUBMIT_PIN = 0x2D    # PIN auth when device is locked (request + response)
+OP_SET_LOCK_PIN = 0x2F  # Set lock PIN — ⚠ LOCKS DEVICE IMMEDIATELY on receipt
 OP_COMPRESSOR = 0x30
 OP_LOPASS = 0x31
 OP_HIPASS = 0x32
@@ -380,6 +382,53 @@ def cmd_firmware() -> bytes:
 def cmd_device_info() -> bytes:
     """Build device info query (0x2C)."""
     return build_frame(bytes([OP_DEVICE_INFO]))
+
+
+# Lock PIN response codes (byte 2 of 0x2D response payload)
+LOCK_PIN_CORRECT = 0x01
+LOCK_PIN_WRONG = 0x00
+
+
+def cmd_submit_pin(pin: str) -> bytes:
+    """Build a PIN authentication command (0x2D).
+
+    Sent when the device is locked. PIN is 4 ASCII digit characters.
+    The device responds with a 0x2D payload: [2d, 00, 01=correct / 00=wrong].
+
+    Captured:
+      2d 00 37 36 35 34 (PIN "7654" — correct) → response 2d 00 01
+      2d 00 38 38 38 38 (PIN "8888" — wrong)   → response 2d 00 00
+
+    pin: exactly 4 ASCII digit characters (e.g. "7654")
+    """
+    encoded = pin[:4].encode("ascii", errors="replace").ljust(4, b"0")
+    return build_frame(bytes([OP_SUBMIT_PIN, 0x00]) + encoded)
+
+
+def cmd_set_lock_pin(pin: str) -> bytes:
+    """Build a device lock PIN command (0x2F).
+
+    ⚠ WARNING: Sending this command IMMEDIATELY locks the device and
+    disconnects the application. The device cannot be controlled again
+    until the correct PIN is submitted via cmd_submit_pin() on the next
+    connection. If the PIN is lost, factory reset procedure is unknown.
+
+    pin: exactly 4 ASCII digit characters (e.g. "7654")
+
+    Captured: 2f 37 36 35 34 (set PIN "7654") → device locks + disconnects
+    """
+    encoded = pin[:4].encode("ascii", errors="replace").ljust(4, b"0")
+    return build_frame(bytes([OP_SET_LOCK_PIN]) + encoded)
+
+
+def parse_pin_response(payload: bytes) -> bool | None:
+    """Parse a 0x2D PIN response from the device.
+
+    Returns True if PIN was correct, False if wrong, None if payload invalid.
+    """
+    if len(payload) < 3 or payload[0] != OP_SUBMIT_PIN:
+        return None
+    return payload[2] == LOCK_PIN_CORRECT
 
 
 def cmd_preset_header() -> bytes:

@@ -16,6 +16,11 @@ from minidsp.protocol import (
     cmd_phase,
     cmd_poll,
     cmd_set_channel_name,
+    cmd_submit_pin,
+    cmd_set_lock_pin,
+    parse_pin_response,
+    LOCK_PIN_CORRECT,
+    LOCK_PIN_WRONG,
     cmd_peq_band,
     cmd_peq_channel_bypass,
     peq_gain_to_raw,
@@ -532,6 +537,44 @@ def test_peq_q_encoding():
     assert abs(peq_raw_to_q(peq_q_to_raw(2.0)) - 2.0) < 0.05
     assert abs(peq_raw_to_q(0) - 0.4) < 0.001
     assert abs(peq_raw_to_q(100) - 128.0) < 0.01
+
+
+# --- Device lock (0x2D / 0x2F) ---
+
+def test_cmd_submit_pin_correct():
+    # Verified from capture: PIN "7654" = 0x37 0x36 0x35 0x34
+    frame = cmd_submit_pin("7654")
+    payload = frame[5:5 + frame[4]]
+    assert payload == bytes([0x2D, 0x00, 0x37, 0x36, 0x35, 0x34])
+
+
+def test_cmd_submit_pin_wrong():
+    # Wrong PIN "8888" = 0x38 0x38 0x38 0x38 (captured from wrong-pin capture)
+    frame = cmd_submit_pin("8888")
+    payload = frame[5:5 + frame[4]]
+    assert payload == bytes([0x2D, 0x00, 0x38, 0x38, 0x38, 0x38])
+
+
+def test_cmd_set_lock_pin():
+    # Verified from capture: PIN "7654" = 0x37 0x36 0x35 0x34
+    frame = cmd_set_lock_pin("7654")
+    payload = frame[5:5 + frame[4]]
+    assert payload == bytes([0x2F, 0x37, 0x36, 0x35, 0x34])
+
+
+def test_parse_pin_response_correct():
+    # Device says PIN correct: 2d 00 01
+    assert parse_pin_response(bytes([0x2D, 0x00, LOCK_PIN_CORRECT])) is True
+
+
+def test_parse_pin_response_wrong():
+    # Device says PIN wrong: 2d 00 00
+    assert parse_pin_response(bytes([0x2D, 0x00, LOCK_PIN_WRONG])) is False
+
+
+def test_parse_pin_response_invalid():
+    assert parse_pin_response(bytes([0x01, 0x00])) is None  # wrong opcode
+    assert parse_pin_response(bytes([0x2D, 0x00])) is None   # too short
 
 
 if __name__ == "__main__":

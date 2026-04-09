@@ -80,6 +80,11 @@ Reverse-engineered from Wireshark USBPcap sessions (all in `usb_captures/`):
 - `capture_20260407_191838_matrix_Out1_from_InA_InB_InC_InD.pcapng` — Out1 summed from all 4 inputs
 - `capture_20260407_192739_matrix_remove_source_of_Out1.pcapng` — Out1 silenced (no source); no init sequence included
 
+**Device lock:**
+- `capture_20260409_091144_device_lock_set_pin.pcapng` — full app load, then PIN "7654" set via 0x2f; device locks and disconnects
+- `capture_20260409_091341_device_lock_unlock.pcapng` — locked device; app waits in 0x12 loop, correct PIN "7654" submitted via 0x2d → response 01, then normal config load
+- `capture_20260409_091530_device_lock_unlock_wrong_pin.pcapng` — locked device; wrong PIN "8888" submitted via 0x2d → response 00, device stays locked
+
 **Other:**
 - `miniDSP USBTree output.txt` — USB device descriptor (VID/PID/endpoints)
 
@@ -193,6 +198,48 @@ Device responds with 8-byte payload: `2c 00 27 0f 00 00 00 00`.
 Bytes 2–3 = `0x270f` (9999 decimal). Purpose unknown — possibly a device serial
 or configuration counter. This value also appears in the `.unt` file header at
 offset 0x19–0x1A.
+
+### 0x2d — Submit Lock PIN
+
+```
+OUT payload (6 bytes): 2d 00 [pin_byte0] [pin_byte1] [pin_byte2] [pin_byte3]
+IN  payload (3 bytes): 2d 00 [result]
+```
+
+Sent when the device is locked. The PIN is 4 ASCII digit characters (e.g. "7654" = `37 36 35 34`).
+
+| Byte | Direction | Value | Meaning |
+|---|---|---|---|
+| 0 | both | `2d` | opcode |
+| 1 | both | `00` | padding |
+| 2–5 | OUT | ASCII digits | PIN digits as ASCII (e.g. "7654" = 37 36 35 34) |
+| 2 | IN | `0x01` / `0x00` | `0x01` = PIN correct, `0x00` = PIN wrong |
+
+**Behavior:**
+- When locked, the device sits in an ACK loop (responding `0x01` to `0x12` activate) without loading config.
+- On correct PIN → device responds `2d 00 01` → app proceeds with normal config load (`0x22`, `0x14`, `0x29`, `0x27` × 9, `0x12`).
+- On wrong PIN → device responds `2d 00 00` → device remains locked; app shows error.
+
+**Verified captures:**
+- Correct PIN "7654": OUT `2d 00 37 36 35 34` → IN `2d 00 01` → full config load follows
+- Wrong PIN "8888":  OUT `2d 00 38 38 38 38` → IN `2d 00 00` → device stays locked
+
+### 0x2f — Set Device Lock PIN
+
+```
+OUT payload (5 bytes): 2f [pin_byte0] [pin_byte1] [pin_byte2] [pin_byte3]
+```
+
+Sets the device lock PIN and immediately locks the device. No dedicated IN response — the device sends `0x01` ACK then disconnects.
+
+| Byte | Value | Meaning |
+|---|---|---|
+| 0 | `2f` | opcode |
+| 1–4 | ASCII digits | PIN digits as ASCII (e.g. "7654" = 37 36 35 34) |
+
+**⚠ WARNING:** After receiving this command, the device immediately locks and the USB connection is terminated. The device cannot be controlled until the correct PIN is submitted via `0x2d` on next connection. If the PIN is lost, factory reset procedure is unknown — do not use this without careful consideration.
+
+**Verified capture:** Set PIN "7654" → OUT `2f 37 36 35 34` → `0x01` ACK → device disconnects.
 
 ### 0x22 — Active Preset Header
 
@@ -543,6 +590,8 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x27` | 2 | OUT | Read config page | `27 [page]` — device responds `24 [page] [50 bytes]` |
 | `0x29` | 2 | OUT | Read preset name | `29 [slot]` — device responds `29 [slot] [14 char name]` |
 | `0x2c` | 1 | OUT | Device info | `2c` — device responds `2c` + 7 bytes |
+| `0x2d` | 6 | BOTH | Submit lock PIN | OUT: `2d 00 [4 ASCII digits]`; IN: `2d 00 [01=correct/00=wrong]` |
+| `0x2f` | 5 | OUT | Set lock PIN | `2f [4 ASCII digits]` — ⚠ locks device immediately on receipt |
 | `0x30` | 10 | OUT | Compressor/limiter | `30 [ch] [ratio] [knee] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [thr_lo] [thr_hi]` |
 | `0x31` | 5 | OUT | Lo-pass filter | `31 [ch] [freq_lo] [freq_hi] [slope]` — log freq 0–300, slope 0=bypass |
 | `0x32` | 5 | OUT | Hi-pass filter | `32 [ch] [freq_lo] [freq_hi] [slope]` — log freq 0–300, slope 0=bypass |

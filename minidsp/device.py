@@ -35,12 +35,15 @@ from .protocol import (
     cmd_read_config,
     cmd_read_name,
     cmd_set_channel_name,
+    cmd_submit_pin,
+    cmd_set_lock_pin,
     is_ack,
     OP_ACTIVATE,
     OP_INIT,
     parse_config_page,
     parse_frame,
     parse_levels,
+    parse_pin_response,
     parse_preset_params,
 )
 
@@ -292,3 +295,35 @@ class DSPmini:
         # Step 8: activate
         self._send_recv(cmd_activate(), skip_polls=True)
         return parse_preset_params(bytes(config_data))
+
+    def submit_pin(self, pin: str) -> bool:
+        """Submit a PIN to unlock a locked device (0x2D).
+
+        Call this BEFORE read_config() if the device is locked. When the device
+        is locked it keeps ACKing 0x12 activate commands without proceeding to
+        config load — it waits for a correct 0x2D PIN submission.
+
+        pin: exactly 4 ASCII digit characters (e.g. "7654")
+        Returns True if PIN was correct, False if wrong or no response.
+        """
+        payload = self._send_recv(cmd_submit_pin(pin), skip_polls=True)
+        if payload is None:
+            return False
+        result = parse_pin_response(payload)
+        return result is True
+
+    def set_lock_pin(self, pin: str) -> bool:
+        """Set device lock PIN and immediately lock the device (0x2F).
+
+        ⚠ WARNING: This LOCKS the device immediately after the ACK is received.
+        The current session ends — the device will not respond to further
+        commands until the correct PIN is entered on the next connection via
+        submit_pin(). If the PIN is lost, factory reset procedure is unknown.
+
+        pin: exactly 4 ASCII digit characters (e.g. "7654")
+        Returns True if the device ACK'd before disconnecting.
+        """
+        payload = self._send_recv(cmd_set_lock_pin(pin))
+        if payload is None:
+            return False
+        return is_ack(payload)

@@ -158,6 +158,29 @@ direction = "both"
 description = "Device info query (out) / response (in) — contains 0x270F (9999), purpose unknown"
 verified = true
 
+[opcodes.0x2d]
+name = "submit_pin"
+direction = "both"
+description = "PIN authentication for a locked device. OUT: [2d, 00, 4×ASCII digit]. IN: [2d, 00, 01=correct/00=wrong]. Device stays locked (keeps ACKing 0x12) until correct PIN received, then proceeds with normal config load."
+verified = true
+
+[opcodes.0x2d.fields.request]
+pad = { offset = 1, size = 1, format = "uint8", note = "always 0x00" }
+pin = { offset = 2, size = 4, format = "ascii", note = "4-digit ASCII PIN (e.g. 37 36 35 34 = '7654')" }
+
+[opcodes.0x2d.fields.response]
+pad = { offset = 1, size = 1, format = "uint8", note = "always 0x00" }
+result = { offset = 2, size = 1, format = "uint8", note = "0x01=correct, 0x00=wrong" }
+
+[opcodes.0x2f]
+name = "set_lock_pin"
+direction = "out"
+description = "Set device lock PIN and immediately lock the device. WARNING: device disconnects from host immediately after receiving this. If PIN is lost, factory reset procedure is unknown."
+verified = true
+
+[opcodes.0x2f.fields.request]
+pin = { offset = 1, size = 4, format = "ascii", note = "4-digit ASCII PIN (e.g. 37 36 35 34 = '7654')" }
+
 [opcodes.0x30]
 name = "compressor"
 direction = "out"
