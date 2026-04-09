@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260409_090015_test_tone_generator_pink_noise.pcapng"
+format = "pcapng"
+
+[description]
+feature = "test tone generator pink noise"
+notes = "start aplication; enable test tone generator pink noise; restart application"
+
+[analysis]
+packet_count = 238
+out_packets = 119
+in_packets = 119
+duration_seconds = 15.49
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x39",
+    "0x40",
+]
+has_unknown_opcodes = true
+has_checksum_errors = false
+last_analyzed = "2026-04-09T23:37:40"
+
+[analysis.opcode_counts]
+0x29 = 120
+0x40 = 56
+0x27 = 18
+0x24 = 18
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x01 = 3
+0x12 = 2
+0x39 = 1
