@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260409_092905_output_peq_channel_1_band_1_bypass.pcapng"
+format = "pcapng"
+
+[description]
+feature = "output peq channel 1 band 1 bypass"
+notes = "start aplication; toggle output peq channel 1 band 1 bypass to bypassed to not bypassd to bypasswd (not bypassed is the default); restart application"
+
+[analysis]
+packet_count = 245
+out_packets = 123
+in_packets = 122
+duration_seconds = 16.95
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x33",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-09T19:31:13"
+
+[analysis.opcode_counts]
+0x29 = 120
+0x40 = 59
+0x27 = 18
+0x24 = 18
+0x01 = 5
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x33 = 3
+0x12 = 2

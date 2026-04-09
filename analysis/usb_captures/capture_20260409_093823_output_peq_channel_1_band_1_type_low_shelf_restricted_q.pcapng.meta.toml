@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260409_093823_output_peq_channel_1_band_1_type_low_shelf_restricted_q.pcapng"
+format = "pcapng"
+
+[description]
+feature = "output peq channel 1 band 1 type low shelf restricted q"
+notes = "start aplication; select output peq channel 1 band 1 type: Low Shelf; move q-value fader to min to max to min (the max q-value is now 3 and min is 0.4); restart application; this behaviour applies to the following types: Low Shelf, High Shelf, Low Pass, High Pass"
+
+[analysis]
+packet_count = 518
+out_packets = 259
+in_packets = 259
+duration_seconds = 28.32
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x33",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-09T19:37:27"
+
+[analysis.opcode_counts]
+0x40 = 138
+0x29 = 120
+0x01 = 102
+0x33 = 100
+0x27 = 18
+0x24 = 18
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x12 = 2

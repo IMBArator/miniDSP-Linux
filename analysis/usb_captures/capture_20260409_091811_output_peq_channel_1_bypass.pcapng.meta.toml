@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260409_091811_output_peq_channel_1_bypass.pcapng"
+format = "pcapng"
+
+[description]
+feature = "output peq channel 1 bypass"
+notes = "start aplication; bypass peq for output channel 1; restart application"
+
+[analysis]
+packet_count = 268
+out_packets = 134
+in_packets = 134
+duration_seconds = 19.78
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x3c",
+    "0x40",
+]
+has_unknown_opcodes = true
+has_checksum_errors = false
+last_analyzed = "2026-04-09T19:43:18"
+
+[analysis.opcode_counts]
+0x29 = 120
+0x40 = 82
+0x27 = 18
+0x24 = 18
+0x01 = 5
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x3c = 3
+0x12 = 2

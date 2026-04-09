@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260409_092652_output_peq_channel_1_band_1_q-value.pcapng"
+format = "pcapng"
+
+[description]
+feature = "output peq channel 1 band 1 q-value"
+notes = "start aplication; sweep output peq channel 1 band 1 q-value to min to max to min (0.4 ... 128); restart application"
+
+[analysis]
+packet_count = 746
+out_packets = 373
+in_packets = 373
+duration_seconds = 31.5
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x33",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-09T19:37:27"
+
+[analysis.opcode_counts]
+0x01 = 206
+0x33 = 204
+0x40 = 158
+0x29 = 120
+0x27 = 18
+0x24 = 18
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x12 = 2

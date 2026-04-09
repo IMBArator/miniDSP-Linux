@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260409_093329_output_peq_channel_1_band_1_type.pcapng"
+format = "pcapng"
+
+[description]
+feature = "output peq channel 1 band 1 type"
+notes = "start aplication; select output peq channel 1 band 1 type in the following order: Low Shelf, High Shelf, Low Pass, High Pass, Allpass1, Allpass2, Allpass1, High Pass, Low Pass, High Shelf, Low Shelf, Peak, Low Shelf; restart application"
+
+[analysis]
+packet_count = 420
+out_packets = 210
+in_packets = 210
+duration_seconds = 39.92
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x33",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-09T19:31:14"
+
+[analysis.opcode_counts]
+0x40 = 204
+0x29 = 120
+0x01 = 20
+0x27 = 18
+0x24 = 18
+0x33 = 18
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x12 = 2

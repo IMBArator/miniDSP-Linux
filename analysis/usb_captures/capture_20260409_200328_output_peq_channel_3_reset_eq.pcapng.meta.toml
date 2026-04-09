@@ -1,0 +1,11 @@
+[capture]
+file = "capture_20260409_200328_output_peq_channel_3_reset_eq.pcapng"
+format = "pcapng"
+created = "2026-04-09T20:03:52"
+source_machine = "windows"
+interface = "\\\\.\\USBPcap1"
+device_address = 13
+
+[description]
+feature = "output peq channel 3 reset eq"
+notes = "start aplication; reset peq for output channel 3; restart application"

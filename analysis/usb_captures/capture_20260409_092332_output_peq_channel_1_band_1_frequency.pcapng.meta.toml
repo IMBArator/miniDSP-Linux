@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260409_092332_output_peq_channel_1_band_1_frequency.pcapng"
+format = "pcapng"
+
+[description]
+feature = "output peq channel 1 band 1 frequency"
+notes = "start aplication; sweep output peq channel 1 band 1 frequency to min to max to min (19.7Hz ... 20.16kHz); restart application"
+
+[analysis]
+packet_count = 812
+out_packets = 406
+in_packets = 406
+duration_seconds = 32.28
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x33",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-09T19:43:42"
+
+[analysis.opcode_counts]
+0x01 = 237
+0x33 = 235
+0x40 = 162
+0x29 = 120
+0x27 = 18
+0x24 = 18
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x12 = 2
