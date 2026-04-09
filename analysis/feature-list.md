@@ -144,12 +144,15 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 
 ### 8. Test Tone Generator
 
+Single command `0x39` with mode byte and frequency index byte. Device ACKs with `0x01`.
+State persisted in device config at offset 420 (mode) and 422 (last sine freq index).
+
 | Feature | Details | Protocol Status |
 |---|---|---|
-| **Analog Input** | Normal operation (default) | N/A |
-| **Pink Noise** | Internal generator | Protocol unknown |
-| **White Noise** | Internal generator | Protocol unknown |
-| **Sine Wave** | Selectable frequency (20 Hz dropdown visible) | Protocol unknown |
+| **Analog Input (off)** | Normal pass-through, no internal signal | **Captured & documented** (`0x39 0x00 [last_freq]`) |
+| **Pink Noise** | Internal pink noise generator | **Captured & documented** (`0x39 0x01 0x00`) |
+| **White Noise** | Internal white noise generator | **Captured & documented** (`0x39 0x02 0x00`) |
+| **Sine Wave** | 31 selectable frequencies (ISO 1/3-octave, 20 Hz–20 kHz) | **Captured & documented** (`0x39 0x03 [freq_idx]`; 0x00=20Hz … 0x1E=20kHz) |
 
 ### 9. System / Utility
 
@@ -182,10 +185,11 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 - Channel name set (`0x3d`, 8 chars max, zero-padded)
 - Device lock: submit PIN (`0x2d`, 4 ASCII digits, response byte signals correct/wrong), set lock PIN (`0x2f`, locks immediately on receipt)
 - Output PEQ (`0x33`, 7 bands per output: gain/freq/Q/type/bypass; `0x3c` channel bypass; config parsing from footer bitmasks at offsets 412–415 and 428–431)
+- Test tone generator (`0x39`, mode byte: 0=off, 1=pink noise, 2=white noise, 3=sine wave; freq index 0x00–0x1E for sine, 31 ISO 1/3-octave steps 20Hz–20kHz)
 - Initialization sequence
 
 ### Protocol likely known but NOT yet or not fully captured on our device:
 - None remaining
 
 ### Completely unknown protocol:
-- Test Tone Generator
+- None remaining

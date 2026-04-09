@@ -309,6 +309,16 @@ release = { offset = 4, size = 2, format = "gate_time", note = "raw 0-2999, maps
 hold = { offset = 6, size = 2, format = "gate_time", note = "raw 9-998, maps to 10-999 ms" }
 threshold = { offset = 8, size = 2, format = "gate_threshold", note = "raw 1-180, -90.0 to 0.0 dB" }
 
+[opcodes.0x39]
+name = "test_tone"
+direction = "out"
+description = "Set test tone generator mode and sine frequency. Mode: 0=off, 1=pink noise, 2=white noise, 3=sine wave. Freq index 0x00-0x1E = ISO 1/3-octave 20Hz-20kHz (sine only). Device ACKs 0x01. Config stored at offset 420 (mode) and 422 (last sine freq index)."
+verified = true
+
+[opcodes.0x39.fields.request]
+mode = { offset = 1, size = 1, format = "tone_generator_mode" }
+freq_index = { offset = 2, size = 1, format = "sine_freq_index" }
+
 [opcodes.0x3a]
 name = "matrix_routing"
 direction = "out"
@@ -479,3 +489,13 @@ min = 0
 max = 12
 unit = "dB"
 note = "Direct dB value, 1dB steps (0=hard knee, 12=softest). Verified from knee sweep capture (capture_20260407_185154)."
+
+[formats.tone_generator_mode]
+type = "enum"
+values = { "0" = "off", "1" = "pink_noise", "2" = "white_noise", "3" = "sine_wave" }
+
+[formats.sine_freq_index]
+type = "uint8"
+min = 0
+max = 30
+note = "Sine wave frequency index. 0x00=20Hz, 0x01=25Hz, 0x02=31.5Hz, 0x03=40Hz, 0x04=50Hz, 0x05=63Hz, 0x06=80Hz, 0x07=100Hz, 0x08=125Hz, 0x09=160Hz, 0x0A=200Hz, 0x0B=250Hz, 0x0C=315Hz, 0x0D=400Hz, 0x0E=500Hz, 0x0F=630Hz, 0x10=800Hz, 0x11=1000Hz, 0x12=1250Hz, 0x13=1600Hz, 0x14=2000Hz, 0x15=2500Hz, 0x16=3150Hz, 0x17=4000Hz, 0x18=5000Hz, 0x19=6300Hz, 0x1A=8000Hz, 0x1B=10000Hz, 0x1C=12500Hz, 0x1D=16000Hz, 0x1E=20000Hz"

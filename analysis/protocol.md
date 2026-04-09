@@ -639,6 +639,7 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x35` | 3 | OUT | Mute | `35 [ch] [state]` — 0x00=off, 0x01=on |
 | `0x36` | 3 | OUT | Phase invert | `36 [ch] [state]` — 0x00=normal, 0x01=inverted |
 | `0x38` | 4 | OUT | Output delay | `38 [ch] [samples_lo] [samples_hi]` — LE uint16, 0–32640 (samples @ 48 kHz) |
+| `0x39` | 3 | OUT | Test tone generator | `39 [mode] [freq_idx]` — mode: 0=off,1=pink,2=white,3=sine; freq_idx: 0x00–0x1E (ISO 1/3-oct 20Hz–20kHz) |
 | `0x3e` | 10 | OUT | Noise gate | `3e [ch] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [hold_lo] [hold_hi] [thr_lo] [thr_hi]` |
 | `0x3b` | 3 | OUT | Channel link | `3b [ch] [link_flags]` — see below |
 | `0x3a` | 3 | OUT | Matrix routing | `3a [output_ch] [input_bitmask]` |
@@ -1003,6 +1004,53 @@ Confirmed by diff-config comparing config page reads before/after:
 - Hold → config bytes 14–15 (e.g. max 998 = 0xe6,0x03)
 - Threshold → config bytes 16–17 (e.g. max 180 = 0xb4,0x00)
 
+### 0x39 — Test Tone Generator
+
+```
+Payload (3 bytes): 39 [mode] [freq_idx]
+```
+
+Enables or disables the internal test signal generator. The device ACKs with `0x01`.
+
+| Field | Byte | Type | Values |
+|---|---|---|---|
+| Mode | 1 | uint8 | 0x00=off (analog input), 0x01=pink noise, 0x02=white noise, 0x03=sine wave |
+| Freq index | 2 | uint8 | Sine frequency index (0x00–0x1E); 0x00 for noise modes |
+
+**Sine wave frequency table** (ISO 1/3-octave, 31 steps, index 0x00–0x1E):
+
+| Idx | Hz | Idx | Hz | Idx | Hz |
+|---|---|---|---|---|---|
+| 0x00 | 20 | 0x0B | 250 | 0x16 | 3150 |
+| 0x01 | 25 | 0x0C | 315 | 0x17 | 4000 |
+| 0x02 | 31.5 | 0x0D | 400 | 0x18 | 5000 |
+| 0x03 | 40 | 0x0E | 500 | 0x19 | 6300 |
+| 0x04 | 50 | 0x0F | 630 | 0x1A | 8000 |
+| 0x05 | 63 | 0x10 | 800 | 0x1B | 10000 |
+| 0x06 | 80 | 0x11 | 1000 | 0x1C | 12500 |
+| 0x07 | 100 | 0x12 | 1250 | 0x1D | 16000 |
+| 0x08 | 125 | 0x13 | 1600 | 0x1E | 20000 |
+| 0x09 | 160 | 0x14 | 2000 | | |
+| 0x0A | 200 | 0x15 | 2500 | | |
+
+**Behavior notes:**
+- For noise modes (pink/white), `freq_idx` is always `0x00`.
+- When disabling (mode=`0x00`), the software sends the **last-used sine freq index** as `freq_idx`
+  (carried state — device ignores it in off mode, but the config byte retains it).
+- The sine frequency index **persists** in the config even when switching to noise or off mode.
+
+**Config storage** (confirmed from diff-config on all 4 captures):
+- Config offset **420** (page 8, byte 20): test tone mode — changes immediately on `0x39`
+- Config offset **421**: always `0x00`
+- Config offset **422** (page 8, byte 22): last sine frequency index — set by sine selection, retained when mode changes
+
+**Persistence:** The device stores the test tone state in its live config. The state survives application
+restarts (the app reads it back via `0x27`). All preset slots in `.unt` files store `0x00` (off) at
+offset 420 when the test tone was off at export time.
+
+**Capture-verified:** 4 captures (white noise, pink noise, sine wave frequency sweep 20Hz→20kHz→20Hz→25Hz,
+analog input disable). Sine wave sweep confirmed all 31 frequency indices 0x00–0x1E in sequence.
+
 ---
 
 ## Unknowns / To Investigate
@@ -1112,7 +1160,11 @@ Offset  Size  Field
 413      1    Out2 PEQ band bypass bitmask
 414      1    Out3 PEQ band bypass bitmask
 415      1    Out4 PEQ band bypass bitmask
-416      8    Always 0x00 — reserved (padding)
+416      4    Always 0x00 — reserved (padding)
+420      1    **Test tone mode**: 0x00=off, 0x01=pink noise, 0x02=white noise, 0x03=sine wave (set by `0x39` command)
+421      1    Always 0x00 — reserved
+422      1    **Sine wave frequency index**: last used sine freq (0x00=20Hz … 0x1E=20kHz); persists across mode changes
+423      1    Always 0x00 — reserved (padding)
 424      1    **Delay display unit**: 0x00=ms, 0x01=m, 0x02=ft (set by `0x15` command)
 425      3    Always 0x00 — reserved (padding)
 428      1    Out1 PEQ channel bypass (0x00=active, 0x01=all bands bypassed)
@@ -1219,7 +1271,7 @@ The fixed file size of 13010 bytes (50 + 30 × 432) is a software requirement.
 - [x] ~~Header bytes 0x1D–0x20~~ → Device lock PIN (4 ASCII digits). Old file has "1234", new file has "7654" matching our device-lock capture.
 - [x] ~~Input block unknown bytes (8–9, 21, 23)~~ → Always zero (pure padding). Verified across 5 presets.
 - [x] ~~Output block unknown bytes (9, 69, 73)~~ → Always zero (pure padding). Verified across 5 presets.
-- [x] ~~Footer bytes 416–427~~ → Bytes 416–423 and 425–427 are padding (always zero). Byte 424 = delay display unit (0x00=ms, 0x01=m, 0x02=ft). All presets analyzed had ms selected (0x00), which appeared as all-zero until the delay unit capture revealed byte 424.
+- [x] ~~Footer bytes 416–427~~ → Bytes 416–419 and 423 and 425–427 are padding (always zero). Byte 420 = test tone mode (0x00=off, 0x01=pink, 0x02=white, 0x03=sine). Byte 421 = always 0x00. Byte 422 = last sine frequency index (0x00–0x1E). Byte 424 = delay display unit (0x00=ms, 0x01=m, 0x02=ft). All presets analyzed had ms selected (0x00), which appeared as all-zero until the delay unit capture revealed byte 424.
 - [x] ~~Crossover type/slope~~ → bytes 10–11 = hi-pass freq, 12–13 = lo-pass freq, byte 14 = hi-pass slope, byte 15 = lo-pass slope. All stored in config; slope 0x00 = bypassed, 0x01–0x0a = active slope type.
 - [x] ~~Output block compressor location~~ → bytes 58–65: ratio(1B), knee(1B), attack(2B LE), release(2B LE), threshold(2B LE). Verified by 5 diff-config captures.
 - [x] ~~Output block bytes 6–7~~ → bytes 0–7 are the full 8-byte channel name field (verified: "Out3" → "AUSGANG3" changes all 8 bytes)
