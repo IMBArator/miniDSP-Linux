@@ -1009,52 +1009,66 @@ Confirmed by diff-config comparing config page reads before/after:
       DSP 408 uses 0–1000; same range, different step count.
 - [x] **Routing matrix verified on 4x4 Mini:** Opcode `0x3a` capture-confirmed. Config byte 8 of each output block stores the input bitmask.
 - [x] **Output PEQ verified on 4x4 Mini:** Opcode `0x33` — 10-byte payload. 7 bands per output channel. Gain ±12dB (raw 0–240, 0.1dB step), freq raw 0–300 (same scale as crossover), Q raw 0–100 (log Q=0.4×320^(raw/100)), 7 filter types (Peak/Low Shelf/High Shelf/Low Pass/High Pass/Allpass 1st/Allpass 2nd). Band bypass in footer bitmask. Channel bypass via `0x3c` command. Confirmed from 7 captures.
-- [ ] **Footer bytes 416–427:** The 4x4 Mini has no GEQ (DSP 408-only) and no input PEQ — PEQ is output channels only. Purpose of these 12 bytes is unknown.
+- [x] **Footer bytes 416–427:** Always zero across all 5 presets analyzed (F00, U01, U02, U30 in 2 .unt files). Likely reserved/unused; no known feature maps to these bytes.
 
 ---
 
 ## Configuration File Format (`.unt`)
 
-Reverse-engineered from `miniDSP current settings.unt` (13010 bytes).
+Reverse-engineered from `miniDSP current settings.unt` and `miniDSP current settings 260409.unt`.
+Both files are exactly **13010 bytes**.
 
 ### File Structure Overview
 
 ```
-Offset    Content
-────────  ──────────────────────────────────────
-0x000     File header (51 bytes)
-0x033     Preset 1 (0xFFFF marker + name + channels)
-0x1E0     CRLF separator
-0x1E1     Preset 2 index byte
-0x1E3     Preset 2 (0xFFFF marker + name + channels)
-0x390     CRLF terminator
-0x392     Padding ('d' = 0x64, repeated to EOF)
+Offset    Size   Content
+────────  ─────  ─────────────────────────────────────────────
+0x000       50   File header
+0x032      432   Slot 0 = U01 (prefix byte + 429 config bytes + CRLF)
+0x1E2      432   Slot 1 = U02
+  ...
+0x3112     432   Slot 29 = U30
 ```
 
-Total structured data: 914 bytes. Remaining 12096 bytes are `0x64` padding.
+The file stores **30 user preset slots** (U01–U30). The factory preset F00 is read-only in device firmware and is NOT stored in the .unt file.
 
-### File Header (0x00–0x32)
+**Slot structure (432 bytes each):**
+- Byte 0: **slot number** (1-indexed, 1=U01, 2=U02, ..., 30=U30)
+- Bytes 1–429: config blob (429 bytes — see Preset Structure below)
+- Bytes 430–431: `0x0D 0x0A` (CRLF — Windows text-mode record terminator)
+
+Empty/unused slots are filled with `0x64` (`'d'`) repeated for all 432 bytes.
+
+### File Header (50 bytes, offset 0x00–0x31)
 
 ```
 Offset  Size  Field
-──────  ────  ─────────────────────────────────────
+──────  ────  ─────────────────────────────────────────────────────────────
 0x00    16    Magic: "***4x4MINIV010**"
-0x10     1    Unknown (0x01)
-0x11     1    Preset count (0x02 = 2 presets)
-0x12     1    Unknown (0x1E = 30)
-0x13     4    ASCII "0000" — possibly version or serial
-0x17     2    Zero padding
-0x19     1    Unknown (0x27 = 39)
-0x1A     1    Unknown (0x0F = 15)
-0x1B     2    Zero padding
-0x1D     4    ASCII "1234" — unknown identifier
-0x21     2    Unknown (0x00 0x0A)
-0x23    16    Product name: "4x4D Amplifier" (null-prefixed + 0x01 suffix)
+0x10     1    Device address (always 0x01)
+0x11     1    Active preset slot (1=U01, 2=U02, ..., 30=U30)
+0x12     1    Max user presets (always 0x1E = 30)
+0x13     4    ASCII "0000" — purpose unknown
+0x17     2    Always 0x00 0x00
+0x19     2    Device counter: 0x270F (same value as 0x2C USB response bytes 2–3)
+0x1B     2    Always 0x00 0x00
+0x1D     4    Device lock PIN (4 ASCII digits, e.g. "7654" = 37 36 35 34; "0000" = default/no-PIN)
+0x21     1    Always 0x00
+0x22     1    Firmware version? (0x0A = 10, matches "V010" from 0x13 USB response)
+0x23     1    Always 0x00
+0x24    14    Product name: "4x4D Amplifier"
 ```
 
-### Preset Structure
+**Key header discoveries (verified from 2 files):**
+- `0x11` changes between files: old file=0x02 (U02 was active), new file=0x1E=30 (U30 was active)
+- `0x1D–0x20` holds the PIN: old file="1234", new file="7654" (matches our device lock captures)
+- `0x19–0x1A` = 0x270F matches the constant in the `0x2C` device-info USB response
 
-Each preset begins with a 2-byte `0xFF 0xFF` marker followed by:
+### Preset Structure (stored config blob, 429 bytes)
+
+The 429-byte config blob stored per slot is a partial view of the 450-byte USB config.
+The last 21 bytes (USB config offsets 429–449) are **not stored** in the .unt file —
+they are consistently zero and include the CRLF record separator at the slot boundary.
 
 ```
 Offset  Size  Field
@@ -1069,15 +1083,12 @@ Offset  Size  Field
 413      1    Out2 PEQ band bypass bitmask
 414      1    Out3 PEQ band bypass bitmask
 415      1    Out4 PEQ band bypass bitmask
-416     12    Unknown (possibly input channel PEQ bypass or other parameters)
+416     12    Always 0x00 — reserved, purpose unknown
 428      1    Out1 PEQ channel bypass (0x00=active, 0x01=all bands bypassed)
-429      1    Out2 PEQ channel bypass (predicted)
-430      1    Out3 PEQ channel bypass (predicted)
-431      1    Out4 PEQ channel bypass (predicted)
-432     17    Unknown / padding / CRLF terminator
+[429–449 NOT stored — slot ends with CRLF at absolute position 430–431]
 ```
 
-Preset names found: `"DIY Mon       "`, `"DIY Mon offset"`.
+Preset names found across both .unt files: `"DIY Mon"`, `"DIY Mon offset"`, `"test preset"`.
 
 ### Input Channel Block (24 bytes)
 
@@ -1160,10 +1171,10 @@ Verified by 5 diff-config captures (one per parameter), each showing exactly one
 - release default: raw 499 (500 ms) — `capture_20260407_185003`
 - ratio/knee: both 0 (no compression, hard knee) — `capture_20260407_185056/185154`
 
-### Padding
+### Empty Slot Filler
 
-From byte 914 (0x392) to EOF (13010), the file is filled with `0x64` (`'d'`).
-The fixed file size of 13010 bytes is likely a firmware/software requirement.
+Unused preset slots are filled with `0x64` (`'d'`) repeated for all 432 bytes.
+The fixed file size of 13010 bytes (50 + 30 × 432) is a software requirement.
 
 ### .unt Format Unknowns
 
@@ -1172,9 +1183,15 @@ The fixed file size of 13010 bytes is likely a firmware/software requirement.
 - [x] ~~Input block bytes 10–17~~ → Noise gate parameters: attack (10–11), release (12–13), hold (14–15), threshold (16–17), all LE uint16
 - [x] ~~Output EQ band count and parameter mapping~~ → 7 bands × 6 bytes: [gain_lo,gain_hi,freq_lo,freq_hi,Q,type]. Verified from PEQ captures.
 - [x] ~~Output block bytes 12–13 (always 300)~~ → Lo-pass crossover frequency (raw 300 = 20.16 kHz = default/max)
-- [ ] Purpose of the "4x4D Amplifier" product string vs "Dsp Process" USB string
-- [ ] Whether the file can hold more than 2 presets (count byte at 0x11)
+- [x] ~~Whether the file can hold more than 2 presets~~ → Yes. File holds 30 slots (U01–U30). Verified: `miniDSP current settings 260409.unt` has U01 + U30 both filled.
+- [x] ~~Header byte 0x11 meaning~~ → Active preset slot (1-indexed: 1=U01, 2=U02, ..., 30=U30). Verified: old file has 0x02 (U02 active), new file has 0x1E (U30 active).
+- [x] ~~Header bytes 0x1D–0x20~~ → Device lock PIN (4 ASCII digits). Old file has "1234", new file has "7654" matching our device-lock capture.
+- [x] ~~Input block unknown bytes (8–9, 21, 23)~~ → Always zero (pure padding). Verified across 5 presets.
+- [x] ~~Output block unknown bytes (9, 69, 73)~~ → Always zero (pure padding). Verified across 5 presets.
+- [x] ~~Footer bytes 416–427~~ → Always zero across all presets. Reserved/unused.
 - [x] ~~Crossover type/slope~~ → bytes 10–11 = hi-pass freq, 12–13 = lo-pass freq, byte 14 = hi-pass slope, byte 15 = lo-pass slope. All stored in config; slope 0x00 = bypassed, 0x01–0x0a = active slope type.
 - [x] ~~Output block compressor location~~ → bytes 58–65: ratio(1B), knee(1B), attack(2B LE), release(2B LE), threshold(2B LE). Verified by 5 diff-config captures.
 - [x] ~~Output block bytes 6–7~~ → bytes 0–7 are the full 8-byte channel name field (verified: "Out3" → "AUSGANG3" changes all 8 bytes)
 - [x] ~~Output block bytes 70–71~~ → Output delay in samples at 48 kHz (uint16 LE, 0–32640 = 0–680 ms)
+- [ ] Header bytes 0x13–0x16: ASCII "0000" — purpose unknown (device address in padded ASCII? version field?)
+- [ ] Purpose of the "4x4D Amplifier" product string (header 0x24) vs "Dsp Process" USB descriptor string
