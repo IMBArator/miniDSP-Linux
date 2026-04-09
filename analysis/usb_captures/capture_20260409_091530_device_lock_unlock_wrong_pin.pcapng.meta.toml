@@ -1,0 +1,32 @@
+[capture]
+file = "capture_20260409_091530_device_lock_unlock_wrong_pin.pcapng"
+format = "pcapng"
+
+[description]
+feature = "device lock unlock wrong pin"
+notes = "start aplication; the application wants the pin; entered the wrong pin on purpose; error message: wrong pin appears"
+
+[analysis]
+packet_count = 20
+out_packets = 10
+in_packets = 10
+duration_seconds = 12.56
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x2c",
+    "0x2d",
+]
+has_unknown_opcodes = true
+has_checksum_errors = false
+last_analyzed = "2026-04-09T20:15:56"
+
+[analysis.opcode_counts]
+0x12 = 6
+0x01 = 6
+0x10 = 2
+0x13 = 2
+0x2c = 2
+0x2d = 2

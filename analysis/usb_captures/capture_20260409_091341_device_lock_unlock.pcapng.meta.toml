@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260409_091341_device_lock_unlock.pcapng"
+format = "pcapng"
+
+[description]
+feature = "device lock unlock"
+notes = "start aplication; the application wants the pin 7654; then it loads the parameters as usual"
+
+[analysis]
+packet_count = 146
+out_packets = 73
+in_packets = 73
+duration_seconds = 14.59
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x2d",
+    "0x40",
+]
+has_unknown_opcodes = true
+has_checksum_errors = false
+last_analyzed = "2026-04-09T20:17:09"
+
+[analysis.opcode_counts]
+0x29 = 60
+0x40 = 50
+0x27 = 9
+0x24 = 9
+0x12 = 3
+0x01 = 3
+0x10 = 2
+0x13 = 2
+0x2c = 2
+0x2d = 2
+0x22 = 2
+0x14 = 2

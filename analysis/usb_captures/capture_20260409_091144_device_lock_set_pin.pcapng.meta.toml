@@ -1,0 +1,44 @@
+[capture]
+file = "capture_20260409_091144_device_lock_set_pin.pcapng"
+format = "pcapng"
+
+[description]
+feature = "device lock set pin"
+notes = "start aplication; lock device with pin 7654 (this disconnects the application)"
+
+[analysis]
+packet_count = 156
+out_packets = 78
+in_packets = 78
+duration_seconds = 11.22
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x2f",
+    "0x40",
+]
+has_unknown_opcodes = true
+has_checksum_errors = false
+last_analyzed = "2026-04-09T20:16:52"
+
+[analysis.opcode_counts]
+0x40 = 64
+0x29 = 60
+0x27 = 9
+0x24 = 9
+0x10 = 2
+0x13 = 2
+0x2c = 2
+0x22 = 2
+0x14 = 2
+0x01 = 2
+0x12 = 1
+0x2f = 1
