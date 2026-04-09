@@ -1,6 +1,7 @@
 # miniDSP-Linux
 
-> **Status: Active development** — Protocol fully reverse-engineered. GUI and core device control working. CLI is minimal; contributions welcome.
+> **Protocol:** Fully reverse-engineered (as far as we can tell) — all commands verified from Wireshark captures.
+> **minidsp tool (GUI/CLI):** Proof of concept — gain, mute, and level metering work; the full protocol surface is not yet exposed in the UI.
 
 Linux control tool for the **the t.racks DSP 4x4 Mini** (Musicrown-based DSP processor). Provides a PySide6 GUI and CLI for device control over USB HID — no official Linux software required.
 
@@ -8,7 +9,7 @@ The USB HID protocol was fully reverse-engineered from Wireshark captures. See [
 
 ## Features
 
-### GUI (`python -m minidsp --gui`)
+### GUI (`python -m minidsp --gui`) — *proof of concept*
 
 - Per-channel **gain faders** (−60 to +12 dB) for 4 inputs and 4 outputs
 - **Mute buttons** per channel
@@ -16,6 +17,8 @@ The USB HID protocol was fully reverse-engineered from Wireshark captures. See [
 - **Compressor/limiter activity LEDs** per output channel
 - Startup **config read** — faders and mute buttons reflect device state on connect
 - **Auto-reconnect** on USB disconnect
+
+> Most protocol commands (EQ, crossover, delay, compressor, presets, routing, etc.) are implemented in `device.py` and `protocol.py` but not yet wired up to any UI.
 
 ### Protocol implemented (usable via `device.py`)
 
