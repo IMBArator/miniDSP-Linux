@@ -1,6 +1,7 @@
 # miniDSP-Linux
 
 > **Protocol:** Fully reverse-engineered (as far as we can tell) — all commands verified from Wireshark captures.
+
 > **minidsp tool (GUI/CLI):** Proof of concept — gain, mute, and level metering work; the full protocol surface is not yet exposed in the UI.
 
 Linux control tool for the **the t.racks DSP 4x4 Mini** (Musicrown-based DSP processor). Provides a PySide6 GUI and CLI for device control over USB HID — no official Linux software required.
