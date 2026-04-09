@@ -74,7 +74,7 @@ The 4x4 Mini has PEQ on output channels only (no GEQ, no input EQ).
 | **Q Factor** | 0.4–128 (Peak); 0.4–3.0 (Shelf/Pass) | **Verified** — uint8 raw 0–100, `Q = 0.4×320^(raw/100)` |
 | **Per-band Bypass** | Individual band bypass toggle | **Verified** — bit per band in config footer (offset 412–415) |
 | **EQ Bypass** | Bypasses all bands for a channel | **Verified** — opcode `0x3c`, 3 bytes; config footer offset 428–431 |
-| **EQ Reset** | Reset all bands to flat | Visible in UI; no dedicated opcode observed (likely sends 0x33 for each band) |
+| **EQ Reset** | Reset all bands to flat (0dB, Peak, Q≈1.7, preset freqs 40–10kHz) | **Verified** — sends `0x33` for each of 7 bands (no dedicated opcode) |
 
 **Filter types (from screenshots, 7 types):**
 - Peak

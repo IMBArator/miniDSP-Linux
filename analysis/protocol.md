@@ -600,8 +600,22 @@ Payload (10 bytes): 33 [ch] [band] [gain_lo] [gain_hi] [freq_lo] [freq_hi] [Q] [
 `[gain_lo] [gain_hi] [freq_lo] [freq_hi] [Q] [type]`
 Band bypass is NOT stored in the band data — see footer (offset 412–415).
 
+**EQ Reset:** No dedicated opcode — the app sends one `0x33` per band with 0 dB gain, Peak type, Q_raw=25 (Q≈1.7), and these preset frequencies:
+
+| Band | freq_raw | ≈Hz |
+|------|----------|-----|
+| 1 | 31 | 40 Hz |
+| 2 | 71 | 102 Hz |
+| 3 | 118 | 301 Hz |
+| 4 | 161 | 813 Hz |
+| 5 | 200 | 2001 Hz |
+| 6 | 240 | 5041 Hz |
+| 7 | 270 | 10081 Hz |
+
+Verified from `capture_20260409_200328_output_peq_channel_3_reset_eq.pcapng` (Out3).
+
 **Captured examples (Out1 band 1):**
-- `33 04 00 78 00 00 00 19 00 00` → gain=0dB, freq=min, Q=25(≈2.0), Peak, active
+- `33 04 00 78 00 00 00 19 00 00` → gain=0dB, freq=min, Q=25(≈1.7), Peak, active
 - `33 04 00 78 00 00 00 0a 01 01` → gain=0dB, freq=min, Q=10(≈0.8), Low Shelf, bypassed
 
 ### 0x3c — PEQ Channel Bypass

@@ -1,11 +1,44 @@
 [capture]
 file = "capture_20260409_200328_output_peq_channel_3_reset_eq.pcapng"
 format = "pcapng"
-created = "2026-04-09T20:03:52"
-source_machine = "windows"
-interface = "\\\\.\\USBPcap1"
-device_address = 13
 
 [description]
 feature = "output peq channel 3 reset eq"
 notes = "start aplication; reset peq for output channel 3; restart application"
+
+[analysis]
+packet_count = 268
+out_packets = 134
+in_packets = 134
+duration_seconds = 19.87
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x29",
+    "0x2c",
+    "0x33",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-04-09T20:08:22"
+
+[analysis.opcode_counts]
+0x29 = 120
+0x40 = 72
+0x27 = 18
+0x24 = 18
+0x01 = 10
+0x33 = 8
+0x10 = 4
+0x13 = 4
+0x2c = 4
+0x22 = 4
+0x14 = 4
+0x12 = 2
