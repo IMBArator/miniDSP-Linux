@@ -194,10 +194,20 @@ Payload (1 byte): 2c
 Full frame:       10 02 00 01 01 2c 10 03 2d
 ```
 
-Device responds with 8-byte payload: `2c 00 27 0f 00 00 00 00`.
-Bytes 2–3 = `0x270f` (9999 decimal). Purpose unknown — possibly a device serial
-or configuration counter. This value also appears in the `.unt` file header at
-offset 0x19–0x1A.
+Device responds with 8-byte payload. Byte 6 is a **lock status flag**:
+- Unlocked: `2c 00 27 0f 00 00 **00** 00`
+- Locked:   `2c 00 27 0f 00 00 **01** 00`
+
+| Byte | Value | Meaning |
+|---|---|---|
+| 0 | `2c` | opcode |
+| 1 | `00` | padding |
+| 2–3 | `27 0f` | 0x0F27 (big-endian: 0x270F = 9999) — possibly serial or counter; also in `.unt` header at offset 0x19–0x1A |
+| 4–5 | `00 00` | unknown |
+| 6 | `00` / `01` | **Lock status: `0x00` = unlocked, `0x01` = locked** |
+| 7 | `00` | unknown |
+
+**Lock flag verified** by comparing the `0x2c` response across 3 captures (set-pin=unlocked, device-lock-unlock=locked, device-lock-wrong-pin=locked). All other bytes are identical.
 
 ### 0x2d — Submit Lock PIN
 

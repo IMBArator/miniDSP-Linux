@@ -384,6 +384,22 @@ def cmd_device_info() -> bytes:
     return build_frame(bytes([OP_DEVICE_INFO]))
 
 
+def parse_device_info(payload: bytes) -> dict | None:
+    """Parse a 0x2C device-info response from the device.
+
+    Returns dict with keys:
+      'locked': bool — True if device lock is active (requires PIN via 0x2D)
+
+    Lock flag discovered by comparing 0x2c responses across 3 captures:
+      Unlocked: 2c 00 27 0f 00 00 00 00
+      Locked:   2c 00 27 0f 00 00 01 00
+    Byte 6 of the response payload is 0x01 when locked, 0x00 when unlocked.
+    """
+    if len(payload) < 7 or payload[0] != OP_DEVICE_INFO:
+        return None
+    return {"locked": payload[6] == 0x01}
+
+
 # Lock PIN response codes (byte 2 of 0x2D response payload)
 LOCK_PIN_CORRECT = 0x01
 LOCK_PIN_WRONG = 0x00

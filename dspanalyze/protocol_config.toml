@@ -155,8 +155,13 @@ slave = { offset = 2, size = 1, format = "channel" }
 [opcodes.0x2c]
 name = "device_info"
 direction = "both"
-description = "Device info query (out) / response (in) — contains 0x270F (9999), purpose unknown"
+description = "Device info query (out) / response (in) — 8-byte response; byte 6 = lock flag (0x01=locked, 0x00=unlocked). Verified from 3 captures."
 verified = true
+
+[opcodes.0x2c.fields.response]
+pad = { offset = 1, size = 1, format = "uint8" }
+counter = { offset = 2, size = 2, format = "uint16be", note = "0x270F (9999); appears in .unt header at offset 0x19" }
+lock_status = { offset = 6, size = 1, format = "uint8", note = "0x00=unlocked, 0x01=locked" }
 
 [opcodes.0x2d]
 name = "submit_pin"

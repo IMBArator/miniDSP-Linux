@@ -18,6 +18,7 @@ from minidsp.protocol import (
     cmd_set_channel_name,
     cmd_submit_pin,
     cmd_set_lock_pin,
+    parse_device_info,
     parse_pin_response,
     LOCK_PIN_CORRECT,
     LOCK_PIN_WRONG,
@@ -537,6 +538,29 @@ def test_peq_q_encoding():
     assert abs(peq_raw_to_q(peq_q_to_raw(2.0)) - 2.0) < 0.05
     assert abs(peq_raw_to_q(0) - 0.4) < 0.001
     assert abs(peq_raw_to_q(100) - 128.0) < 0.01
+
+
+# --- Device info lock flag (0x2C) ---
+
+def test_parse_device_info_unlocked():
+    # Verified from set-pin capture (unlocked): 2c 00 27 0f 00 00 00 00
+    payload = bytes([0x2C, 0x00, 0x27, 0x0F, 0x00, 0x00, 0x00, 0x00])
+    info = parse_device_info(payload)
+    assert info is not None
+    assert info["locked"] is False
+
+
+def test_parse_device_info_locked():
+    # Verified from unlock + wrong-pin captures (locked): 2c 00 27 0f 00 00 01 00
+    payload = bytes([0x2C, 0x00, 0x27, 0x0F, 0x00, 0x00, 0x01, 0x00])
+    info = parse_device_info(payload)
+    assert info is not None
+    assert info["locked"] is True
+
+
+def test_parse_device_info_invalid():
+    assert parse_device_info(bytes([0x01])) is None       # wrong opcode
+    assert parse_device_info(bytes([0x2C, 0x00])) is None  # too short
 
 
 # --- Device lock (0x2D / 0x2F) ---

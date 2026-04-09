@@ -11,6 +11,10 @@ import glob
 import os
 import select
 
+class DeviceLockedError(RuntimeError):
+    """Raised when the device is locked and requires a PIN before config access."""
+
+
 from .protocol import (
     VENDOR_ID,
     PRODUCT_ID,
@@ -41,6 +45,7 @@ from .protocol import (
     OP_ACTIVATE,
     OP_INIT,
     parse_config_page,
+    parse_device_info,
     parse_frame,
     parse_levels,
     parse_pin_response,
@@ -272,8 +277,14 @@ class DSPmini:
         """
         # Step 2: firmware string
         self._send_recv(cmd_firmware(), skip_polls=True)
-        # Step 3: device info
-        self._send_recv(cmd_device_info(), skip_polls=True)
+        # Step 3: device info — also contains the lock status flag
+        device_info_payload = self._send_recv(cmd_device_info(), skip_polls=True)
+        if device_info_payload is not None:
+            info = parse_device_info(device_info_payload)
+            if info and info.get("locked"):
+                raise DeviceLockedError(
+                    "Device is locked. Call submit_pin(pin) before read_config()."
+                )
         # Step 4: preset header
         self._send_recv(cmd_preset_header(), skip_polls=True)
         # Step 5: active preset index
@@ -295,6 +306,24 @@ class DSPmini:
         # Step 8: activate
         self._send_recv(cmd_activate(), skip_polls=True)
         return parse_preset_params(bytes(config_data))
+
+    def is_locked(self) -> bool | None:
+        """Check if the device is currently locked.
+
+        Sends a 0x2C device-info query and checks byte 6 of the response.
+        Returns True if locked, False if unlocked, None if no response.
+
+        Discovered from comparing 0x2C responses across 3 captures:
+          Unlocked: 2c 00 27 0f 00 00 00 00
+          Locked:   2c 00 27 0f 00 00 01 00
+        """
+        payload = self._send_recv(cmd_device_info(), skip_polls=True)
+        if payload is None:
+            return None
+        info = parse_device_info(payload)
+        if info is None:
+            return None
+        return info["locked"]
 
     def submit_pin(self, pin: str) -> bool:
         """Submit a PIN to unlock a locked device (0x2D).
