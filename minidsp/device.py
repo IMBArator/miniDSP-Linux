@@ -39,6 +39,8 @@ from .protocol import (
     cmd_read_config,
     cmd_read_name,
     cmd_set_channel_name,
+    cmd_peq_band,
+    cmd_peq_channel_bypass,
     cmd_submit_pin,
     cmd_set_lock_pin,
     is_ack,
@@ -306,6 +308,38 @@ class DSPmini:
         # Step 8: activate
         self._send_recv(cmd_activate(), skip_polls=True)
         return parse_preset_params(bytes(config_data))
+
+    def set_peq_band(self, channel: int, band: int, gain_raw: int,
+                     freq_raw: int, q_raw: int, filter_type: int,
+                     bypass: bool = False) -> bool:
+        """Set a single PEQ band for an output channel (0x33).
+
+        channel:     output channel index (0x04=Out1 .. 0x07=Out4)
+        band:        0-indexed band (0–6 for bands 1–7)
+        gain_raw:    0–240 (dB = (raw − 120) / 10.0; 0 dB = 120)
+        freq_raw:    0–300 (Hz = 19.70 × (20160/19.70)^(raw/300))
+        q_raw:       0–100 (Q = 0.4 × 320^(raw/100))
+        filter_type: use PEQ_TYPE_* constants
+        bypass:      True = bypass this band
+        Returns True if the device ACK'd.
+        """
+        payload = self._send_recv(cmd_peq_band(channel, band, gain_raw, freq_raw,
+                                               q_raw, filter_type, bypass))
+        if payload is None:
+            return False
+        return is_ack(payload)
+
+    def set_peq_channel_bypass(self, channel: int, bypass: bool) -> bool:
+        """Bypass or restore all PEQ bands for an output channel (0x3C).
+
+        channel: output channel index (0x04=Out1 .. 0x07=Out4)
+        bypass:  True = all bands bypassed, False = all bands active
+        Returns True if the device ACK'd.
+        """
+        payload = self._send_recv(cmd_peq_channel_bypass(channel, bypass))
+        if payload is None:
+            return False
+        return is_ack(payload)
 
     def is_locked(self) -> bool | None:
         """Check if the device is currently locked.

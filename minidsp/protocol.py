@@ -597,6 +597,9 @@ _OUTPUT_LINK_FLAGS_OFFSET = 72  # bitmask: bit0=Out1, bit1=Out2, bit2=Out3, bit3
 # Mute bitmasks in the config footer (after channel blocks)
 _INPUT_MUTE_BITMASK_OFFSET = 408   # uint16 LE, bit 0=In1 .. bit 3=In4
 _OUTPUT_MUTE_BITMASK_OFFSET = 410  # uint16 LE, bit 0=Out1 .. bit 3=Out4
+# PEQ bypass flags in config footer
+_PEQ_BAND_BYPASS_OFFSET = 412  # 4 bytes (one per output channel); bit 0=band1..bit6=band7; 1=bypassed
+_PEQ_CHANNEL_BYPASS_OFFSET = 428  # 4 bytes (one per output channel); 0x00=active, 0x01=all bands bypassed
 
 
 def parse_config_page(payload: bytes) -> tuple[int, bytes] | None:
@@ -624,8 +627,11 @@ def parse_preset_params(config_data: bytes) -> dict | None:
       'gates' (list[4], dict with attack/release/hold/threshold raw values),
       'delays' (list[4], int — raw samples 0–32640, ms = raw / 48),
       'crossovers' (list[4], dict with hipass/lopass freq and slope per filter),
-      'compressors' (list[4], dict with ratio/knee/attack/release/threshold raw values).
-    Channel order: inputs 0–3, outputs 4–7 (gates input-only; delays/crossovers/compressors output-only).
+      'compressors' (list[4], dict with ratio/knee/attack/release/threshold raw values),
+      'peqs' (list[4], dict with 'bands' list[7] and 'channel_bypass' bool).
+        Each band dict: gain (raw 0–240), freq (raw 0–300), q (raw 0–100),
+        type (0–6, use PEQ_TYPE_* constants), bypass (bool — True=this band bypassed).
+    Channel order: inputs 0–3, outputs 4–7 (gates input-only; delays/crossovers/compressors/peqs output-only).
     """
     if len(config_data) < _OUTPUT_MUTE_BITMASK_OFFSET + 2:
         return None
@@ -638,6 +644,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     delays: list[int] = []
     crossovers: list[dict[str, int]] = []
     compressors: list[dict[str, int]] = []
+    peqs: list[dict] = []
 
     # Input channels: name, gain, phase, gate from per-channel blocks
     for i in range(4):
@@ -676,6 +683,21 @@ def parse_preset_params(config_data: bytes) -> dict | None:
             "release": config_data[base + _OUTPUT_COMP_RELEASE_OFFSET] + config_data[base + _OUTPUT_COMP_RELEASE_OFFSET + 1] * 256,
             "threshold": config_data[base + _OUTPUT_COMP_THRESH_OFFSET] + config_data[base + _OUTPUT_COMP_THRESH_OFFSET + 1] * 256,
         })
+        # PEQ: 7 bands × 6 bytes starting at output block offset 16
+        # Band bypass bitmask for this channel is in footer at _PEQ_BAND_BYPASS_OFFSET + i
+        band_bypass_byte = config_data[_PEQ_BAND_BYPASS_OFFSET + i] if len(config_data) > _PEQ_BAND_BYPASS_OFFSET + i else 0
+        channel_bypassed = bool(config_data[_PEQ_CHANNEL_BYPASS_OFFSET + i]) if len(config_data) > _PEQ_CHANNEL_BYPASS_OFFSET + i else False
+        bands = []
+        for b in range(7):
+            boff = base + _OUTPUT_PEQ_OFFSET + b * _OUTPUT_PEQ_BAND_SIZE
+            gain_raw = config_data[boff] + config_data[boff + 1] * 256
+            freq_raw = config_data[boff + 2] + config_data[boff + 3] * 256
+            q_raw = config_data[boff + 4]
+            ftype = config_data[boff + 5]
+            band_bypassed = bool(band_bypass_byte & (1 << b))
+            bands.append({"gain": gain_raw, "freq": freq_raw, "q": q_raw,
+                           "type": ftype, "bypass": band_bypassed})
+        peqs.append({"bands": bands, "channel_bypass": channel_bypassed})
 
     # Mute: bitmasks in config footer
     input_mute_mask = config_data[_INPUT_MUTE_BITMASK_OFFSET] + config_data[_INPUT_MUTE_BITMASK_OFFSET + 1] * 256
@@ -688,7 +710,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
 
     return {"names": names, "gains": gains, "mutes": mutes, "phases": phases,
             "gates": gates, "delays": delays, "crossovers": crossovers,
-            "compressors": compressors}
+            "compressors": compressors, "peqs": peqs}
 
 
 # --- Gain conversion ---

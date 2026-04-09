@@ -68,7 +68,7 @@ The 4x4 Mini has PEQ on output channels only (no GEQ, no input EQ).
 
 | Feature | Details | Protocol Status |
 |---|---|---|
-| **PEQ Bands** | 7 bands per output channel | **Verified** — opcode `0x33`, 10 bytes, 7 captures |
+| **PEQ Bands** | 7 bands per output channel | **Captured & implemented** — opcode `0x33`, 10 bytes, 7 captures; config parsing in `parse_preset_params` |
 | **Frequency** | 19.7 Hz to 20.16 kHz | **Verified** — LE uint16 raw 0–300, `Hz = 19.70×(20160/19.70)^(raw/300)` |
 | **Gain** | −12.0 to +12.0 dB, 0.1 dB resolution | **Verified** — LE uint16 raw 0–240, `dB = (raw−120)/10` |
 | **Q Factor** | 0.4–128 (Peak); 0.4–3.0 (Shelf/Pass) | **Verified** — uint8 raw 0–100, `Q = 0.4×320^(raw/100)` |
@@ -181,10 +181,11 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 - Preset name store (`0x26`, 14 chars max, space-padded, sent before `0x21`)
 - Channel name set (`0x3d`, 8 chars max, zero-padded)
 - Device lock: submit PIN (`0x2d`, 4 ASCII digits, response byte signals correct/wrong), set lock PIN (`0x2f`, locks immediately on receipt)
+- Output PEQ (`0x33`, 7 bands per output: gain/freq/Q/type/bypass; `0x3c` channel bypass; config parsing from footer bitmasks at offsets 412–415 and 428–431)
 - Initialization sequence
 
 ### Protocol likely known but NOT yet or not fully captured on our device:
-- PEQ (`0x33`) — 7 bands per output channel (commands implemented, config storage verified)
+- None remaining
 
 ### Completely unknown protocol:
 - Test Tone Generator

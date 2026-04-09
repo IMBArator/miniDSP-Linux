@@ -450,6 +450,17 @@ def test_parse_preset_params_from_unt():
         assert "attack" in comp
         assert "release" in comp
         assert "threshold" in comp
+    # PEQ should be present for 4 output channels, 7 bands each
+    assert len(result["peqs"]) == 4
+    for peq in result["peqs"]:
+        assert "channel_bypass" in peq
+        assert len(peq["bands"]) == 7
+        for band in peq["bands"]:
+            assert "gain" in band
+            assert "freq" in band
+            assert "q" in band
+            assert "type" in band
+            assert "bypass" in band
 
 
 def test_parse_preset_params_modified():
