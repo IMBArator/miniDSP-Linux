@@ -35,7 +35,18 @@ OP_DELAY = 0x38
 OP_MATRIX = 0x3A
 OP_LINK = 0x3B       # channel link state; send OP_PREPARE_LINK first when linking
 OP_PREPARE_LINK = 0x2A  # declare master↔slave pair before 0x3B (linking only, not unlinking)
+OP_PEQ = 0x33            # PEQ band; outputs verified, 7 bands per channel
+OP_PEQ_BYPASS = 0x3C     # PEQ channel bypass (bypasses all bands for that channel)
 OP_SET_CHANNEL_NAME = 0x3D  # set channel display name (8-byte ASCII, zero-padded)
+
+# PEQ filter type values (byte 8 of 0x33 command)
+PEQ_TYPE_PEAK       = 0x00
+PEQ_TYPE_LOW_SHELF  = 0x01
+PEQ_TYPE_HIGH_SHELF = 0x02
+PEQ_TYPE_LOW_PASS   = 0x03
+PEQ_TYPE_HIGH_PASS  = 0x04
+PEQ_TYPE_ALLPASS1   = 0x05  # 1st-order allpass
+PEQ_TYPE_ALLPASS2   = 0x06  # 2nd-order allpass
 OP_GATE = 0x3E
 OP_POLL = 0x40
 
@@ -258,6 +269,57 @@ def cmd_set_channel_name(channel: int, name: str) -> bytes:
     return build_frame(bytes([OP_SET_CHANNEL_NAME, channel & 0xFF]) + padded)
 
 
+def cmd_peq_band(channel: int, band: int, gain_raw: int, freq_raw: int,
+                 q_raw: int, filter_type: int, bypass: bool = False) -> bytes:
+    """Build a PEQ band command (0x33).
+
+    Sets a single parametric EQ band for an output channel.
+    Verified from 7 captures on 4x4 Mini (output channels, 7 bands each).
+
+    channel:     output channel index (0x04=Out1, 0x05=Out2, 0x06=Out3, 0x07=Out4)
+    band:        0-indexed band number (0–6 for bands 1–7)
+    gain_raw:    LE uint16, raw 0–240; gain_dB = (raw - 120) / 10.0; 0dB = 120
+    freq_raw:    LE uint16, raw 0–300; Hz = 19.70 * (20160/19.70)^(raw/300)
+    q_raw:       uint8, raw 0–100; Q = 0.4 * 320^(raw/100); shelf/pass max = 35
+    filter_type: uint8, use PEQ_TYPE_* constants
+    bypass:      True = this band bypassed, False = active
+
+    Captured examples:
+      Band1 Peak 1kHz 0dB Q=1.0 active: 33 04 00 78 00 78 00 19 00 00
+      Band1 Low Shelf bypass:            33 04 00 78 00 00 00 0a 01 01
+    """
+    gain_raw = max(0, min(240, gain_raw))
+    freq_raw = max(0, min(300, freq_raw))
+    q_raw = max(0, min(100, q_raw))
+    payload = bytes([
+        OP_PEQ,
+        channel & 0xFF,
+        band & 0xFF,
+        gain_raw & 0xFF,
+        (gain_raw >> 8) & 0xFF,
+        freq_raw & 0xFF,
+        (freq_raw >> 8) & 0xFF,
+        q_raw & 0xFF,
+        filter_type & 0xFF,
+        0x01 if bypass else 0x00,
+    ])
+    return build_frame(payload)
+
+
+def cmd_peq_channel_bypass(channel: int, bypass: bool) -> bytes:
+    """Build a PEQ channel bypass command (0x3C).
+
+    Bypasses or restores ALL PEQ bands for an output channel at once.
+    Verified from capture: capture_20260409_091811_output_peq_channel_1_bypass.pcapng
+
+    channel: output channel index (0x04=Out1 .. 0x07=Out4)
+    bypass:  True = all bands bypassed, False = all bands active
+
+    Captured: 3c 04 01 (Out1 all bypassed), 3c 04 00 (Out1 active)
+    """
+    return build_frame(bytes([OP_PEQ_BYPASS, channel & 0xFF, 0x01 if bypass else 0x00]))
+
+
 def cmd_gate(channel: int, attack: int, release: int, hold: int, threshold: int) -> bytes:
     """Build a noise gate command (0x3E).
 
@@ -455,7 +517,8 @@ _OUTPUT_HIPASS_OFFSET = 10  # uint16 LE, crossover hi-pass freq (raw 0–300 on 
 _OUTPUT_LOPASS_OFFSET = 12  # uint16 LE, crossover lo-pass freq (raw 0–300 on 4x4 Mini)
 _OUTPUT_HIPASS_SLOPE_OFFSET = 14  # uint8, 0x00=bypassed, 0x01–0x0a=slope (SLOPE_* constants)
 _OUTPUT_LOPASS_SLOPE_OFFSET = 15  # uint8, 0x00=bypassed, 0x01–0x0a=slope (SLOPE_* constants)
-# Bytes 16–57: PEQ band data (likely 7 × 6 bytes = 42 bytes, unverified — needs PEQ capture)
+_OUTPUT_PEQ_OFFSET = 16   # 7 bands × 6 bytes = 42 bytes (verified from PEQ captures)
+_OUTPUT_PEQ_BAND_SIZE = 6
 _OUTPUT_COMP_RATIO_OFFSET = 58   # uint8 enum 0–15 (see COMP_RATIO_* constants)
 _OUTPUT_COMP_KNEE_OFFSET = 59    # uint8, 0–12 (direct dB, 0=hard knee)
 _OUTPUT_COMP_ATTACK_OFFSET = 60  # uint16 LE, raw 0–998 (ms = raw + 1, range 1–999 ms)
@@ -584,3 +647,34 @@ def db_to_raw(db: float) -> int:
     if db < -20.0:
         return max(0, round((db + 60.0) * 2))
     return min(400, round(80 + (db + 20.0) * 10))
+
+
+def peq_gain_to_raw(gain_db: float) -> int:
+    """Convert PEQ gain in dB to raw protocol value.
+
+    Range: −12.0 to +12.0 dB → raw 0–240. 0 dB = raw 120. 0.1 dB resolution.
+    """
+    return max(0, min(240, round(gain_db * 10) + 120))
+
+
+def peq_raw_to_gain(raw: int) -> float:
+    """Convert raw PEQ gain value to dB."""
+    return (raw - 120) / 10.0
+
+
+def peq_q_to_raw(q: float) -> int:
+    """Convert PEQ Q value to raw protocol value.
+
+    Q = 0.4 * 320^(raw/100). Range: Q 0.4–128 → raw 0–100.
+    Shelf/pass filters are restricted to Q 0.4–3.0 (raw 0–35) by the app UI.
+    """
+    import math
+    if q <= 0.4:
+        return 0
+    raw = round(100 * math.log(q / 0.4) / math.log(320))
+    return max(0, min(100, raw))
+
+
+def peq_raw_to_q(raw: int) -> float:
+    """Convert raw PEQ Q value to Q."""
+    return 0.4 * (320 ** (raw / 100))

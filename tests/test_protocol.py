@@ -16,6 +16,19 @@ from minidsp.protocol import (
     cmd_phase,
     cmd_poll,
     cmd_set_channel_name,
+    cmd_peq_band,
+    cmd_peq_channel_bypass,
+    peq_gain_to_raw,
+    peq_raw_to_gain,
+    peq_q_to_raw,
+    peq_raw_to_q,
+    PEQ_TYPE_PEAK,
+    PEQ_TYPE_LOW_SHELF,
+    PEQ_TYPE_HIGH_SHELF,
+    PEQ_TYPE_LOW_PASS,
+    PEQ_TYPE_HIGH_PASS,
+    PEQ_TYPE_ALLPASS1,
+    PEQ_TYPE_ALLPASS2,
     db_to_raw,
     parse_config_page,
     parse_frame,
@@ -454,6 +467,71 @@ def test_parse_preset_params_modified():
     assert result["gains"][4:] == [255, 286, 280, 300]
     assert result["mutes"] == [False, False, False, False, False, False, False, False]
     assert result["phases"] == [False, False, False, False, False, False, False, False]
+
+
+def test_cmd_peq_band():
+    # Peak band at 0dB, freq=0 (min), Q=25 (raw), active — matches capture pattern
+    frame = cmd_peq_band(0x04, 0, gain_raw=120, freq_raw=0, q_raw=25, filter_type=PEQ_TYPE_PEAK)
+    assert frame[5] == 0x33           # opcode
+    assert frame[6] == 0x04           # channel Out1
+    assert frame[7] == 0x00           # band 0
+    assert frame[8] == 120            # gain low byte (0dB)
+    assert frame[9] == 0x00           # gain high byte
+    assert frame[10] == 0x00          # freq low byte
+    assert frame[11] == 0x00          # freq high byte
+    assert frame[12] == 25            # Q raw
+    assert frame[13] == PEQ_TYPE_PEAK
+    assert frame[14] == 0x00          # active
+
+    # Low Shelf, bypassed
+    frame = cmd_peq_band(0x04, 0, gain_raw=120, freq_raw=0, q_raw=10,
+                         filter_type=PEQ_TYPE_LOW_SHELF, bypass=True)
+    assert frame[13] == PEQ_TYPE_LOW_SHELF
+    assert frame[14] == 0x01          # bypassed
+
+    # Max freq (300) and max gain (+12dB = raw 240)
+    frame = cmd_peq_band(0x04, 6, gain_raw=240, freq_raw=300, q_raw=100,
+                         filter_type=PEQ_TYPE_HIGH_SHELF)
+    assert frame[7] == 0x06           # band 6 (band 7)
+    assert frame[8] == 240            # gain = +12dB
+    assert frame[9] == 0x00           # gain high byte (240 < 256)
+    assert frame[10] == 44            # freq 300 low byte (300 = 0x012c → lo=0x2c=44)
+    assert frame[11] == 1             # freq 300 high byte
+    assert frame[12] == 100           # Q max
+
+
+def test_cmd_peq_channel_bypass():
+    # Bypass Out1 — verified from capture: 3c 04 01
+    frame = cmd_peq_channel_bypass(0x04, bypass=True)
+    assert frame[5] == 0x3C           # opcode
+    assert frame[6] == 0x04           # channel Out1
+    assert frame[7] == 0x01           # bypassed
+
+    # Restore Out1 — verified from capture: 3c 04 00
+    frame = cmd_peq_channel_bypass(0x04, bypass=False)
+    assert frame[7] == 0x00           # active
+
+
+def test_peq_gain_encoding():
+    assert peq_gain_to_raw(0.0) == 120
+    assert peq_gain_to_raw(-12.0) == 0
+    assert peq_gain_to_raw(12.0) == 240
+    assert peq_raw_to_gain(120) == 0.0
+    assert peq_raw_to_gain(0) == -12.0
+    assert peq_raw_to_gain(240) == 12.0
+    assert peq_gain_to_raw(peq_raw_to_gain(150)) == 150  # round-trip
+
+
+def test_peq_q_encoding():
+    import math
+    assert peq_q_to_raw(0.4) == 0       # minimum Q
+    assert peq_q_to_raw(128.0) == 100   # maximum Q (Peak)
+    # Q=3.0 should map to raw 35 (shelf/pass max)
+    assert peq_q_to_raw(3.0) == 35
+    # Round-trip
+    assert abs(peq_raw_to_q(peq_q_to_raw(2.0)) - 2.0) < 0.05
+    assert abs(peq_raw_to_q(0) - 0.4) < 0.001
+    assert abs(peq_raw_to_q(100) - 128.0) < 0.01
 
 
 if __name__ == "__main__":

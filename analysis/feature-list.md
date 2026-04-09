@@ -68,13 +68,13 @@ The 4x4 Mini has PEQ on output channels only (no GEQ, no input EQ).
 
 | Feature | Details | Protocol Status |
 |---|---|---|
-| **PEQ Bands** | 7 bands per output channel (visible in screenshots as bands 1-7) | Protocol: likely `0x33` (shared opcode); NOT yet captured |
-| **Frequency** | ~20 Hz to 20 kHz | Encoding likely shared with DSP 408 (log-scale, raw 0-1000) |
-| **Gain** | -12.0 to +12.0 dB, 0.1 dB resolution | Encoding likely shared: `dB = (value - 120) / 10.0` |
-| **Q Factor** | Adjustable per band | Encoding likely shared (log-scale, raw 0-255) |
-| **Per-band Bypass** | Individual band bypass toggle | Visible in screenshots |
-| **EQ Bypass** | Global EQ bypass per channel | "EQ Bypass" button visible in screenshots |
-| **EQ Reset** | Reset all bands to flat | "EQ Reset" button visible in screenshots |
+| **PEQ Bands** | 7 bands per output channel | **Verified** — opcode `0x33`, 10 bytes, 7 captures |
+| **Frequency** | 19.7 Hz to 20.16 kHz | **Verified** — LE uint16 raw 0–300, `Hz = 19.70×(20160/19.70)^(raw/300)` |
+| **Gain** | −12.0 to +12.0 dB, 0.1 dB resolution | **Verified** — LE uint16 raw 0–240, `dB = (raw−120)/10` |
+| **Q Factor** | 0.4–128 (Peak); 0.4–3.0 (Shelf/Pass) | **Verified** — uint8 raw 0–100, `Q = 0.4×320^(raw/100)` |
+| **Per-band Bypass** | Individual band bypass toggle | **Verified** — bit per band in config footer (offset 412–415) |
+| **EQ Bypass** | Bypasses all bands for a channel | **Verified** — opcode `0x3c`, 3 bytes; config footer offset 428–431 |
+| **EQ Reset** | Reset all bands to flat | Visible in UI; no dedicated opcode observed (likely sends 0x33 for each band) |
 
 **Filter types (from screenshots, 7 types):**
 - Peak

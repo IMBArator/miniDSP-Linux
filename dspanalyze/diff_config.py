@@ -40,7 +40,17 @@ _OUTPUT_FIELDS = [
     (12, 2, "xover_lopass_freq"),
     (14, 1, "xover_hipass_slope"),
     (15, 1, "xover_lopass_slope"),
-    (16, 42, "peq_bands"),   # 7 bands × 6 bytes = 42 bytes (unverified, needs PEQ capture)
+    # PEQ bands 1–7 (verified: 7 × 6 bytes = 42 bytes)
+    # Each band: [gain_lo, gain_hi, freq_lo, freq_hi, q, type]
+    *sorted([
+        (16 + b*6,     2, f"peq_band{b+1}_gain") for b in range(7)
+    ] + [
+        (16 + b*6 + 2, 2, f"peq_band{b+1}_freq") for b in range(7)
+    ] + [
+        (16 + b*6 + 4, 1, f"peq_band{b+1}_q")    for b in range(7)
+    ] + [
+        (16 + b*6 + 5, 1, f"peq_band{b+1}_type")  for b in range(7)
+    ], key=lambda x: x[0]),
     (58, 1, "comp_ratio"),
     (59, 1, "comp_knee"),
     (60, 2, "comp_attack"),
@@ -56,6 +66,16 @@ _OUTPUT_FIELDS = [
 _FOOTER_FIELDS = [
     (408, 2, "input_mute_bitmask"),
     (410, 2, "output_mute_bitmask"),
+    # PEQ band bypass bitmasks (bit 0=band1 .. bit 6=band7), one byte per output channel
+    (412, 1, "Out1.peq_band_bypass"),
+    (413, 1, "Out2.peq_band_bypass"),
+    (414, 1, "Out3.peq_band_bypass"),
+    (415, 1, "Out4.peq_band_bypass"),
+    # PEQ channel bypass (0=active, 1=all bands bypassed), one byte per output channel
+    (428, 1, "Out1.peq_channel_bypass"),
+    (429, 1, "Out2.peq_channel_bypass"),
+    (430, 1, "Out3.peq_channel_bypass"),
+    (431, 1, "Out4.peq_channel_bypass"),
 ]
 
 _CHANNEL_NAMES = ["InA", "InB", "InC", "InD", "Out1", "Out2", "Out3", "Out4"]

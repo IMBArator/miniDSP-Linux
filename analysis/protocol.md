@@ -546,7 +546,7 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x30` | 10 | OUT | Compressor/limiter | `30 [ch] [ratio] [knee] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [thr_lo] [thr_hi]` |
 | `0x31` | 5 | OUT | Lo-pass filter | `31 [ch] [freq_lo] [freq_hi] [slope]` — log freq 0–300, slope 0=bypass |
 | `0x32` | 5 | OUT | Hi-pass filter | `32 [ch] [freq_lo] [freq_hi] [slope]` — log freq 0–300, slope 0=bypass |
-| `0x33` | 10 | OUT | PEQ band | `33 [ch] [band] [gain] 00 [freq_lo] [freq_hi] [Q] [type] [bypass]` (*) |
+| `0x33` | 10 | OUT | PEQ band | `33 [ch] [band] [gain_lo] [gain_hi] [freq_lo] [freq_hi] [Q] [type] [bypass]` — outputs verified, 7 bands |
 | `0x34` | 4 | OUT | Gain | `34 [ch] [val_lo] [val_hi]` — LE uint16, 0–400 |
 | `0x35` | 3 | OUT | Mute | `35 [ch] [state]` — 0x00=off, 0x01=on |
 | `0x36` | 3 | OUT | Phase invert | `36 [ch] [state]` — 0x00=normal, 0x01=inverted |
@@ -554,12 +554,10 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x3e` | 10 | OUT | Noise gate | `3e [ch] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [hold_lo] [hold_hi] [thr_lo] [thr_hi]` |
 | `0x3b` | 3 | OUT | Channel link | `3b [ch] [link_flags]` — see below |
 | `0x3a` | 3 | OUT | Matrix routing | `3a [output_ch] [input_bitmask]` |
+| `0x3c` | 3 | OUT | PEQ channel bypass | `3c [ch] [state]` — 0x00=all active, 0x01=all bands bypassed |
 | `0x3d` | 10 | OUT | Set channel name | `3d [ch] [8 ASCII bytes]` — zero-padded name |
 | `0x40` | 1 | OUT | Poll levels | `40` — request only, no parameters |
-| `0x48` | 5 | OUT | GEQ band | `48 [ch] [band] [value] 00` — inputs only (*) |
-
-(*) = from `dsp-408-ui` project (same Musicrown protocol, DSP 408 over TCP).
-Not yet capture-verified on the DSP 4x4 Mini but expected to be identical.
+0x33 verified on 4x4 Mini from 7 captures. **The 4x4 Mini has no GEQ** — that is a DSP 408 feature only.
 
 **Channel byte (`ch`):** Inputs 0x00–0x03, outputs 0x04–0x07.
 Confirmed for inputs: `0x00`=ch1, `0x02`=ch3. Output numbering from `dsp-408-ui`.
@@ -574,29 +572,53 @@ The binary protocol is transport-agnostic — these should work identically over
 
 ### 0x33 — PEQ (Parametric EQ)
 
-```
-Payload (10 bytes): 33 [ch] [band] [gain] 00 [freq_lo] [freq_hi] [Q] [type] [bypass]
-```
-
-- **Channels:** inputs 0x00–0x03 (8 bands each), outputs 0x04–0x07 (9 bands each)
-- **Gain:** `value = dB × 10 + 120`, range 0–240, −12.0 to +12.0 dB, 0.1 dB resolution
-- **Frequency** (LE uint16): log scale, 0–1000 steps
-  - `Hz = 19.70 × (20160 / 19.70) ^ (raw / 1000)`
-  - `raw = log(Hz / 19.70) / log(20160 / 19.70) × 1000`
-- **Q** (byte, 0–255): log scale
-  - `Q = 0.40 × 320 ^ (raw / 255)`, range 0.40–128.0
-- **Type** (byte): `0=Peak, 1=Low Shelf, 2=High Shelf, 3=LP -6, 4=LP -12, 5=HP -6, 6=HP -12, 7=AllPass1, 8=AllPass2`
-- **Bypass:** `0x00`=active, `0x01`=bypassed
-
-### 0x48 — GEQ (31-Band Graphic EQ)
+Verified from 7 captures on 4x4 Mini (output channel 1, all parameters swept independently).
 
 ```
-Payload (5 bytes): 48 [ch] [band] [value] 00
+Payload (10 bytes): 33 [ch] [band] [gain_lo] [gain_hi] [freq_lo] [freq_hi] [Q] [type] [bypass]
 ```
 
-- **Channels:** inputs only (0x00–0x03)
-- **Bands:** 0–30 (31 bands, ISO 1/3-octave: 20 Hz–20 kHz)
-- **Value:** `value = dB × 10 + 120`, range 0–240, −12.0 to +12.0 dB
+- **Channel:** output channels only verified: Out1=0x04, Out2=0x05, Out3=0x06, Out4=0x07
+- **Band:** 0-indexed (0=band 1 … 6=band 7); 7 bands per output channel
+- **Gain:** LE uint16, raw 0–240; `gain_dB = (raw − 120) / 10.0`; ±12 dB, 0.1 dB resolution; 0 dB = raw 120
+- **Frequency:** LE uint16, raw 0–300; same formula as crossover: `Hz = 19.70 × (20160/19.70)^(raw/300)`
+- **Q:** uint8, raw 0–100; `Q = 0.4 × 320^(raw/100)`; min Q=0.4 (raw=0), max Q=128 (raw=100)
+  - Shelf and pass filters restrict Q to 0.4–3.0 (raw 0–35) in the app UI
+- **Type:** uint8
+  | raw | Filter type |
+  |-----|-------------|
+  | 0x00 | Peak (default) |
+  | 0x01 | Low Shelf |
+  | 0x02 | High Shelf |
+  | 0x03 | Low Pass |
+  | 0x04 | High Pass |
+  | 0x05 | Allpass 1st order |
+  | 0x06 | Allpass 2nd order |
+- **Bypass:** uint8, 0x00=active, 0x01=band bypassed (stored separately in config footer)
+
+**Config storage:** output block bytes 16–57 (verified); each of 7 bands = 6 bytes:
+`[gain_lo] [gain_hi] [freq_lo] [freq_hi] [Q] [type]`
+Band bypass is NOT stored in the band data — see footer (offset 412–415).
+
+**Captured examples (Out1 band 1):**
+- `33 04 00 78 00 00 00 19 00 00` → gain=0dB, freq=min, Q=25(≈2.0), Peak, active
+- `33 04 00 78 00 00 00 0a 01 01` → gain=0dB, freq=min, Q=10(≈0.8), Low Shelf, bypassed
+
+### 0x3c — PEQ Channel Bypass
+
+Discovered from `capture_20260409_091811_output_peq_channel_1_bypass.pcapng`.
+
+```
+Payload (3 bytes): 3c [ch] [state]
+```
+
+- **Channel:** same unified numbering — Out1=0x04 … Out4=0x07
+- **State:** 0x00=all PEQ bands active, 0x01=all PEQ bands bypassed for this channel
+- **Config storage:** footer byte at absolute config offset 428 (Out1); predicted Out2=429, Out3=430, Out4=431
+
+Device responds with `0x01` ACK.
+
+**Captured:** `3c 04 01` (Out1 all bypassed) → config offset 428: 0x00→0x01
 
 ### 0x31 — Lo-Pass Crossover Filter
 
@@ -912,8 +934,9 @@ Confirmed by diff-config comparing config page reads before/after:
 - [x] **Crossover filters:** Opcodes `0x31`/`0x32` capture-verified on 4x4 Mini.
       Raw 0–300 maps to 19.7–20160 Hz via Hz = 19.70 × (20160/19.70)^(raw/300).
       DSP 408 uses 0–1000; same range, different step count.
-- [x] **Routing matrix verified on 4x4 Mini:** Opcode `0x3a` capture-confirmed. Config byte 8 of each output block stores the input bitmask. PEQ/GEQ still need verification.
-- [ ] **Verify PEQ/GEQ on 4x4 Mini:** Commands from `dsp-408-ui` need capture verification on our device.
+- [x] **Routing matrix verified on 4x4 Mini:** Opcode `0x3a` capture-confirmed. Config byte 8 of each output block stores the input bitmask.
+- [x] **Output PEQ verified on 4x4 Mini:** Opcode `0x33` — 10-byte payload. 7 bands per output channel. Gain ±12dB (raw 0–240, 0.1dB step), freq raw 0–300 (same scale as crossover), Q raw 0–100 (log Q=0.4×320^(raw/100)), 7 filter types (Peak/Low Shelf/High Shelf/Low Pass/High Pass/Allpass 1st/Allpass 2nd). Band bypass in footer bitmask. Channel bypass via `0x3c` command. Confirmed from 7 captures.
+- [ ] **Footer bytes 416–427:** The 4x4 Mini has no GEQ (DSP 408-only) and no input PEQ — PEQ is output channels only. Purpose of these 12 bytes is unknown.
 
 ---
 
@@ -969,8 +992,16 @@ Offset  Size  Field
 112   4×74    Output channel blocks (Out1, Out2, Out3, Out4)
 408      2    Input mute bitmask, LE uint16 (bit 0=In1 .. bit 3=In4)
 410      2    Output mute bitmask, LE uint16 (bit 0=Out1 .. bit 3=Out4)
-412     17    Zero padding
-429      2    CRLF (0x0D 0x0A) — preset terminator
+412      1    Out1 PEQ band bypass bitmask (bit 0=band1 .. bit 6=band7; 0x00=all active)
+413      1    Out2 PEQ band bypass bitmask
+414      1    Out3 PEQ band bypass bitmask
+415      1    Out4 PEQ band bypass bitmask
+416     12    Unknown (possibly input channel PEQ bypass or other parameters)
+428      1    Out1 PEQ channel bypass (0x00=active, 0x01=all bands bypassed)
+429      1    Out2 PEQ channel bypass (predicted)
+430      1    Out3 PEQ channel bypass (predicted)
+431      1    Out4 PEQ channel bypass (predicted)
+432     17    Unknown / padding / CRLF terminator
 ```
 
 Preset names found: `"DIY Mon       "`, `"DIY Mon offset"`.
@@ -1021,7 +1052,7 @@ Offset  Size  Field
 12–13    2    **Crossover lo-pass freq**, LE uint16, raw 0–300 (same as 0x31 command, default 300 = 20.16 kHz)
 14       1    **Crossover hi-pass slope**, 0x00=bypassed, 0x01–0x0a=active slope type (see slope table)
 15       1    **Crossover lo-pass slope**, 0x00=bypassed, 0x01–0x0a=active slope type (see slope table)
-16–57   42    PEQ band data — likely 7 bands × 6 bytes (unverified, needs PEQ capture)
+16–57   42    **PEQ band data** — 7 bands × 6 bytes each (verified)
 58       1    **Compressor ratio**, uint8 enum 0–15 (see COMP_RATIO_* constants; 0=1:1.0, 15=Limit)
 59       1    **Compressor knee**, uint8 0–12 (direct dB, 0=hard knee, 12=softest)
 60–61    2    **Compressor attack**, LE uint16, raw 0–998 (ms = raw + 1, range 1–999 ms)
@@ -1035,10 +1066,15 @@ Offset  Size  Field
 73       1    Always 0x00
 ```
 
-**PEQ band data (bytes 16–57, 42 bytes):**
+**PEQ band data (bytes 16–57, 42 bytes, verified):**
 
-Likely 7 bands × 6 bytes per band. Each band likely: `[freq_lo freq_hi] [gain_lo gain_hi] [Q_lo Q_hi]`
-(All LE uint16, same encoding as opcode 0x33.) Not yet capture-verified on 4x4 Mini.
+7 bands × 6 bytes per band. Each band: `[gain_lo] [gain_hi] [freq_lo] [freq_hi] [Q] [type]`
+- gain: LE uint16, raw 0–240, 0dB=120
+- freq: LE uint16, raw 0–300 (same formula as crossover)
+- Q: uint8, raw 0–100
+- type: uint8 (0=Peak, 1=Low Shelf, 2=High Shelf, 3=Low Pass, 4=High Pass, 5=Allpass 1st, 6=Allpass 2nd)
+
+Band bypass state is NOT stored per-band — it is stored as a bitmask per channel in the config footer (offset 412–415).
 
 In the default config, observed constant values across bands suggest frequency and Q are pre-set,
 with per-band gain values varying (71, 118, 161, 200, 240, 270 — EQ center frequencies in raw scale).
@@ -1061,7 +1097,7 @@ The fixed file size of 13010 bytes is likely a firmware/software requirement.
 - [x] ~~Input/output gain location~~ → Input block bytes 18–19, output block bytes 66–67 (uint16 LE, raw 0–400)
 - [x] ~~Mute state location~~ → Footer bitmasks at preset offsets 408–409 (input) and 410–411 (output), NOT in per-channel blocks. Verified by comparing startup captures with In4+Out4 muted vs unmuted.
 - [x] ~~Input block bytes 10–17~~ → Noise gate parameters: attack (10–11), release (12–13), hold (14–15), threshold (16–17), all LE uint16
-- [ ] Output EQ band count and parameter mapping — bytes 16–57 (42 bytes, 7 × 6 likely); needs PEQ capture
+- [x] ~~Output EQ band count and parameter mapping~~ → 7 bands × 6 bytes: [gain_lo,gain_hi,freq_lo,freq_hi,Q,type]. Verified from PEQ captures.
 - [x] ~~Output block bytes 12–13 (always 300)~~ → Lo-pass crossover frequency (raw 300 = 20.16 kHz = default/max)
 - [ ] Purpose of the "4x4D Amplifier" product string vs "Dsp Process" USB string
 - [ ] Whether the file can hold more than 2 presets (count byte at 0x11)

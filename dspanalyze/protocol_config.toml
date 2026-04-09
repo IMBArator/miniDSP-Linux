@@ -197,18 +197,27 @@ slope = { offset = 4, size = 1, format = "slope_index" }
 [opcodes.0x33]
 name = "peq"
 direction = "out"
-description = "Parametric EQ band (7 bands per output on 4x4 Mini)"
-verified = false
+description = "PEQ band — 10-byte payload for output channels. 7 bands per channel. Capture-verified from 7 captures on 4x4 Mini."
+verified = true
 
 [opcodes.0x33.fields.request]
 channel = { offset = 1, size = 1, format = "channel" }
 band = { offset = 2, size = 1, format = "uint8" }
-gain = { offset = 3, size = 1, format = "peq_gain" }
-# offset 4 is always 0x00
+gain = { offset = 3, size = 2, format = "peq_gain" }
 frequency = { offset = 5, size = 2, format = "freq_log" }
 q = { offset = 7, size = 1, format = "q_log" }
 type = { offset = 8, size = 1, format = "filter_type" }
 bypass = { offset = 9, size = 1, format = "bool" }
+
+[opcodes.0x3c]
+name = "peq_channel_bypass"
+direction = "out"
+description = "Bypass or restore all PEQ bands for an output channel. Captured from output_peq_channel_1_bypass. Config: footer byte at absolute offset 428 (Out1), one byte per channel."
+verified = true
+
+[opcodes.0x3c.fields.request]
+channel = { offset = 1, size = 1, format = "channel" }
+bypass = { offset = 2, size = 1, format = "bool" }
 
 [opcodes.0x34]
 name = "gain"
@@ -311,17 +320,7 @@ out4 = { offset = 22, size = 2, format = "level_uint16" }
 limiter_mask = { offset = 25, size = 1, format = "limiter_bitmask" }
 state = { offset = 26, size = 1, format = "uint8", note = "0x00=normal, 0x01=high-res" }
 
-[opcodes.0x48]
-name = "geq"
-direction = "out"
-description = "31-band graphic EQ (inputs only, bands 0-30)"
-verified = false
-
-[opcodes.0x48.fields.request]
-channel = { offset = 1, size = 1, format = "channel" }
-band = { offset = 2, size = 1, format = "uint8" }
-value = { offset = 3, size = 1, format = "peq_gain" }
-# offset 4 is always 0x00
+# NOTE: 0x48 (GEQ) is NOT present on the 4x4 Mini — it is a DSP 408-only feature.
 
 
 # ──────────────────────────────────────────────
@@ -366,7 +365,7 @@ bits = { "0" = "Out1", "1" = "Out2", "2" = "Out3", "3" = "Out4" }
 
 [formats.filter_type]
 type = "enum"
-values = { "0" = "Peak", "1" = "Low Shelf", "2" = "High Shelf", "3" = "LP-6", "4" = "LP-12", "5" = "HP-6", "6" = "HP-12", "7" = "AllPass1", "8" = "AllPass2" }
+values = { "0" = "Peak", "1" = "Low Shelf", "2" = "High Shelf", "3" = "Low Pass", "4" = "High Pass", "5" = "Allpass 1st", "6" = "Allpass 2nd" }
 
 [formats.freq_log]
 type = "uint16le"
@@ -378,13 +377,13 @@ note = "Hz = 19.70 * (20160/19.70)^(raw/300). 4x4 Mini uses 0-300 (DSP 408 uses 
 [formats.q_log]
 type = "uint8"
 min = 0
-max = 255
-note = "Q = 0.40 * 320^(raw/255)"
+max = 100
+note = "Q = 0.40 * 320^(raw/100). Min Q=0.4 (raw=0), Peak max Q=128 (raw=100), Shelf/Pass max Q=3.0 (raw=35)."
 
 [formats.peq_gain]
-type = "uint8"
+type = "uint16le"
 unit = "dB"
-note = "dB = (value - 120) / 10.0, range -12.0 to +12.0"
+note = "dB = (raw - 120) / 10.0, range -12.0 to +12.0 (raw 0=−12dB, 120=0dB, 240=+12dB)"
 
 [formats.delay_samples]
 type = "uint16le"
