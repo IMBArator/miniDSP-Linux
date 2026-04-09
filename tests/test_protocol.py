@@ -254,6 +254,12 @@ def test_cmd_set_channel_name():
     assert frame[6] == 0x04           # channel (Out1)
     assert frame[7:15] == b"Out1\x00\x00\x00\x00"
 
+    # Input channel: InC (channel 2), name "EINGANGC" — verified from capture: 3d 02 45 49 4e 47 41 4e 47 43
+    frame = cmd_set_channel_name(2, "EINGANGC")
+    assert frame[5] == 0x3D
+    assert frame[6] == 0x02           # channel (InC)
+    assert frame[7:15] == b"EINGANGC"
+
     # Name longer than 8 chars — truncated to 8
     frame = cmd_set_channel_name(0, "TooLongName")
     assert frame[7:15] == b"TooLongN"

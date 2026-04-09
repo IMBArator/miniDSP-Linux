@@ -20,7 +20,7 @@ OP_CONFIG_RESP = 0x24
 _INPUT_BLOCK_START = 16
 _INPUT_BLOCK_SIZE = 24
 _INPUT_FIELDS = [
-    (0, 3, "name"),
+    (0, 8, "name"),
     (10, 2, "gate_attack"),
     (12, 2, "gate_release"),
     (14, 2, "gate_hold"),

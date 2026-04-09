@@ -757,7 +757,11 @@ Captured: 3d 06 41 55 53 47 41 4e 47 33
 
 **Channel byte:** unified numbering — inputs 0x00–0x03, outputs 0x04–0x07 (Out3 = 0x06).
 
-**Name field:** 8-byte ASCII, zero-padded. Up to 8 characters. The same 8 bytes are also stored at output block bytes 0–7 in the `.unt` config (and input block bytes 0–2 for the 3-char input names — see `.unt` section).
+**Name field:** 8-byte ASCII, zero-padded. Up to 8 characters. The same 8 bytes are stored at output block bytes 0–7 and input block bytes 0–7 in the `.unt` config. Default input names ("InA"–"InD") are 3 chars zero-padded to 8 bytes, but the full 8 bytes are writable.
+
+**Verified captures:**
+- `capture_20260407_233926_change_name_of_out_3.pcapng` — Out3 (ch 0x06): `3d 06 41 55 53 47 41 4e 47 33` ("Out3"→"AUSGANG3")
+- `capture_20260407_234815_change_name_of_in_c.pcapng` — InC (ch 0x02): `3d 02 45 49 4e 47 41 4e 47 43` ("InC"→"EINGANGC")
 
 Device responds with `0x01` ACK.
 
@@ -976,8 +980,7 @@ Preset names found: `"DIY Mon       "`, `"DIY Mon offset"`.
 ```
 Offset  Size  Field
 ──────  ────  ─────────────────────────────────────
- 0       3    Channel name (ASCII: "InA", "InB", "InC", "InD")
- 3       7    Zero padding
+ 0–7     8    Channel name (ASCII, zero-padded; default 3-char "InA"/"InB"/"InC"/"InD", up to 8 chars e.g. "EINGANGC")
 10–11    2    **Gate attack**, LE uint16, raw 34–998 (1–999 ms, same as 0x3E command)
 12–13    2    **Gate release**, LE uint16, raw 0–2999 (0–3000 ms)
 14–15    2    **Gate hold**, LE uint16, raw 9–998 (10–999 ms)
