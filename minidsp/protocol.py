@@ -977,8 +977,9 @@ COMP_RATIO_NAMES: dict[int, str] = {
     0x0C: "1:8.0",  0x0D: "1:10.0", 0x0E: "1:20.0", 0x0F: "Limit",
 }
 
-# Channel index → display name. Inputs 0–3 (InA–InD), outputs 4–7 (Out1–Out4).
+# Channel display names. Inputs 0–3 (InA–InD), outputs 4–7 (Out1–Out4).
+INPUT_CHANNEL_NAMES: tuple[str, ...] = ("InA", "InB", "InC", "InD")
+OUTPUT_CHANNEL_NAMES: tuple[str, ...] = ("Out1", "Out2", "Out3", "Out4")
 CHANNEL_NAMES: dict[int, str] = {
-    0: "InA", 1: "InB", 2: "InC", 3: "InD",
-    4: "Out1", 5: "Out2", 6: "Out3", 7: "Out4",
+    i: name for i, name in enumerate(INPUT_CHANNEL_NAMES + OUTPUT_CHANNEL_NAMES)
 }

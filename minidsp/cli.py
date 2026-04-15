@@ -43,6 +43,7 @@ def cmd_dump(args: argparse.Namespace) -> None:
         gate_threshold_to_db, gate_time_to_ms,
         comp_threshold_to_db, comp_attack_to_ms, comp_release_to_ms,
         SLOPE_NAMES, PEQ_TYPE_NAMES, COMP_RATIO_NAMES,
+        INPUT_CHANNEL_NAMES, OUTPUT_CHANNEL_NAMES,
         peq_raw_to_gain, peq_raw_to_q,
     )
 
@@ -63,8 +64,8 @@ def cmd_dump(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     console = Console()
-    CH_IN  = ["InA", "InB", "InC", "InD"]
-    CH_OUT = ["Out1", "Out2", "Out3", "Out4"]
+    CH_IN  = INPUT_CHANNEL_NAMES
+    CH_OUT = OUTPUT_CHANNEL_NAMES
 
     def db_fmt(raw: int) -> str:
         return f"{raw_to_db(raw):+.1f} dB"

@@ -8,6 +8,7 @@ Annotates changes with known field names from the config structure.
 from __future__ import annotations
 
 from dspanalyze.decode import DecodedCommand
+from minidsp.protocol import INPUT_CHANNEL_NAMES, OUTPUT_CHANNEL_NAMES
 
 CONFIG_PAGES = 9
 CONFIG_PAGE_SIZE = 50
@@ -78,9 +79,6 @@ _FOOTER_FIELDS = [
     (431, 1, "Out4.peq_channel_bypass"),
 ]
 
-_CHANNEL_NAMES = ["InA", "InB", "InC", "InD", "Out1", "Out2", "Out3", "Out4"]
-
-
 def _field_at(offset: int) -> str:
     """Map an absolute config offset to a human-readable field name."""
     # Preset header (first 16 bytes)
@@ -94,7 +92,7 @@ def _field_at(offset: int) -> str:
         rel = offset - _INPUT_BLOCK_START
         ch_idx = rel // _INPUT_BLOCK_SIZE
         within = rel % _INPUT_BLOCK_SIZE
-        ch_name = _CHANNEL_NAMES[ch_idx] if ch_idx < 4 else f"input_{ch_idx}"
+        ch_name = INPUT_CHANNEL_NAMES[ch_idx] if ch_idx < 4 else f"input_{ch_idx}"
         for foff, fsize, fname in _INPUT_FIELDS:
             if foff <= within < foff + fsize:
                 return f"{ch_name}.{fname}"
@@ -106,7 +104,7 @@ def _field_at(offset: int) -> str:
         rel = offset - _OUTPUT_BLOCK_START
         ch_idx = rel // _OUTPUT_BLOCK_SIZE
         within = rel % _OUTPUT_BLOCK_SIZE
-        ch_name = _CHANNEL_NAMES[4 + ch_idx] if ch_idx < 4 else f"output_{ch_idx}"
+        ch_name = OUTPUT_CHANNEL_NAMES[ch_idx] if ch_idx < 4 else f"output_{ch_idx}"
         for foff, fsize, fname in _OUTPUT_FIELDS:
             if foff <= within < foff + fsize:
                 return f"{ch_name}.{fname}"
