@@ -3,7 +3,7 @@ CAPTURES := analysis/usb_captures
 
 .PHONY: sync install test analyze analyze-raw analyze-no-poll analyze-human \
         analyze-summary analyze-all diff-config check-all \
-        capture-enable capture-disable
+        capture-enable capture-disable build
 
 sync:
 	$(UV) sync --extra dev
@@ -12,6 +12,10 @@ install: sync   ## alias kept for muscle memory
 
 test:
 	$(UV) run pytest -v
+
+# Build the package (sdist and wheel)
+build:
+	$(UV) build
 
 # Analyze a single capture (usage: make analyze FILE="path/to/capture.txt")
 analyze:
