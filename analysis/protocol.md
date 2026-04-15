@@ -307,22 +307,29 @@ The diff-config between the two config reads in that capture shows only byte 424
 
 ### 0x29 — Read Preset Name
 
-Reads the name of a preset slot (30 total slots, indices 0x00–0x1D).
+Reads the name of a user preset. The command uses a **0-based request index** that
+maps to user presets U01–U30 (30 entries). F00 is the factory default and has no
+entry here — its name cannot be read or written via 0x29.
+
+**Index mapping: request index 0 = U01, 1 = U02, …, 29 = U30.**
+To convert to the 0x14/0x20 slot number: `slot = request_index + 1`.
 
 ```
-Payload (2 bytes): 29 [slot_index]
+Payload (2 bytes): 29 [request_index]   (0x00–0x1D, i.e. 0–29)
 ```
 
-Device responds with 16-byte payload: `29 [slot_index] [14 bytes ASCII name]`.
+Device responds with 16-byte payload: `29 [request_index] [14 bytes ASCII name]`.
 Names are space-padded to 14 characters.
 
-**Example:**
+**Example** (from a device with two custom presets):
 
-| Slot | Request | Response (ASCII) |
-|---|---|---|
-| 0 | `29 00` | `"DIY Mon       "` |
-| 1 | `29 01` | `"DIY Mon offset"` |
-| 2–29 | `29 02`–`29 1d` | `"Default Preset"` |
+| Request index | User Preset | Request | Response (ASCII) |
+|---|---|---|---|
+| 0 | U01 | `29 00` | `"DIY Mon       "` |
+| 1 | U02 | `29 01` | `"DIY Mon offset"` |
+| 2–29 | U03–U30 | `29 02`–`29 1d` | `"Default Preset"` |
+
+Cross-check with 0x14: `14 01` (U01 active) → name is at request index 0; `14 02` (U02 active) → name is at request index 1.
 
 ### 0x27 — Read Config Page
 
@@ -627,7 +634,7 @@ Host  ◄──[LEVEL 0x40]──────  Device
 | `0x22` | 1 | OUT | Preset header | `22` — device responds `22 ffff` + 28 zeros |
 | `0x26` | 15 | OUT | Store preset name | `26 [14-char name]` — space-padded, sent before 0x21. Max 14 chars! |
 | `0x27` | 2 | OUT | Read config page | `27 [page]` — device responds `24 [page] [50 bytes]` |
-| `0x29` | 2 | OUT | Read preset name | `29 [slot]` — device responds `29 [slot] [14 char name]` |
+| `0x29` | 2 | OUT | Read preset name | `29 [idx]` — idx 0=U01…29=U30 (NOT 0x14 slot); responds `29 [idx] [14 char name]` |
 | `0x2c` | 1 | OUT | Device info | `2c` — device responds `2c` + 7 bytes |
 | `0x2d` | 6 | BOTH | Submit lock PIN | OUT: `2d 00 [4 ASCII digits]`; IN: `2d 00 [01=correct/00=wrong]` |
 | `0x2f` | 5 | OUT | Set lock PIN | `2f [4 ASCII digits]` — ⚠ locks device immediately on receipt |
@@ -988,10 +995,14 @@ All parameters are uint16 LE.
 
 | Field | Bytes | Raw Range | UI Range | Formula |
 |---|---|---|---|---|
-| Attack | 2–3 | 34–998 | 1–999 ms | ~1:1 (raw ≈ ms) |
-| Release | 4–5 | 0–2999 | 0–3000 ms | ~1:1 (raw ≈ ms) |
-| Hold | 6–7 | 9–998 | 10–999 ms | ~1:1 (raw ≈ ms) |
+| Attack | 2–3 | 0–998 | 1–999 ms | ms = raw + 1 |
+| Release | 4–5 | 0–2999 | 1–3000 ms | ms = raw + 1 |
+| Hold | 6–7 | 9–998 | 10–999 ms | ms = raw + 1 (confirmed: raw 9 → 10 ms) |
 | Threshold | 8–9 | 1–180 | −90.0 to 0.0 dB | dB = raw × 0.5 − 90.0 |
+
+**Note:** The `ms = raw + 1` encoding is identical to the compressor attack/release.
+The raw minimum for attack was previously noted as 34 from captured sweeps; the
+true minimum is 0 (= 1 ms). Hold confirms the formula exactly: raw 9 → 10 ms.
 
 **Channel byte:** input channels only (0x00–0x03).
 
@@ -1179,9 +1190,9 @@ Preset names found across both .unt files: `"DIY Mon"`, `"DIY Mon offset"`, `"te
 Offset  Size  Field
 ──────  ────  ─────────────────────────────────────
  0–7     8    Channel name (ASCII, zero-padded; default 3-char "InA"/"InB"/"InC"/"InD", up to 8 chars e.g. "EINGANGC")
-10–11    2    **Gate attack**, LE uint16, raw 34–998 (1–999 ms, same as 0x3E command)
-12–13    2    **Gate release**, LE uint16, raw 0–2999 (0–3000 ms)
-14–15    2    **Gate hold**, LE uint16, raw 9–998 (10–999 ms)
+10–11    2    **Gate attack**, LE uint16, raw 0–998 (ms = raw + 1 → 1–999 ms)
+12–13    2    **Gate release**, LE uint16, raw 0–2999 (ms = raw + 1 → 1–3000 ms)
+14–15    2    **Gate hold**, LE uint16, raw 9–998 (ms = raw + 1 → 10–999 ms)
 16–17    2    **Gate threshold**, LE uint16, raw 1–180 (−90.0 to 0.0 dB, 0.5 dB/step)
 18–19    2    **Input gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
 20       1    **Phase invert**: 0x00=normal, 0x01=inverted (same as 0x36 command)

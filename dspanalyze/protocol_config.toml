@@ -440,7 +440,7 @@ note = "ms = raw / 48 (48 kHz sample rate). Range 0-32640 = 0-680 ms"
 [formats.gate_time]
 type = "uint16le"
 unit = "ms"
-note = "Raw value in ms (approximately). See per-field notes for exact ranges."
+note = "ms = raw + 1. Same encoding as compressor timings. Confirmed by hold range: raw 9 → 10 ms."
 
 [formats.gate_threshold]
 type = "uint16le"
