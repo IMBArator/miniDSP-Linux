@@ -25,9 +25,9 @@ opcodes_seen = [
     "0x39",
     "0x40",
 ]
-has_unknown_opcodes = true
+has_unknown_opcodes = false
 has_checksum_errors = false
-last_analyzed = "2026-04-09T23:37:42"
+last_analyzed = "2026-04-15T13:11:14"
 
 [analysis.opcode_counts]
 0x40 = 270
