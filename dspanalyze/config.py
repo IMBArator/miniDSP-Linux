@@ -122,7 +122,7 @@ def convert_value(raw_value: int, fmt: str, config: ProtocolConfig) -> str:
         return f"{hz:.0f} Hz (raw {raw_value})"
 
     if fmt == "q_log":
-        q = 0.40 * 320.0 ** (raw_value / 255.0)
+        q = 0.40 * 320.0 ** (raw_value / 100.0)
         return f"Q={q:.2f} (raw {raw_value})"
 
     if fmt == "level_uint16":
