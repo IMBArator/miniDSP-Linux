@@ -8,8 +8,26 @@ Falls back to cython-hidapi if available and hidraw not found.
 from __future__ import annotations
 
 import glob
+import logging
 import os
 import select
+
+log = logging.getLogger(__name__)
+
+
+def _frame_hex(report: bytes) -> str:
+    """Return the used portion of a HID report as a spaced hex string.
+
+    Strips the zero-padding beyond the frame so `-vv` output stays readable.
+    Falls back to the full report if framing can't be decoded.
+    """
+    if len(report) >= 5 and report[0] == 0x10 and report[1] == 0x02:
+        length = report[4]
+        end = 5 + length + 3  # STX(2) + src + dst + len + payload + ETX(2) + chk
+        if end <= len(report):
+            return report[:end].hex(" ")
+    return report.hex(" ")
+
 
 class DeviceLockedError(RuntimeError):
     """Raised when the device is locked and requires a PIN before config access."""
@@ -105,6 +123,7 @@ class DSPmini:
                     "Check: lsusb | grep 0168"
                 )
         self._fd = os.open(device_path, os.O_RDWR)
+        log.info("Opened %s", device_path)
         # Device requires init handshake before it responds to any commands
         self._send(cmd_init())
         self._recv(timeout_ms=500)  # consume init response
@@ -127,6 +146,8 @@ class DSPmini:
     def _send(self, report: bytes) -> None:
         """Send a 64-byte HID OUT report."""
         assert self._fd is not None, "Device not open"
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug("TX %s", _frame_hex(report))
         os.write(self._fd, report)
 
     def _recv(self, timeout_ms: int = 500) -> bytes | None:
@@ -135,10 +156,14 @@ class DSPmini:
         timeout_s = timeout_ms / 1000.0
         r, _, _ = select.select([self._fd], [], [], timeout_s)
         if not r:
+            log.debug("RX timeout (%d ms)", timeout_ms)
             return None
         data = os.read(self._fd, REPORT_SIZE)
         if not data:
+            log.debug("RX empty read")
             return None
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug("RX %s", _frame_hex(bytes(data)))
         return bytes(data)
 
     def _send_recv(self, report: bytes, timeout_ms: int = 500,
@@ -156,11 +181,14 @@ class DSPmini:
                 return None
             result = parse_frame(data)
             if result is None:
+                log.debug("parse_frame rejected response")
                 return None
             _src, _dst, _length, payload = result
             if skip_polls and payload and payload[0] == OP_POLL:
+                log.debug("skip poll response (0x40) while awaiting reply")
                 continue  # skip unsolicited level response
             return payload
+        log.debug("no usable response after 10 receives")
         return None
 
     # --- High-level commands ---
@@ -313,41 +341,63 @@ class DSPmini:
         or None on failure.
         """
         # Step 2: firmware string
-        self._send_recv(cmd_firmware(), skip_polls=True)
+        log.info("Step 2/8: firmware query (0x13)")
+        if self._send_recv(cmd_firmware(), skip_polls=True) is None:
+            log.warning("Step 2/8: firmware query — no response")
         # Step 3: device info — also contains the lock status flag
+        log.info("Step 3/8: device info (0x2C)")
         device_info_payload = self._send_recv(cmd_device_info(), skip_polls=True)
-        if device_info_payload is not None:
+        if device_info_payload is None:
+            log.warning("Step 3/8: device info — no response")
+        else:
             info = parse_device_info(device_info_payload)
             if info and info.get("locked"):
                 raise DeviceLockedError(
                     "Device is locked. Call submit_pin(pin) before read_config()."
                 )
         # Step 4: preset header
-        self._send_recv(cmd_preset_header(), skip_polls=True)
+        log.info("Step 4/8: preset header (0x22)")
+        if self._send_recv(cmd_preset_header(), skip_polls=True) is None:
+            log.warning("Step 4/8: preset header — no response")
         # Step 5: active preset index
+        log.info("Step 5/8: active preset index (0x14)")
         preset_idx_payload = self._send_recv(cmd_preset_index(), skip_polls=True)
+        if preset_idx_payload is None:
+            log.warning("Step 5/8: active preset index — no response")
         active_slot = parse_preset_index(preset_idx_payload) if preset_idx_payload else None
         # Step 6: read all 30 preset names
+        log.info("Step 6/8: reading 30 preset names (0x29)")
         preset_names: list[str] = []
         for slot in range(30):
             payload = self._send_recv(cmd_read_name(slot), skip_polls=True)
+            if payload is None:
+                log.warning("Step 6/8: preset name slot %d — no response", slot)
             result = parse_preset_name(payload) if payload else None
             preset_names.append(result[1] if result else "")
         # Step 7: read 9 config pages
+        log.info("Step 7/8: reading %d config pages (0x27)", CONFIG_PAGES)
         config_data = bytearray()
         for page in range(CONFIG_PAGES):
             payload = self._send_recv(cmd_read_config(page), skip_polls=True)
             if payload is None:
+                log.warning("Step 7/8: config page %d/%d — no response",
+                            page, CONFIG_PAGES - 1)
                 return None
             result = parse_config_page(payload)
             if result is None:
+                log.warning("Step 7/8: config page %d/%d — parse failed (payload %d bytes)",
+                            page, CONFIG_PAGES - 1, len(payload))
                 return None
             _page_idx, data = result
             config_data.extend(data)
         # Step 8: activate
-        self._send_recv(cmd_activate(), skip_polls=True)
+        log.info("Step 8/8: activate (0x12)")
+        if self._send_recv(cmd_activate(), skip_polls=True) is None:
+            log.warning("Step 8/8: activate — no response")
         params = parse_preset_params(bytes(config_data))
         if params is None:
+            log.warning("parse_preset_params failed on %d bytes of config data",
+                        len(config_data))
             return None
         params["active_slot"] = active_slot
         params["preset_names"] = preset_names

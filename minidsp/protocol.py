@@ -9,6 +9,10 @@ Checksum = XOR of LEN and all payload bytes.
 
 from __future__ import annotations
 
+import logging
+
+log = logging.getLogger(__name__)
+
 VENDOR_ID = 0x0168
 PRODUCT_ID = 0x0821
 REPORT_SIZE = 64
@@ -162,19 +166,26 @@ def parse_frame(data: bytes) -> tuple[int, int, int, bytes] | None:
     Returns (src, dst, length, payload) or None if framing is invalid.
     """
     if len(data) < 8 or data[0] != 0x10 or data[1] != 0x02:
+        log.debug("parse_frame: bad STX (got %s, need 10 02)",
+                  data[:2].hex(" ") if len(data) >= 2 else "<short>")
         return None
     src = data[2]
     dst = data[3]
     length = data[4]
     if 5 + length + 3 > len(data):
+        log.debug("parse_frame: truncated (len=%d, need %d, got %d)",
+                  length, 5 + length + 3, len(data))
         return None
     payload = data[5 : 5 + length]
     etx1 = data[5 + length]
     etx2 = data[5 + length + 1]
     chk = data[5 + length + 2]
     if etx1 != 0x10 or etx2 != 0x03:
+        log.debug("parse_frame: bad ETX (got %02x %02x, need 10 03)", etx1, etx2)
         return None
-    if chk != checksum(length, payload):
+    expected = checksum(length, payload)
+    if chk != expected:
+        log.debug("parse_frame: bad checksum (got %02x, want %02x)", chk, expected)
         return None
     return src, dst, length, payload
 
@@ -714,10 +725,14 @@ def parse_config_page(payload: bytes) -> tuple[int, bytes] | None:
     Returns (page_index, 50_bytes_data) or None.
     """
     if len(payload) < 2 or payload[0] != OP_CONFIG_RESP:
+        log.debug("parse_config_page: bad header (opcode=%02x, len=%d, need 0x%02x)",
+                  payload[0] if payload else 0, len(payload), OP_CONFIG_RESP)
         return None
     page = payload[1]
     data = payload[2:2 + CONFIG_PAGE_SIZE]
     if len(data) != CONFIG_PAGE_SIZE:
+        log.debug("parse_config_page: short data (page=%d, got %d bytes, need %d)",
+                  page, len(data), CONFIG_PAGE_SIZE)
         return None
     return page, data
 
@@ -741,6 +756,8 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     Channel order: inputs 0–3, outputs 4–7 (gates input-only; delays/crossovers/compressors/peqs output-only).
     """
     if len(config_data) < _OUTPUT_MUTE_BITMASK_OFFSET + 2:
+        log.debug("parse_preset_params: too short (%d bytes, need %d)",
+                  len(config_data), _OUTPUT_MUTE_BITMASK_OFFSET + 2)
         return None
 
     names: list[str] = []

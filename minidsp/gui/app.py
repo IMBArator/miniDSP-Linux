@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 import signal
 import sys
 
@@ -29,11 +28,9 @@ def _apply_dark_theme(app: QApplication) -> None:
 
 
 def run_gui() -> None:
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s %(levelname)-5s %(name)s: %(message)s",
-        datefmt="%H:%M:%S",
-    )
+    # Root logger is configured by minidsp.cli.main() based on -v/-vv flags;
+    # use `uv run minidsp -vv gui` to restore the old DEBUG default.
+
     # Let Ctrl+C work from the terminal
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 

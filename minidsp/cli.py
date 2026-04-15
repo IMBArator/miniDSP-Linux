@@ -13,6 +13,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import logging
 import sys
 
 from .device import DSPmini
@@ -228,6 +229,10 @@ def main() -> None:
         prog="minidsp",
         description="the t.racks DSP 4x4 Mini — USB HID control tool",
     )
+    parser.add_argument(
+        "-v", "--verbose", action="count", default=0,
+        help="Increase verbosity (-v: info, -vv: debug)",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     # gui
@@ -249,6 +254,14 @@ def main() -> None:
     p_unmute.set_defaults(func=cmd_unmute)
 
     args = parser.parse_args()
+    level = (logging.DEBUG if args.verbose >= 2
+             else logging.INFO if args.verbose >= 1
+             else logging.WARNING)
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s %(levelname)-5s %(name)s: %(message)s",
+        datefmt="%H:%M:%S",
+    )
     args.func(args)
 
 
