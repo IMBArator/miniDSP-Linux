@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from minidsp.protocol import (
+    CHANNEL_NAMES,
     freq_raw_to_hz,
     level_uint16_to_dbu,
     peq_raw_to_gain,
@@ -101,12 +102,6 @@ def _parse_fields(fields_dict: dict) -> list[FieldDef]:
 
 
 # ── Value format converters ──────────────────────────────
-
-
-CHANNEL_NAMES = {
-    0: "InA", 1: "InB", 2: "InC", 3: "InD",
-    4: "Out1", 5: "Out2", 6: "Out3", 7: "Out4",
-}
 
 
 def convert_value(raw_value: int, fmt: str, config: ProtocolConfig) -> str:
