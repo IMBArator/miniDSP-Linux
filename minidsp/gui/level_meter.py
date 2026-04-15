@@ -2,20 +2,15 @@
 
 from __future__ import annotations
 
-import math
-
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QLinearGradient, QPainter
 from PySide6.QtWidgets import QWidget
 
+from ..protocol import level_uint16_to_dbu
+
 PEAK_DECAY = 0.93   # ~7% drop per update cycle
 EMA_ALPHA = 0.55    # smoothing factor: 0=frozen, 1=no smoothing
 
-# Calibrated from captures at known analog levels:
-#   0 dBu  → uint16 ~188 → manufacturer shows first yellow LED (~75%)
-#  -30 dBu → uint16 ~5   → manufacturer shows 2 green LEDs (~25%)
-# Two-point dB calibration: REF_LEVEL = 188 * 10^(15.75/20) ≈ 1153
-REF_LEVEL = 1153    # uint16 value that maps to 0 dB (meter top)
 DB_RANGE = 63.0     # meter spans -63 dB to 0 dB
 
 
@@ -24,9 +19,9 @@ def _to_db_fraction(value: float) -> float:
 
     Calibrated so that 0 dBu (~188) appears at 75% and -30 dBu (~5) at 25%.
     """
-    if value < 0.01:
+    db = level_uint16_to_dbu(value)
+    if db == float("-inf"):
         return 0.0
-    db = 20.0 * math.log10(value / REF_LEVEL)
     return max(0.0, min(1.0, (db + DB_RANGE) / DB_RANGE))
 
 
