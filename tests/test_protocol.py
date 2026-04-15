@@ -39,6 +39,8 @@ from minidsp.protocol import (
     peq_raw_to_gain,
     peq_q_to_raw,
     peq_raw_to_q,
+    level_uint16_to_dbu,
+    LEVEL_REF_UINT16,
     PEQ_TYPE_PEAK,
     PEQ_TYPE_LOW_SHELF,
     PEQ_TYPE_HIGH_SHELF,
@@ -560,6 +562,18 @@ def test_peq_q_encoding():
     assert abs(peq_raw_to_q(peq_q_to_raw(2.0)) - 2.0) < 0.05
     assert abs(peq_raw_to_q(0) - 0.4) < 0.001
     assert abs(peq_raw_to_q(100) - 128.0) < 0.01
+
+
+def test_level_uint16_to_dbu():
+    # Reference uint16 maps to 0 dBu
+    assert LEVEL_REF_UINT16 == 1153
+    assert level_uint16_to_dbu(LEVEL_REF_UINT16) == 0.0
+    # Silence: raw 0 → -inf
+    assert level_uint16_to_dbu(0) == float("-inf")
+    # Calibration anchors verified from captures (matches prior inline formula):
+    # 0 dBu ≈ uint16 188 (actual: ~-15.75 dBu); −30 dBu ≈ uint16 5
+    assert abs(level_uint16_to_dbu(188) - (-15.75)) < 0.01
+    assert abs(level_uint16_to_dbu(5) - (-47.26)) < 0.01
 
 
 # --- Device info lock flag (0x2C) ---

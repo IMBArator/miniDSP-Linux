@@ -10,6 +10,7 @@ Checksum = XOR of LEN and all payload bytes.
 from __future__ import annotations
 
 import logging
+import math
 
 log = logging.getLogger(__name__)
 
@@ -882,7 +883,6 @@ def peq_q_to_raw(q: float) -> int:
     Q = 0.4 * 320^(raw/100). Range: Q 0.4–128 → raw 0–100.
     Shelf/pass filters are restricted to Q 0.4–3.0 (raw 0–35) by the app UI.
     """
-    import math
     if q <= 0.4:
         return 0
     raw = round(100 * math.log(q / 0.4) / math.log(320))
@@ -931,6 +931,23 @@ def gate_time_to_ms(raw: int) -> int:
 def delay_samples_to_ms(raw: int) -> float:
     """raw 0–32640 samples → ms at 48 kHz."""
     return raw / 48.0
+
+
+# --- Level conversion ---
+
+# Two-point dB calibration from captures: 0 dBu → uint16 ~188,
+# −30 dBu → uint16 ~5.  REF_LEVEL = 188 * 10^(15.75/20) ≈ 1153.
+LEVEL_REF_UINT16 = 1153
+
+
+def level_uint16_to_dbu(raw: int | float) -> float:
+    """Linear uint16 amplitude → dBu using the device's calibrated reference.
+
+    Returns -inf for raw ≈ 0 (silence). Formula: 20·log10(raw / 1153).
+    """
+    if raw < 0.01:
+        return float("-inf")
+    return 20.0 * math.log10(raw / LEVEL_REF_UINT16)
 
 
 # Human-readable name lookup tables for display
