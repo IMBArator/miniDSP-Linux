@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
-import math
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
+
+from minidsp.protocol import (
+    freq_raw_to_hz,
+    level_uint16_to_dbu,
+    peq_raw_to_gain,
+    peq_raw_to_q,
+    raw_to_db,
+)
 
 
 @dataclass
@@ -111,25 +118,21 @@ def convert_value(raw_value: int, fmt: str, config: ProtocolConfig) -> str:
         return CHANNEL_NAMES.get(raw_value, f"ch{raw_value}")
 
     if fmt == "gain_raw":
-        return f"{gain_raw_to_db(raw_value):.1f} dB (raw {raw_value})"
+        return f"{raw_to_db(raw_value):.1f} dB (raw {raw_value})"
 
     if fmt == "peq_gain":
-        db = (raw_value - 120) / 10.0
-        return f"{db:+.1f} dB"
+        return f"{peq_raw_to_gain(raw_value):+.1f} dB"
 
     if fmt == "freq_log":
-        hz = 19.70 * (20160.0 / 19.70) ** (raw_value / 300.0)
-        return f"{hz:.0f} Hz (raw {raw_value})"
+        return f"{freq_raw_to_hz(raw_value):.0f} Hz (raw {raw_value})"
 
     if fmt == "q_log":
-        q = 0.40 * 320.0 ** (raw_value / 100.0)
-        return f"Q={q:.2f} (raw {raw_value})"
+        return f"Q={peq_raw_to_q(raw_value):.2f} (raw {raw_value})"
 
     if fmt == "level_uint16":
         if raw_value == 0:
             return "silent"
-        db = 20 * math.log10(raw_value / 1153.0)
-        return f"{db:.1f} dBu (raw {raw_value})"
+        return f"{level_uint16_to_dbu(raw_value):.1f} dBu (raw {raw_value})"
 
     if fmt_type == "enum":
         values = fmt_def.get("values", {})
@@ -153,10 +156,3 @@ def convert_value(raw_value: int, fmt: str, config: ProtocolConfig) -> str:
         return f"0x{raw_value:02x}"
 
     return str(raw_value)
-
-
-def gain_raw_to_db(raw: int) -> float:
-    """Convert raw gain value (0-400) to dB. Dual resolution encoding."""
-    if raw < 80:
-        return raw / 2.0 - 60.0
-    return (raw - 80) / 10.0 - 20.0

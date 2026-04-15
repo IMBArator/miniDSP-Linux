@@ -208,8 +208,8 @@ def _summarize_fields(cmds: list[DecodedCommand], config: ProtocolConfig) -> str
         channels = sorted({c.human_fields.get("channel", "?") for c in cmds if c.human_fields})
         values = [c.fields.get("value", 0) for c in cmds if "value" in c.fields]
         if values and isinstance(values[0], int):
-            from dspanalyze.config import gain_raw_to_db
-            dbs = [gain_raw_to_db(v) for v in values]
+            from minidsp.protocol import raw_to_db
+            dbs = [raw_to_db(v) for v in values]
             return f"ch={','.join(channels)} range={min(dbs):.1f}..{max(dbs):.1f} dB"
         return f"ch={','.join(channels)}"
 
