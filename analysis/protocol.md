@@ -680,6 +680,7 @@ Payload (10 bytes): 33 [ch] [band] [gain_lo] [gain_hi] [freq_lo] [freq_hi] [Q] [
 - **Frequency:** LE uint16, raw 0–300; same formula as crossover: `Hz = 19.70 × (20160/19.70)^(raw/300)`
 - **Q:** uint8, raw 0–100; `Q = 0.4 × 320^(raw/100)`; min Q=0.4 (raw=0), max Q=128 (raw=100)
   - Shelf and pass filters restrict Q to 0.4–3.0 (raw 0–35) in the app UI
+  - Note: the Windows editor displays Q with 1-decimal rounding, so the default raw=25 (`Q = 1.6919…`) appears as `1.70` there while `minidsp dump` shows `1.69` (2-decimal rounding). Both are correct — see also the "≈1.7" notes below.
 - **Type:** uint8
   | raw | Filter type |
   |-----|-------------|
