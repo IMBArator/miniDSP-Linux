@@ -60,6 +60,8 @@ from .protocol import (
     parse_frame,
     parse_levels,
     parse_pin_response,
+    parse_preset_index,
+    parse_preset_name,
     parse_preset_params,
 )
 
@@ -323,10 +325,14 @@ class DSPmini:
         # Step 4: preset header
         self._send_recv(cmd_preset_header(), skip_polls=True)
         # Step 5: active preset index
-        self._send_recv(cmd_preset_index(), skip_polls=True)
+        preset_idx_payload = self._send_recv(cmd_preset_index(), skip_polls=True)
+        active_slot = parse_preset_index(preset_idx_payload) if preset_idx_payload else None
         # Step 6: read all 30 preset names
+        preset_names: list[str] = []
         for slot in range(30):
-            self._send_recv(cmd_read_name(slot), skip_polls=True)
+            payload = self._send_recv(cmd_read_name(slot), skip_polls=True)
+            result = parse_preset_name(payload) if payload else None
+            preset_names.append(result[1] if result else "")
         # Step 7: read 9 config pages
         config_data = bytearray()
         for page in range(CONFIG_PAGES):
@@ -340,7 +346,12 @@ class DSPmini:
             config_data.extend(data)
         # Step 8: activate
         self._send_recv(cmd_activate(), skip_polls=True)
-        return parse_preset_params(bytes(config_data))
+        params = parse_preset_params(bytes(config_data))
+        if params is None:
+            return None
+        params["active_slot"] = active_slot
+        params["preset_names"] = preset_names
+        return params
 
     def set_peq_band(self, channel: int, band: int, gain_raw: int,
                      freq_raw: int, q_raw: int, filter_type: int,

@@ -41,7 +41,9 @@ OP_PREPARE_LINK = 0x2A  # declare master↔slave pair before 0x3B (linking only,
 OP_PEQ = 0x33            # PEQ band; outputs verified, 7 bands per channel
 OP_PEQ_BYPASS = 0x3C     # PEQ channel bypass (bypasses all bands for that channel)
 OP_SET_CHANNEL_NAME = 0x3D  # set channel display name (8-byte ASCII, zero-padded)
+OP_GATE = 0x3E
 OP_TEST_TONE = 0x39      # test tone generator (mode + sine freq index); config offset 420/422
+OP_POLL = 0x40
 
 # Test tone generator mode values (byte 1 of 0x39 payload)
 # State persisted at config offset 420; sine freq index at offset 422.
@@ -92,8 +94,6 @@ PEQ_TYPE_LOW_PASS   = 0x03
 PEQ_TYPE_HIGH_PASS  = 0x04
 PEQ_TYPE_ALLPASS1   = 0x05  # 1st-order allpass
 PEQ_TYPE_ALLPASS2   = 0x06  # 2nd-order allpass
-OP_GATE = 0x3E
-OP_POLL = 0x40
 
 # Crossover slope/bypass values (byte 4 of 0x31/0x32)
 # 0x00 = filter bypassed; non-zero = active with slope type.
@@ -111,12 +111,12 @@ SLOPE_BW24 = 0x08  # Butterworth 24 dB/oct
 SLOPE_BL24 = 0x09  # Bessel 24 dB/oct
 SLOPE_LR24 = 0x0A  # Linkwitz-Riley 24 dB/oct (device default)
 
-# Compressor ratio indices (byte 2 of 0x30 payload)
 # Delay display unit values (byte 1 of 0x15 payload; stored at config offset 424)
 DELAY_UNIT_MS = 0x00  # milliseconds (default)
 DELAY_UNIT_M  = 0x01  # meters
 DELAY_UNIT_FT = 0x02  # feet
 
+# Compressor ratio indices (byte 2 of 0x30 payload)
 COMP_RATIO_1_1  = 0x00  # 1:1.0 — no compression (default)
 COMP_RATIO_1_11 = 0x01  # 1:1.1
 COMP_RATIO_1_13 = 0x02  # 1:1.3
@@ -540,7 +540,9 @@ def cmd_preset_index() -> bytes:
 def cmd_read_name(slot: int) -> bytes:
     """Build preset name read command (0x29).
 
-    slot: 0–29.
+    slot: 0-indexed request index, 0–29.
+    Index 0 = U01, index 1 = U02, …, index 29 = U30.
+    F00 (slot 0 in 0x14 terms) is NOT accessible via this command.
     """
     return build_frame(bytes([OP_READ_NAME, slot]))
 
@@ -680,6 +682,30 @@ _OUTPUT_MUTE_BITMASK_OFFSET = 410  # uint16 LE, bit 0=Out1 .. bit 3=Out4
 # PEQ bypass flags in config footer
 _PEQ_BAND_BYPASS_OFFSET = 412  # 4 bytes (one per output channel); bit 0=band1..bit6=band7; 1=bypassed
 _PEQ_CHANNEL_BYPASS_OFFSET = 428  # 4 bytes (one per output channel); 0x00=active, 0x01=all bands bypassed
+
+
+def parse_preset_index(payload: bytes) -> int | None:
+    """Parse a 0x14 active-preset-index response.
+
+    Returns the slot index (0=F00, 1=U01, …, 30=U30) or None if invalid.
+    """
+    if len(payload) < 2 or payload[0] != OP_PRESET_INDEX:
+        return None
+    return payload[1]
+
+
+def parse_preset_name(payload: bytes) -> tuple[int, str] | None:
+    """Parse a 0x29 preset-name response → (request_index, name).
+
+    Response format: 29 [request_index] [14 bytes ASCII name, space-padded].
+    request_index 0 = U01, 1 = U02, …, 29 = U30 (NOT 0x14 slot numbers).
+    To convert to 0x14 slot: slot = request_index + 1.
+    """
+    if len(payload) < 16 or payload[0] != OP_READ_NAME:
+        return None
+    slot = payload[1]
+    name = payload[2:16].decode("ascii", errors="replace").rstrip()
+    return slot, name
 
 
 def parse_config_page(payload: bytes) -> tuple[int, bytes] | None:
@@ -849,3 +875,70 @@ def peq_q_to_raw(q: float) -> int:
 def peq_raw_to_q(raw: int) -> float:
     """Convert raw PEQ Q value to Q."""
     return 0.4 * (320 ** (raw / 100))
+
+
+def freq_raw_to_hz(raw: int) -> float:
+    """Log-scale frequency: raw 0–300 → 19.7–20160 Hz."""
+    return 19.70 * (20160.0 / 19.70) ** (raw / 300.0)
+
+
+def comp_threshold_to_db(raw: int) -> float:
+    """raw 0–220 → dB; formula: raw/2 − 90. Range −90 to +20 dB."""
+    return raw / 2.0 - 90.0
+
+
+def comp_attack_to_ms(raw: int) -> int:
+    """raw 0–998 → ms; formula: raw + 1. Range 1–999 ms."""
+    return raw + 1
+
+
+def comp_release_to_ms(raw: int) -> int:
+    """raw 9–2999 → ms; formula: raw + 1. Range 10–3000 ms."""
+    return raw + 1
+
+
+def gate_threshold_to_db(raw: int) -> float:
+    """raw 1–180 → dB; formula: raw × 0.5 − 90.0. Range −90 to 0 dB."""
+    return raw * 0.5 - 90.0
+
+
+def gate_time_to_ms(raw: int) -> int:
+    """Convert gate attack/hold/release raw value to ms. Formula: raw + 1.
+
+    Same encoding as compressor timings. Confirmed by hold range:
+    raw 9 → 10 ms (minimum), raw 998 → 999 ms (maximum).
+    """
+    return raw + 1
+
+
+def delay_samples_to_ms(raw: int) -> float:
+    """raw 0–32640 samples → ms at 48 kHz."""
+    return raw / 48.0
+
+
+# Human-readable name lookup tables for display
+
+SLOPE_NAMES: dict[int, str] = {
+    0x00: "Off",
+    0x01: "BW 6",   0x02: "BL 6",
+    0x03: "BW 12",  0x04: "BL 12",  0x05: "LR 12",
+    0x06: "BW 18",  0x07: "BL 18",
+    0x08: "BW 24",  0x09: "BL 24",  0x0A: "LR 24",
+}
+
+PEQ_TYPE_NAMES: dict[int, str] = {
+    PEQ_TYPE_PEAK:       "Peak",
+    PEQ_TYPE_LOW_SHELF:  "Low Shelf",
+    PEQ_TYPE_HIGH_SHELF: "High Shelf",
+    PEQ_TYPE_LOW_PASS:   "Low Pass",
+    PEQ_TYPE_HIGH_PASS:  "High Pass",
+    PEQ_TYPE_ALLPASS1:   "Allpass 1",
+    PEQ_TYPE_ALLPASS2:   "Allpass 2",
+}
+
+COMP_RATIO_NAMES: dict[int, str] = {
+    0x00: "1:1.0",  0x01: "1:1.1",  0x02: "1:1.3",  0x03: "1:1.5",
+    0x04: "1:1.7",  0x05: "1:2.0",  0x06: "1:2.5",  0x07: "1:3.0",
+    0x08: "1:3.5",  0x09: "1:4.0",  0x0A: "1:5.0",  0x0B: "1:6.0",
+    0x0C: "1:8.0",  0x0D: "1:10.0", 0x0E: "1:20.0", 0x0F: "Limit",
+}

@@ -9,6 +9,7 @@ description = "USB HID control and protocol analysis for the t.racks DSP 4x4 Min
 requires-python = ">=3.11"
 dependencies = [
     "tomli-w>=1.0",
+    "rich>=13.0",
 ]
 
 [project.optional-dependencies]
