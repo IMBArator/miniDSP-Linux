@@ -1,45 +1,48 @@
-VENV := .venv
-PYTHON := $(VENV)/bin/python
+UV      := uv
 CAPTURES := analysis/usb_captures
 
-.PHONY: install test analyze analyze-raw analyze-no-poll analyze-all check-all diff-config list-captures capture-enable capture-disable
+.PHONY: sync install test analyze analyze-raw analyze-no-poll analyze-human \
+        analyze-summary analyze-all diff-config check-all \
+        capture-enable capture-disable
 
-install:
-	$(PYTHON) -m pip install -e ".[dev]"
+sync:
+	$(UV) sync --extra dev
+
+install: sync   ## alias kept for muscle memory
 
 test:
-	$(PYTHON) -m pytest -v
+	$(UV) run pytest -v
 
 # Analyze a single capture (usage: make analyze FILE="path/to/capture.txt")
 analyze:
-	$(PYTHON) -m dspanalyze analyze "$(FILE)" --format claude --decode
+	$(UV) run dspanalyze analyze "$(FILE)" --format claude --decode
 
 # Analyze in raw hex format
 analyze-raw:
-	$(PYTHON) -m dspanalyze analyze "$(FILE)" --format raw
+	$(UV) run dspanalyze analyze "$(FILE)" --format raw
 
 # Analyze excluding poll/level noise (useful for command discovery)
 analyze-no-poll:
-	$(PYTHON) -m dspanalyze analyze "$(FILE)" --format claude --decode --exclude 0x40
+	$(UV) run dspanalyze analyze "$(FILE)" --format claude --decode --exclude 0x40
 
 # Analyze with human-readable table output
 analyze-human:
-	$(PYTHON) -m dspanalyze analyze "$(FILE)" --format human --decode
+	$(UV) run dspanalyze analyze "$(FILE)" --format human --decode
 
 # Summary only
 analyze-summary:
-	$(PYTHON) -m dspanalyze analyze "$(FILE)" --format claude --decode --summary
+	$(UV) run dspanalyze analyze "$(FILE)" --format claude --decode --summary
 
 # Compare config reads within a capture to find changed bytes
 diff-config:
-	$(PYTHON) -m dspanalyze diff-config "$(FILE)"
+	$(UV) run dspanalyze diff-config "$(FILE)"
 
 # Analyze all captures (summaries only to avoid flooding)
 analyze-all:
 	@for f in $(CAPTURES)/*.txt $(CAPTURES)/*.pcapng; do \
 		[ -f "$$f" ] || continue; \
 		echo ""; \
-		$(PYTHON) -m dspanalyze analyze "$$f" --format claude --summary --decode; \
+		$(UV) run dspanalyze analyze "$$f" --format claude --summary --decode; \
 		echo ""; \
 	done
 
@@ -47,7 +50,7 @@ analyze-all:
 check-all:
 	@for f in $(CAPTURES)/*.txt $(CAPTURES)/*.pcapng; do \
 		[ -f "$$f" ] || continue; \
-		$(PYTHON) -m dspanalyze check "$$f" --assertion all 2>/dev/null || true; \
+		$(UV) run dspanalyze check "$$f" --assertion all 2>/dev/null || true; \
 	done
 
 # Load usbmon, grant access, and enable dumpcap capabilities for non-root USB capture

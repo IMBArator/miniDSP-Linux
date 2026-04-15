@@ -10,7 +10,7 @@ The USB HID protocol was fully reverse-engineered from Wireshark captures. See [
 
 ## Features
 
-### GUI (`python -m minidsp --gui`) — *proof of concept*
+### GUI (`minidsp gui`) — *proof of concept*
 
 - Per-channel **gain faders** (−60 to +12 dB) for 4 inputs and 4 outputs
 - **Mute buttons** per channel
@@ -47,9 +47,11 @@ All commands verified against real Wireshark captures on the device.
 | Test tone generator (pink/white noise, sine 20Hz–20kHz) | `0x39` |
 | Real-time level metering (8 ch + limiter mask) | `0x40` |
 
-### CLI (`python -m minidsp`)
+### CLI (`minidsp`)
 
 ```
+gui                     Launch the graphical interface
+dump                    Dump all DSP configuration parameters as tables
 mute    [channel ...]   Mute input channel(s)
 unmute  [channel ...]   Unmute input channel(s)
 ```
@@ -57,8 +59,7 @@ unmute  [channel ...]   Unmute input channel(s)
 ## Requirements
 
 - Python 3.11+
-- `tomli-w` (installed automatically)
-- PySide6 (GUI only — `pip install PySide6` or `pip install -e ".[gui]"`)
+- [uv](https://docs.astral.sh/uv/) — manages the virtual environment and dependencies
 - Linux with kernel HID driver — communicates via `/dev/hidraw*` (no libusb needed)
 - Read/write access to `/dev/hidraw*` (see [Permissions](#permissions))
 
@@ -67,15 +68,9 @@ unmute  [channel ...]   Unmute input channel(s)
 ```bash
 git clone https://github.com/IMBArator/miniDSP-Linux.git
 cd miniDSP-Linux
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[gui,dev]"   # installs package + PySide6 + pytest
-```
-
-Or without GUI:
-
-```bash
-pip install -e .
+uv sync              # creates .venv, installs core deps
+uv sync --extra gui  # also installs PySide6 for the GUI
+uv sync --extra dev  # also installs pytest for development
 ```
 
 ## Usage
@@ -83,17 +78,21 @@ pip install -e .
 ### GUI
 
 ```bash
-python -m minidsp --gui
+minidsp gui
+# or: uv run minidsp gui
 ```
 
 ### CLI
 
 ```bash
+# Dump all DSP parameters (presets, gains, EQ, crossover, compressor, …)
+minidsp dump
+
 # Mute input channels 1 and 2
-python -m minidsp mute 1 2
+minidsp mute 1 2
 
 # Unmute all input channels
-python -m minidsp unmute 1 2 3 4
+minidsp unmute 1 2 3 4
 ```
 
 ### Protocol analysis toolchain (`dspanalyze`)
@@ -102,16 +101,16 @@ A separate analysis package for decoding Wireshark USB captures:
 
 ```bash
 # Decode a capture, exclude poll noise, human-readable output
-python -m dspanalyze analyze capture.pcapng --decode --exclude 0x40
+dspanalyze analyze capture.pcapng --decode --exclude 0x40
 
 # Show only changed config bytes between two config reads in one session
-python -m dspanalyze diff-config capture.pcapng
+dspanalyze diff-config capture.pcapng
 
 # Run protocol assertions (checksum, frame structure, known opcodes)
-python -m dspanalyze check capture.pcapng --assertion all
+dspanalyze check capture.pcapng --assertion all
 
 # List all captures with metadata summaries
-python -m dspanalyze list-captures analysis/usb_captures/
+dspanalyze list-captures analysis/usb_captures/
 ```
 
 See `Makefile` for pre-defined analysis workflows (`make analyze FILE=...`, `make diff-config FILE=...`, etc.).
@@ -179,10 +178,10 @@ Key opcodes (see [analysis/protocol.md](analysis/protocol.md) for full reference
 
 ```
 minidsp/                  Python control package
-  __main__.py             Entry point (--gui or CLI)
+  __main__.py             Entry point (delegates to cli.main)
   device.py               USB HID open/close, send/recv, config read
   protocol.py             Frame encoding/decoding, all command builders
-  cli.py                  CLI (mute/unmute)
+  cli.py                  CLI subcommands: gui, dump, mute, unmute
   gui/                    PySide6 GUI
     main_window.py        Main window with 8 channel strips
     channel_strip.py      Fader + meter + mute + compressor LED

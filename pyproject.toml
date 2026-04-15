@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=68.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "minidsp-linux"
@@ -20,11 +20,8 @@ dev = ["pytest>=7.0"]
 minidsp = "minidsp.cli:main"
 dspanalyze = "dspanalyze.cli:main"
 
-[tool.setuptools.packages.find]
-include = ["minidsp*", "dspanalyze*"]
-
-[tool.setuptools.package-data]
-dspanalyze = ["*.toml"]
+[tool.hatch.build.targets.wheel]
+packages = ["minidsp", "dspanalyze"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
