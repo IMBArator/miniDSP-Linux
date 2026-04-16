@@ -730,6 +730,41 @@ def test_cmd_matrix_route():
     assert frame[7] == 0x03  # input bitmask (InA+InB)
 
 
+def test_cmd_load_preset():
+    """Verify load-preset frame encoding (0x20): slot 5 = U05."""
+    from minidsp.protocol import cmd_load_preset
+    frame = cmd_load_preset(5)
+    assert frame[5] == 0x20  # opcode
+    assert frame[6] == 0x05  # slot
+
+
+def test_cmd_store_preset():
+    """Verify store-preset frame encoding (0x21): slot 1 = U01."""
+    from minidsp.protocol import cmd_store_preset
+    frame = cmd_store_preset(1)
+    assert frame[5] == 0x21  # opcode
+    assert frame[6] == 0x01  # slot
+
+
+def test_cmd_store_preset_slot0_guard():
+    """Slot 0 (F00 factory preset) must raise ValueError."""
+    from minidsp.protocol import cmd_store_preset
+    try:
+        cmd_store_preset(0)
+        assert False, "Expected ValueError for slot 0"
+    except ValueError:
+        pass  # expected
+
+
+def test_cmd_store_preset_name():
+    """Verify store-preset-name frame encoding (0x26): 14-char space-padded."""
+    from minidsp.protocol import cmd_store_preset_name
+    frame = cmd_store_preset_name("My Preset")
+    assert frame[5] == 0x26  # opcode
+    # "My Preset" = 9 chars, padded with spaces to 14
+    assert frame[6:20] == b"My Preset     "
+
+
 def test_cmd_matrix_route_silence():
     """Verify routing with no inputs (silence)."""
     from minidsp.protocol import cmd_matrix_route

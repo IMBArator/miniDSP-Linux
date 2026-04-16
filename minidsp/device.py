@@ -49,6 +49,7 @@ from .protocol import (
     cmd_gate,
     cmd_hipass,
     cmd_init,
+    cmd_load_preset,
     cmd_lopass,
     cmd_matrix_route,
     cmd_mute,
@@ -58,6 +59,8 @@ from .protocol import (
     cmd_preset_index,
     cmd_read_config,
     cmd_read_name,
+    cmd_store_preset,
+    cmd_store_preset_name,
     cmd_set_channel_name,
     cmd_peq_band,
     cmd_peq_channel_bypass,
@@ -404,6 +407,69 @@ class DSPmini:
         params["active_slot"] = active_slot
         params["preset_names"] = preset_names
         return params
+
+    def load_preset(self, slot: int) -> dict | None:
+        """Load a preset from the device (0x20) and re-read config.
+
+        slot: direct index — 0=F00, 1=U01, …, 30=U30.
+        Sequence: send load command, re-read 9 config pages, activate.
+        Returns the new config dict (same format as read_config()), or None on failure.
+        """
+        log.info("load_preset: sending 0x20 for slot %d", slot)
+        payload = self._send_recv(cmd_load_preset(slot), skip_polls=True)
+        if payload is None:
+            return None
+        if not is_ack(payload):
+            log.warning("load_preset: device did not ACK load command")
+            return None
+        # Re-read config pages (the device now has the new preset active)
+        log.info("load_preset: reading %d config pages", CONFIG_PAGES)
+        config_data = bytearray()
+        for page in range(CONFIG_PAGES):
+            payload = self._send_recv(cmd_read_config(page), skip_polls=True)
+            if payload is None:
+                log.warning("load_preset: config page %d — no response", page)
+                return None
+            result = parse_config_page(payload)
+            if result is None:
+                log.warning("load_preset: config page %d — parse failed", page)
+                return None
+            _page_idx, data = result
+            config_data.extend(data)
+        # Activate the new preset
+        log.info("load_preset: sending activate")
+        self._send_recv(cmd_activate(), skip_polls=True)
+        return parse_preset_params(bytes(config_data))
+
+    def store_preset(self, slot: int, name: str) -> bool:
+        """Store the active settings to a user preset slot (0x21).
+
+        slot: 1=U01, …, 30=U30. Slot 0 (F00) raises ValueError.
+        name: up to 14 ASCII characters for the preset name.
+        Sequence: send name (0x26), send store (0x21), activate.
+        The device takes ~2 seconds to write to flash.
+        Returns True if the device ACK'd the store.
+        """
+        log.info("store_preset: sending name '%s' for slot %d", name, slot)
+        payload = self._send_recv(cmd_store_preset_name(name), skip_polls=True)
+        if payload is None:
+            return False
+        if not is_ack(payload):
+            log.warning("store_preset: device did not ACK name command")
+            return False
+        # Store command — device takes ~2s to write to flash
+        log.info("store_preset: sending store (0x21) with 3s timeout")
+        payload = self._send_recv(
+            cmd_store_preset(slot), timeout_ms=3000, skip_polls=True)
+        if payload is None:
+            return False
+        if not is_ack(payload):
+            log.warning("store_preset: device did not ACK store command")
+            return False
+        # Activate after store
+        log.info("store_preset: sending activate")
+        self._send_recv(cmd_activate(), skip_polls=True)
+        return True
 
     def set_peq_band(self, channel: int, band: int, gain_raw: int,
                      freq_raw: int, q_raw: int, filter_type: int,
