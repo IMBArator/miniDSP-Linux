@@ -439,6 +439,8 @@ def test_parse_preset_params_from_unt():
     assert result["gains"] == [280, 280, 280, 280, 280, 280, 280, 280]
     assert result["mutes"] == [False, False, False, False, False, False, False, False]
     assert result["phases"] == [False, False, False, False, False, False, False, False]
+    # Default 1:1 routing: Out1←InA, Out2←InB, Out3←InC, Out4←InD
+    assert result["routings"] == [0x01, 0x02, 0x04, 0x08]
     # Gate params should be present for 4 input channels
     assert len(result["gates"]) == 4
     for gate in result["gates"]:

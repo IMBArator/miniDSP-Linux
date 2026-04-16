@@ -672,6 +672,7 @@ _INPUT_LINK_FLAGS_OFFSET = 22  # bitmask: bit0=InA, bit1=InB, bit2=InC, bit3=InD
 
 _PRESET_OUTPUT_START = 112  # 4 × 74-byte output blocks
 _OUTPUT_BLOCK_SIZE = 74
+_OUTPUT_ROUTING_OFFSET = 8  # uint8, input routing bitmask (InA=0x01, InB=0x02, InC=0x04, InD=0x08)
 _OUTPUT_HIPASS_OFFSET = 10  # uint16 LE, crossover hi-pass freq (raw 0–300 on 4x4 Mini)
 _OUTPUT_LOPASS_OFFSET = 12  # uint16 LE, crossover lo-pass freq (raw 0–300 on 4x4 Mini)
 _OUTPUT_HIPASS_SLOPE_OFFSET = 14  # uint8, 0x00=bypassed, 0x01–0x0a=slope (SLOPE_* constants)
@@ -747,6 +748,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
       'gains' (list[8], raw 0–400), 'mutes' (list[8], bool),
       'phases' (list[8], bool — True=inverted),
       'link_flags' (list[8], uint8 — per-channel link bitmask from config; standalone=own bit, master=OR of all linked bits, slave=0x00),
+      'routings' (list[4], uint8 — per-output input routing bitmask; InA=0x01, InB=0x02, InC=0x04, InD=0x08),
       'gates' (list[4], dict with attack/release/hold/threshold raw values),
       'delays' (list[4], int — raw samples 0–32640, ms = raw / 48),
       'crossovers' (list[4], dict with hipass/lopass freq and slope per filter),
@@ -767,6 +769,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     phases: list[bool] = []
     gates: list[dict[str, int]] = []
     delays: list[int] = []
+    routings: list[int] = []
     crossovers: list[dict[str, int]] = []
     compressors: list[dict[str, int]] = []
     peqs: list[dict] = []
@@ -793,6 +796,7 @@ def parse_preset_params(config_data: bytes) -> dict | None:
         base = _PRESET_OUTPUT_START + i * _OUTPUT_BLOCK_SIZE
         raw_name = config_data[base + _CHANNEL_NAME_OFFSET : base + _CHANNEL_NAME_OFFSET + _CHANNEL_NAME_SIZE]
         names.append(raw_name.rstrip(b"\x00").decode("ascii", errors="replace"))
+        routings.append(config_data[base + _OUTPUT_ROUTING_OFFSET])
         gain = config_data[base + _OUTPUT_GAIN_OFFSET] + config_data[base + _OUTPUT_GAIN_OFFSET + 1] * 256
         gains.append(gain)
         phases.append(bool(config_data[base + _OUTPUT_PHASE_OFFSET]))
@@ -837,8 +841,9 @@ def parse_preset_params(config_data: bytes) -> dict | None:
         mutes.append(bool(output_mute_mask & (1 << i)))
 
     return {"names": names, "gains": gains, "mutes": mutes, "phases": phases,
-            "link_flags": link_flags, "gates": gates, "delays": delays,
-            "crossovers": crossovers, "compressors": compressors, "peqs": peqs}
+            "link_flags": link_flags, "routings": routings, "gates": gates,
+            "delays": delays, "crossovers": crossovers, "compressors": compressors,
+            "peqs": peqs}
 
 
 # --- Gain conversion ---

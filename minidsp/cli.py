@@ -108,15 +108,16 @@ def cmd_dump(args: argparse.Namespace) -> None:
                    style="bold" if is_active else "")
     console.print(pt)
 
-    names  = cfg["names"]
-    gains  = cfg["gains"]
-    mutes  = cfg["mutes"]
-    phases = cfg["phases"]
-    gates  = cfg["gates"]
-    xovers = cfg["crossovers"]
-    comps  = cfg["compressors"]
-    delays = cfg["delays"]
-    peqs   = cfg["peqs"]
+    names    = cfg["names"]
+    gains    = cfg["gains"]
+    mutes    = cfg["mutes"]
+    phases   = cfg["phases"]
+    gates    = cfg["gates"]
+    routings = cfg.get("routings", [0x01, 0x02, 0x04, 0x08])
+    xovers   = cfg["crossovers"]
+    comps    = cfg["compressors"]
+    delays   = cfg["delays"]
+    peqs     = cfg["peqs"]
 
     # ── Table 1: Input channels (signal chain: Gain → Gate) ────────────
     t = Table(title="Input Channels", box=rich_box.SIMPLE_HEAD, show_header=True)
@@ -148,8 +149,17 @@ def cmd_dump(args: argparse.Namespace) -> None:
     def section_out(label: str) -> None:
         t2.add_row(f"── {label}", *[""] * 4, style="dim")
 
-    t2.add_row("Name",  *[names[4 + i] or CH_OUT[i] for i in range(4)])
-    t2.add_row("Gain",  *[db_fmt(gains[4 + i]) for i in range(4)])
+    def routing_fmt(mask: int) -> str:
+        sources = []
+        if mask & 0x01: sources.append("InA")
+        if mask & 0x02: sources.append("InB")
+        if mask & 0x04: sources.append("InC")
+        if mask & 0x08: sources.append("InD")
+        return "+".join(sources) if sources else "None"
+
+    t2.add_row("Name",    *[names[4 + i] or CH_OUT[i] for i in range(4)])
+    t2.add_row("Routing", *[routing_fmt(routings[i]) for i in range(4)])
+    t2.add_row("Gain",    *[db_fmt(gains[4 + i]) for i in range(4)])
     t2.add_row("Mute",  *[yn(mutes[4 + i]) for i in range(4)])
     t2.add_row("Phase", *[phase_fmt(phases[4 + i]) for i in range(4)])
     t2.add_row("Delay", *[f"{delay_samples_to_ms(delays[i]):.3f} ms" for i in range(4)])
