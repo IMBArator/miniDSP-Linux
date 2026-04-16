@@ -774,6 +774,24 @@ def test_cmd_matrix_route_silence():
     assert frame[7] == 0x00  # no inputs
 
 
+def test_cmd_prepare_link():
+    """Verify prepare-link frame encoding (0x2A): InA master, InB slave."""
+    from minidsp.protocol import cmd_prepare_link
+    frame = cmd_prepare_link(0, 1)
+    assert frame[5] == 0x2A  # opcode
+    assert frame[6] == 0x00  # master (InA)
+    assert frame[7] == 0x01  # slave (InB)
+
+
+def test_cmd_channel_link():
+    """Verify channel-link frame encoding (0x3B): InA with InA+InB linked."""
+    from minidsp.protocol import cmd_channel_link
+    frame = cmd_channel_link(0, 0x03)
+    assert frame[5] == 0x3B  # opcode
+    assert frame[6] == 0x00  # channel (InA)
+    assert frame[7] == 0x03  # link flags (InA+InB)
+
+
 if __name__ == "__main__":
     # Simple test runner — no pytest needed
     import inspect

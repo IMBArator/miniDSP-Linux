@@ -48,6 +48,7 @@ from .protocol import (
     cmd_gain,
     cmd_gate,
     cmd_hipass,
+    cmd_channel_link,
     cmd_init,
     cmd_load_preset,
     cmd_lopass,
@@ -55,6 +56,7 @@ from .protocol import (
     cmd_mute,
     cmd_phase,
     cmd_poll,
+    cmd_prepare_link,
     cmd_preset_header,
     cmd_preset_index,
     cmd_read_config,
@@ -531,6 +533,36 @@ class DSPmini:
         Returns True if the device ACK'd.
         """
         payload = self._send_recv(cmd_matrix_route(output_ch, input_mask))
+        if payload is None:
+            return False
+        return is_ack(payload)
+
+    def prepare_link(self, master_ch: int, slave_ch: int) -> bool:
+        """Declare a master-slave pair before linking channels (0x2A).
+
+        Must be sent once per slave immediately before set_channel_link()
+        when linking. Not needed when unlinking.
+
+        master_ch: unified channel index of the master (inputs 0-3, outputs 4-7)
+        slave_ch:  unified channel index of the slave
+        Returns True if the device ACK'd.
+        """
+        payload = self._send_recv(cmd_prepare_link(master_ch, slave_ch))
+        if payload is None:
+            return False
+        return is_ack(payload)
+
+    def set_channel_link(self, channel: int, link_flags: int) -> bool:
+        """Set channel link bitmask (0x3B).
+
+        Send for every affected channel (both master and all slaves).
+        Preceded by prepare_link() per slave pair when linking.
+
+        channel:    unified channel index (inputs 0-3, outputs 4-7)
+        link_flags: bitmask within the 4-channel group (master=OR of all linked bits, slave=0x00)
+        Returns True if the device ACK'd.
+        """
+        payload = self._send_recv(cmd_channel_link(channel, link_flags))
         if payload is None:
             return False
         return is_ack(payload)
