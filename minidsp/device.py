@@ -41,6 +41,7 @@ from .protocol import (
     CONFIG_PAGE_SIZE,
     build_frame,
     cmd_activate,
+    cmd_compressor,
     cmd_device_info,
     cmd_firmware,
     cmd_delay,
@@ -49,6 +50,7 @@ from .protocol import (
     cmd_hipass,
     cmd_init,
     cmd_lopass,
+    cmd_matrix_route,
     cmd_mute,
     cmd_phase,
     cmd_poll,
@@ -431,6 +433,38 @@ class DSPmini:
         Returns True if the device ACK'd.
         """
         payload = self._send_recv(cmd_peq_channel_bypass(channel, bypass))
+        if payload is None:
+            return False
+        return is_ack(payload)
+
+    def set_compressor(self, channel: int, ratio: int, knee: int,
+                       attack: int, release: int, threshold: int) -> bool:
+        """Set compressor/limiter parameters for an output channel (0x30).
+
+        channel:   output channel (0x04–0x07)
+        ratio:     0–15 enum (COMP_RATIO_* constants; 0=1:1, 15=Limit)
+        knee:      0–12 (direct dB, 0=hard knee)
+        attack:    raw 0–998 (ms = raw + 1, range 1–999 ms)
+        release:   raw 9–2999 (ms = raw + 1, range 10–3000 ms)
+        threshold: raw 0–220 (dB = raw/2 − 90, range −90 to +20 dB)
+        Returns True if the device ACK'd.
+        """
+        payload = self._send_recv(
+            cmd_compressor(channel, ratio, knee, attack, release, threshold))
+        if payload is None:
+            return False
+        return is_ack(payload)
+
+    def set_matrix_route(self, output_ch: int, input_mask: int) -> bool:
+        """Set routing matrix for an output channel (0x3A).
+
+        Sets which input(s) feed the given output.
+
+        output_ch:  output channel index (0x04=Out1 .. 0x07=Out4)
+        input_mask: bitmask of sources (InA=0x01, InB=0x02, InC=0x04, InD=0x08; 0x00=silence)
+        Returns True if the device ACK'd.
+        """
+        payload = self._send_recv(cmd_matrix_route(output_ch, input_mask))
         if payload is None:
             return False
         return is_ack(payload)

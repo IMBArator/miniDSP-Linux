@@ -705,6 +705,40 @@ def test_cmd_test_tone_freq_index_clamped():
     assert frame[7] == 0x1E  # clamped to max
 
 
+def test_cmd_compressor():
+    """Verify compressor frame encoding (0x30): Out1, ratio=1:2, knee=6, atk=49, rel=499, thr=220."""
+    from minidsp.protocol import cmd_compressor
+    frame = cmd_compressor(0x04, 0x05, 6, 49, 499, 220)
+    assert frame[5] == 0x30   # opcode
+    assert frame[6] == 0x04   # channel (Out1)
+    assert frame[7] == 0x05   # ratio (1:2.0)
+    assert frame[8] == 0x06   # knee (6 dB)
+    assert frame[9] == 49     # attack lo
+    assert frame[10] == 0x00  # attack hi
+    assert frame[11] == (499 & 0xFF)   # release lo
+    assert frame[12] == (499 >> 8)     # release hi
+    assert frame[13] == 220   # threshold lo
+    assert frame[14] == 0x00  # threshold hi
+
+
+def test_cmd_matrix_route():
+    """Verify matrix routing frame encoding (0x3A): Out1 from InA+InB."""
+    from minidsp.protocol import cmd_matrix_route
+    frame = cmd_matrix_route(0x04, 0x03)
+    assert frame[5] == 0x3A  # opcode
+    assert frame[6] == 0x04  # output channel
+    assert frame[7] == 0x03  # input bitmask (InA+InB)
+
+
+def test_cmd_matrix_route_silence():
+    """Verify routing with no inputs (silence)."""
+    from minidsp.protocol import cmd_matrix_route
+    frame = cmd_matrix_route(0x07, 0x00)
+    assert frame[5] == 0x3A
+    assert frame[6] == 0x07  # Out4
+    assert frame[7] == 0x00  # no inputs
+
+
 if __name__ == "__main__":
     # Simple test runner — no pytest needed
     import inspect
