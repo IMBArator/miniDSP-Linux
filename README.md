@@ -2,24 +2,17 @@
 
 > **Protocol:** Fully reverse-engineered (as far as we can tell) — all commands verified from Wireshark captures.
 
-> **minidsp tool (GUI/CLI):** Proof of concept — gain, mute, and level metering work; the full protocol surface is not yet exposed in the UI.
+> **minidsp tool (CLI):** Gain, mute, dump, and the full protocol surface are available via the CLI. A graphical interface is available in [miniDSP-Linux-qt](https://github.com/IMBArator/miniDSP-Linux-qt).
 
-Linux control tool for the **the t.racks DSP 4x4 Mini** (Musicrown-based DSP processor). Provides a PySide6 GUI and CLI for device control over USB HID — no official Linux software required.
+Linux control tool for the **the t.racks DSP 4x4 Mini** (Musicrown-based DSP processor). Provides a CLI and Python API for device control over USB HID — no official Linux software required.
 
 The USB HID protocol was fully reverse-engineered from Wireshark captures. See [analysis/protocol.md](analysis/protocol.md) for the complete specification and [analysis/feature-list.md](analysis/feature-list.md) for the full feature inventory.
 
 ## Features
 
-### GUI (`minidsp gui`) — *proof of concept*
+### GUI
 
-- Per-channel **gain faders** (−60 to +12 dB) for 4 inputs and 4 outputs
-- **Mute buttons** per channel
-- **dB-scaled level meters** for all 8 channels with clip indicators
-- **Compressor/limiter activity LEDs** per output channel
-- Startup **config read** — faders and mute buttons reflect device state on connect
-- **Auto-reconnect** on USB disconnect
-
-> Most protocol commands (EQ, crossover, delay, compressor, presets, routing, etc.) are implemented in `device.py` and `protocol.py` but not yet wired up to any UI.
+A Qt-based graphical interface is available at [miniDSP-Linux-qt](https://github.com/IMBArator/miniDSP-Linux-qt).
 
 ### Protocol implemented (usable via `device.py`)
 
@@ -50,7 +43,6 @@ All commands verified against real Wireshark captures on the device.
 ### CLI (`minidsp`)
 
 ```
-gui                     Launch the graphical interface
 dump                    Dump all DSP configuration parameters as tables
 mute    [channel ...]   Mute input channel(s)
 unmute  [channel ...]   Unmute input channel(s)
@@ -69,18 +61,10 @@ unmute  [channel ...]   Unmute input channel(s)
 git clone https://github.com/IMBArator/miniDSP-Linux.git
 cd miniDSP-Linux
 uv sync              # creates .venv, installs core deps
-uv sync --extra gui  # also installs PySide6 for the GUI
 uv sync --extra dev  # also installs pytest for development
 ```
 
 ## Usage
-
-### GUI
-
-```bash
-minidsp gui
-# or: uv run minidsp gui
-```
 
 ### CLI
 
@@ -181,12 +165,7 @@ minidsp/                  Python control package
   __main__.py             Entry point (delegates to cli.main)
   device.py               USB HID open/close, send/recv, config read
   protocol.py             Frame encoding/decoding, all command builders
-  cli.py                  CLI subcommands: gui, dump, mute, unmute
-  gui/                    PySide6 GUI
-    main_window.py        Main window with 8 channel strips
-    channel_strip.py      Fader + meter + mute + compressor LED
-    level_meter.py        Custom QPainter dB-scaled meter
-    device_thread.py      QThread polling + command coalescing
+  cli.py                  CLI subcommands: dump, mute, unmute
 
 dspanalyze/               Protocol analysis toolchain
   cli.py                  Entry point: analyze, check, capture, diff-config, list-captures
@@ -207,6 +186,7 @@ analysis/                 Reverse engineering reference
 
 ## Related projects
 
+- [miniDSP-Linux-qt](https://github.com/IMBArator/miniDSP-Linux-qt) — Qt-based GUI for this library
 - [dsp-408-ui](https://github.com/Aeternitaas/dsp-408-ui) — Same Musicrown protocol over TCP for the DSP 408. Cross-referenced for shared encoding formulas (gain, frequency, Q).
 
 ## License

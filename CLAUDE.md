@@ -25,16 +25,10 @@ Reverse engineer the USB HID protocol used by the **the t.racks DSP 4x4 Mini** (
 ```
 minidsp/                  # Python package — the runtime control application
   __init__.py
-  __main__.py             # entry point (--gui or CLI)
+  __main__.py             # entry point (CLI)
   device.py               # USB HID open/close, send/recv, config read
   protocol.py             # frame encoding/decoding, command builders, parsers
-  cli.py                  # CLI (mute/unmute)
-  gui/                    # PySide6 GUI
-    app.py                # QApplication entry, dark theme
-    main_window.py        # main window with 8 channel strips
-    channel_strip.py      # fader + meter + mute + compressor LED
-    level_meter.py        # custom QPainter dB-scaled meter
-    device_thread.py      # QThread polling + command coalescing
+  cli.py                  # CLI (dump, mute/unmute)
 
 dspanalyze/               # Protocol analysis toolchain
   __init__.py
