@@ -399,8 +399,9 @@ class DSPmini:
             config_data.extend(data)
         # Step 8: activate
         log.info("Step 8/8: activate (0x12)")
-        if self._send_recv(cmd_activate(), skip_polls=True) is None:
-            log.warning("Step 8/8: activate — no response")
+        act = self._send_recv(cmd_activate(), skip_polls=True)
+        if act is None or not is_ack(act):
+            log.warning("Step 8/8: activate — no ACK (config data is valid but activation uncertain)")
         params = parse_preset_params(bytes(config_data))
         if params is None:
             log.warning("parse_preset_params failed on %d bytes of config data",
@@ -418,10 +419,8 @@ class DSPmini:
         Returns the new config dict (same format as read_config()), or None on failure.
         """
         log.info("load_preset: sending 0x20 for slot %d", slot)
-        payload = self._send_recv(cmd_load_preset(slot), skip_polls=True)
-        if payload is None:
-            return None
-        if not is_ack(payload):
+        payload = self._send_recv(cmd_load_preset(slot), skip_polls=True, timeout_ms=2000)
+        if payload is None or not is_ack(payload):
             log.warning("load_preset: device did not ACK load command")
             return None
         # Re-read config pages (the device now has the new preset active)
@@ -440,7 +439,10 @@ class DSPmini:
             config_data.extend(data)
         # Activate the new preset
         log.info("load_preset: sending activate")
-        self._send_recv(cmd_activate(), skip_polls=True)
+        payload = self._send_recv(cmd_activate(), skip_polls=True)
+        if payload is None or not is_ack(payload):
+            log.warning("load_preset: activate — no ACK, preset may not be active")
+            return None
         return parse_preset_params(bytes(config_data))
 
     def store_preset(self, slot: int, name: str) -> bool:
@@ -470,7 +472,10 @@ class DSPmini:
             return False
         # Activate after store
         log.info("store_preset: sending activate")
-        self._send_recv(cmd_activate(), skip_polls=True)
+        payload = self._send_recv(cmd_activate(), skip_polls=True)
+        if payload is None or not is_ack(payload):
+            log.warning("store_preset: activate — no ACK")
+            return False
         return True
 
     def set_peq_band(self, channel: int, band: int, gain_raw: int,
