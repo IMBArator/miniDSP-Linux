@@ -3,7 +3,6 @@
 the t.racks DSP 4x4 Mini — CLI control tool.
 
 Usage:
-    python -m minidsp gui             # Launch graphical interface
     python -m minidsp dump            # Dump full DSP configuration as tables
     python -m minidsp mute 1         # Mute input channel 1
     python -m minidsp unmute 1        # Unmute input channel 1
@@ -17,20 +16,6 @@ import logging
 import sys
 
 from .device import DSPmini
-
-
-def cmd_gui(args: argparse.Namespace) -> None:
-    """Launch the graphical interface."""
-    try:
-        from .gui.app import run_gui
-    except ImportError:
-        print(
-            "Error: GUI dependencies not installed.\n"
-            "Install them with:  uv sync --extra gui",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    run_gui()
 
 
 def cmd_dump(args: argparse.Namespace) -> None:
@@ -245,10 +230,6 @@ def main() -> None:
         help="Increase verbosity (-v: info, -vv: debug)",
     )
     sub = parser.add_subparsers(dest="command", required=True)
-
-    # gui
-    p_gui = sub.add_parser("gui", help="Launch the graphical interface")
-    p_gui.set_defaults(func=cmd_gui)
 
     # dump
     p_dump = sub.add_parser("dump", help="Dump all DSP configuration parameters as tables")

@@ -13,7 +13,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-gui = ["PySide6>=6.5"]
 dev = ["pytest>=7.0"]
 
 [project.scripts]
