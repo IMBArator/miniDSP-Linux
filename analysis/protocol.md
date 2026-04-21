@@ -927,6 +927,16 @@ captures confirm it is zero-based with F00 at index 0.
 
 Mid-session preset change requires no re-init — just step 1→3 above.
 
+**Timing note:** The device does not ACK the `0x20` load command immediately — it
+applies the preset internally before responding. With the default 500 ms timeout
+the host may time out and treat the load as failed. A **2-second timeout** on the
+`0x20` response is recommended. Similarly, after the final `0x12` activate, the
+device may need a brief settling period before it is ready to respond to poll
+(`0x40`) commands. If the host re-enters the poll loop too quickly after activate,
+consecutive poll timeouts can trigger a false disconnect. Checking the activate
+ACK (not just the presence of a response) and allowing a short grace period
+prevents this.
+
 **Config page 0 marker bytes (bytes 0–1 of the 450-byte config blob):**
 - `ff ff` — user preset with customised content (U01, U02)
 - `ff 00` — factory/default state (F00, or an empty user slot that was never modified)
