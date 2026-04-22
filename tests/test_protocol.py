@@ -792,6 +792,78 @@ def test_cmd_channel_link():
     assert frame[7] == 0x03  # link flags (InA+InB)
 
 
+def test_decode_link_groups_all_standalone():
+    from minidsp.protocol import decode_link_groups
+    flags = [0x01, 0x02, 0x04, 0x08, 0x01, 0x02, 0x04, 0x08]
+    result = decode_link_groups(flags)
+    assert len(result) == 8
+    for r in result:
+        assert r["role"] == "standalone"
+        assert r["master"] is None
+        assert r["linked_to"] == []
+
+
+def test_decode_link_groups_input_2ch():
+    from minidsp.protocol import decode_link_groups
+    # InA+InB linked: InA master (0x03), InB slave (0x00)
+    flags = [0x03, 0x00, 0x04, 0x08, 0x01, 0x02, 0x04, 0x08]
+    result = decode_link_groups(flags)
+    assert result[0]["role"] == "master"
+    assert result[0]["linked_to"] == [0, 1]
+    assert result[0]["master"] is None
+    assert result[1]["role"] == "slave"
+    assert result[1]["master"] == 0
+    assert result[1]["linked_to"] == []
+    assert result[2]["role"] == "standalone"
+    assert result[3]["role"] == "standalone"
+
+
+def test_decode_link_groups_input_3ch():
+    from minidsp.protocol import decode_link_groups
+    # InA+InB+InC linked: InA master (0x07), InB slave (0x00), InC slave (0x00)
+    flags = [0x07, 0x00, 0x00, 0x08, 0x01, 0x02, 0x04, 0x08]
+    result = decode_link_groups(flags)
+    assert result[0]["role"] == "master"
+    assert result[0]["linked_to"] == [0, 1, 2]
+    assert result[1]["role"] == "slave"
+    assert result[1]["master"] == 0
+    assert result[2]["role"] == "slave"
+    assert result[2]["master"] == 0
+    assert result[3]["role"] == "standalone"
+
+
+def test_decode_link_groups_output_2ch():
+    from minidsp.protocol import decode_link_groups
+    # Out1+Out2 linked: Out1 master (0x03), Out2 slave (0x00)
+    flags = [0x01, 0x02, 0x04, 0x08, 0x03, 0x00, 0x04, 0x08]
+    result = decode_link_groups(flags)
+    assert result[4]["role"] == "master"
+    assert result[4]["linked_to"] == [4, 5]
+    assert result[5]["role"] == "slave"
+    assert result[5]["master"] == 4
+    assert result[6]["role"] == "standalone"
+    assert result[7]["role"] == "standalone"
+
+
+def test_decode_link_groups_mixed():
+    from minidsp.protocol import decode_link_groups
+    # Inputs: InA+InB linked. Outputs: Out3+Out4 linked.
+    flags = [0x03, 0x00, 0x04, 0x08, 0x01, 0x02, 0x0C, 0x00]
+    result = decode_link_groups(flags)
+    assert result[0]["role"] == "master"
+    assert result[0]["linked_to"] == [0, 1]
+    assert result[1]["role"] == "slave"
+    assert result[1]["master"] == 0
+    assert result[2]["role"] == "standalone"
+    assert result[3]["role"] == "standalone"
+    assert result[4]["role"] == "standalone"
+    assert result[5]["role"] == "standalone"
+    assert result[6]["role"] == "master"
+    assert result[6]["linked_to"] == [6, 7]
+    assert result[7]["role"] == "slave"
+    assert result[7]["master"] == 6
+
+
 if __name__ == "__main__":
     # Simple test runner — no pytest needed
     import inspect

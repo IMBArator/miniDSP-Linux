@@ -988,3 +988,69 @@ OUTPUT_CHANNEL_NAMES: tuple[str, ...] = ("Out1", "Out2", "Out3", "Out4")
 CHANNEL_NAMES: dict[int, str] = {
     i: name for i, name in enumerate(INPUT_CHANNEL_NAMES + OUTPUT_CHANNEL_NAMES)
 }
+
+
+def decode_link_groups(link_flags: list[int]) -> list[dict]:
+    """Decode raw link_flags (8 entries: inputs 0-3, outputs 4-7) into structured link info.
+
+    Returns a list of 8 dicts, one per channel:
+      { "role": "master"|"slave"|"standalone",
+        "master": int|None,      # master channel index (slaves only)
+        "linked_to": list[int] } # all channels in the group (masters only, includes self)
+
+    Link flag semantics (within each 4-channel group):
+      - Standalone: flags == own bit only (e.g. InA=0x01)
+      - Master:     flags == OR of all linked bits (e.g. InA+InB=0x03)
+      - Slave:      flags == 0x00
+
+    Groups are processed independently: inputs 0-3, outputs 4-7.
+    """
+    results: list[dict] = []
+    for group_start in (0, 4):
+        for i in range(4):
+            ch = group_start + i
+            own_bit = 1 << i
+            flags = link_flags[ch] if ch < len(link_flags) else own_bit
+
+            if flags == 0x00:
+                master_ch = _find_master(link_flags, group_start, ch)
+                results.append({
+                    "role": "slave",
+                    "master": master_ch,
+                    "linked_to": [],
+                })
+            elif flags == own_bit:
+                results.append({
+                    "role": "standalone",
+                    "master": None,
+                    "linked_to": [],
+                })
+            else:
+                linked = [
+                    group_start + b
+                    for b in range(4)
+                    if flags & (1 << b)
+                ]
+                results.append({
+                    "role": "master",
+                    "master": None,
+                    "linked_to": linked,
+                })
+    return results
+
+
+def _find_master(link_flags: list[int], group_start: int, slave_ch: int) -> int | None:
+    """Find which channel in the group is the master for the given slave.
+
+    The master's flags will have the slave's bit set.
+    """
+    slave_idx = slave_ch - group_start
+    slave_bit = 1 << slave_idx
+    for b in range(4):
+        ch = group_start + b
+        if ch == slave_ch:
+            continue
+        flags = link_flags[ch] if ch < len(link_flags) else 0
+        if flags & slave_bit:
+            return ch
+    return None

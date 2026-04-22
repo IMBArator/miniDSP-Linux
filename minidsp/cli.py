@@ -29,6 +29,7 @@ def cmd_dump(args: argparse.Namespace) -> None:
         comp_threshold_to_db, comp_attack_to_ms, comp_release_to_ms,
         SLOPE_NAMES, PEQ_TYPE_NAMES, COMP_RATIO_NAMES,
         INPUT_CHANNEL_NAMES, OUTPUT_CHANNEL_NAMES,
+        CHANNEL_NAMES, decode_link_groups,
         peq_raw_to_gain, peq_raw_to_q,
     )
 
@@ -60,6 +61,16 @@ def cmd_dump(args: argparse.Namespace) -> None:
 
     def phase_fmt(b: bool) -> str:
         return "180°" if b else "0°"
+
+    def link_fmt(ch: int) -> str:
+        info = link_groups[ch]
+        if info["role"] == "slave":
+            m = info["master"]
+            return f"→ {CHANNEL_NAMES[m]}" if m is not None else "slave"
+        if info["role"] == "master":
+            peers = [CHANNEL_NAMES[p] for p in info["linked_to"] if p != ch]
+            return "↔ " + ", ".join(peers) if peers else "master"
+        return "No"
 
     def freq_fmt(raw: int) -> str:
         return "Off" if raw == 0 else f"{freq_raw_to_hz(raw):.0f} Hz"
@@ -103,6 +114,8 @@ def cmd_dump(args: argparse.Namespace) -> None:
     comps    = cfg["compressors"]
     delays   = cfg["delays"]
     peqs     = cfg["peqs"]
+    link_groups = decode_link_groups(cfg.get("link_flags", [0x01, 0x02, 0x04, 0x08,
+                                                             0x01, 0x02, 0x04, 0x08]))
 
     # ── Table 1: Input channels (signal chain: Gain → Gate) ────────────
     t = Table(title="Input Channels", box=rich_box.SIMPLE_HEAD, show_header=True)
@@ -117,6 +130,7 @@ def cmd_dump(args: argparse.Namespace) -> None:
     t.add_row("Gain",  *[db_fmt(gains[i]) for i in range(4)])
     t.add_row("Mute",  *[yn(mutes[i]) for i in range(4)])
     t.add_row("Phase", *[phase_fmt(phases[i]) for i in range(4)])
+    t.add_row("Link",  *[link_fmt(i) for i in range(4)])
     section_in("Noise Gate")
     t.add_row("Threshold", *[f"{gate_threshold_to_db(gates[i]['threshold']):.1f} dB" for i in range(4)])
     t.add_row("Attack",    *[f"{gate_time_to_ms(gates[i]['attack'])} ms"  for i in range(4)])
@@ -147,6 +161,7 @@ def cmd_dump(args: argparse.Namespace) -> None:
     t2.add_row("Gain",    *[db_fmt(gains[4 + i]) for i in range(4)])
     t2.add_row("Mute",  *[yn(mutes[4 + i]) for i in range(4)])
     t2.add_row("Phase", *[phase_fmt(phases[4 + i]) for i in range(4)])
+    t2.add_row("Link",  *[link_fmt(4 + i) for i in range(4)])
     t2.add_row("Delay", *[f"{delay_samples_to_ms(delays[i]):.3f} ms" for i in range(4)])
     section_out("High-pass Crossover")
     t2.add_row("Frequency", *[freq_fmt(xovers[i]["hipass_freq"]) for i in range(4)])
