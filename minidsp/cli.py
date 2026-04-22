@@ -29,7 +29,7 @@ def cmd_dump(args: argparse.Namespace) -> None:
         comp_threshold_to_db, comp_attack_to_ms, comp_release_to_ms,
         SLOPE_NAMES, PEQ_TYPE_NAMES, COMP_RATIO_NAMES,
         INPUT_CHANNEL_NAMES, OUTPUT_CHANNEL_NAMES,
-        CHANNEL_NAMES, decode_link_groups,
+        CHANNEL_NAMES, decode_link_groups, decode_routing_matrix,
         peq_raw_to_gain, peq_raw_to_q,
     )
 
@@ -116,6 +116,7 @@ def cmd_dump(args: argparse.Namespace) -> None:
     peqs     = cfg["peqs"]
     link_groups = decode_link_groups(cfg.get("link_flags", [0x01, 0x02, 0x04, 0x08,
                                                              0x01, 0x02, 0x04, 0x08]))
+    routing_info = decode_routing_matrix(routings)
 
     # ── Table 1: Input channels (signal chain: Gain → Gate) ────────────
     t = Table(title="Input Channels", box=rich_box.SIMPLE_HEAD, show_header=True)
@@ -148,16 +149,12 @@ def cmd_dump(args: argparse.Namespace) -> None:
     def section_out(label: str) -> None:
         t2.add_row(f"── {label}", *[""] * 4, style="dim")
 
-    def routing_fmt(mask: int) -> str:
-        sources = []
-        if mask & 0x01: sources.append("InA")
-        if mask & 0x02: sources.append("InB")
-        if mask & 0x04: sources.append("InC")
-        if mask & 0x08: sources.append("InD")
+    def routing_str(i: int) -> str:
+        sources = routing_info[i]["sources"]
         return "+".join(sources) if sources else "None"
 
     t2.add_row("Name",    *[names[4 + i] or CH_OUT[i] for i in range(4)])
-    t2.add_row("Routing", *[routing_fmt(routings[i]) for i in range(4)])
+    t2.add_row("Routing", *[routing_str(i) for i in range(4)])
     t2.add_row("Gain",    *[db_fmt(gains[4 + i]) for i in range(4)])
     t2.add_row("Mute",  *[yn(mutes[4 + i]) for i in range(4)])
     t2.add_row("Phase", *[phase_fmt(phases[4 + i]) for i in range(4)])

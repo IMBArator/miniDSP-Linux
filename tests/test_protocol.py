@@ -864,6 +864,58 @@ def test_decode_link_groups_mixed():
     assert result[7]["master"] == 6
 
 
+def test_decode_routing_matrix_default_diagonal():
+    from minidsp.protocol import decode_routing_matrix
+    routings = [0x01, 0x02, 0x04, 0x08]
+    result = decode_routing_matrix(routings)
+    assert len(result) == 4
+    assert result[0] == {"sources": ["InA"], "source_indices": [0], "mask": 0x01}
+    assert result[1] == {"sources": ["InB"], "source_indices": [1], "mask": 0x02}
+    assert result[2] == {"sources": ["InC"], "source_indices": [2], "mask": 0x04}
+    assert result[3] == {"sources": ["InD"], "source_indices": [3], "mask": 0x08}
+
+
+def test_decode_routing_matrix_two_sources():
+    from minidsp.protocol import decode_routing_matrix
+    routings = [0x03, 0x02, 0x04, 0x08]
+    result = decode_routing_matrix(routings)
+    assert result[0]["sources"] == ["InA", "InB"]
+    assert result[0]["source_indices"] == [0, 1]
+    assert result[0]["mask"] == 0x03
+
+
+def test_decode_routing_matrix_all_sources():
+    from minidsp.protocol import decode_routing_matrix
+    routings = [0x0F, 0x02, 0x04, 0x08]
+    result = decode_routing_matrix(routings)
+    assert result[0]["sources"] == ["InA", "InB", "InC", "InD"]
+    assert result[0]["source_indices"] == [0, 1, 2, 3]
+    assert result[0]["mask"] == 0x0F
+
+
+def test_decode_routing_matrix_silence():
+    from minidsp.protocol import decode_routing_matrix
+    routings = [0x00, 0x02, 0x04, 0x08]
+    result = decode_routing_matrix(routings)
+    assert result[0]["sources"] == []
+    assert result[0]["source_indices"] == []
+    assert result[0]["mask"] == 0x00
+
+
+def test_decode_routing_matrix_mixed():
+    from minidsp.protocol import decode_routing_matrix
+    routings = [0x05, 0x00, 0x0F, 0x08]
+    result = decode_routing_matrix(routings)
+    assert result[0]["sources"] == ["InA", "InC"]
+    assert result[0]["mask"] == 0x05
+    assert result[1]["sources"] == []
+    assert result[1]["mask"] == 0x00
+    assert result[2]["sources"] == ["InA", "InB", "InC", "InD"]
+    assert result[2]["mask"] == 0x0F
+    assert result[3]["sources"] == ["InD"]
+    assert result[3]["mask"] == 0x08
+
+
 if __name__ == "__main__":
     # Simple test runner — no pytest needed
     import inspect

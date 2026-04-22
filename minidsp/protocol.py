@@ -1054,3 +1054,32 @@ def _find_master(link_flags: list[int], group_start: int, slave_ch: int) -> int 
         if flags & slave_bit:
             return ch
     return None
+
+
+_ROUTING_INPUT_BITS = {0: "InA", 1: "InB", 2: "InC", 3: "InD"}
+
+
+def decode_routing_matrix(routings: list[int]) -> list[dict]:
+    """Decode output routing masks into structured per-output info.
+
+    Takes the 4-element routings list from parse_preset_params() and returns
+    a list of 4 dicts (one per output channel):
+
+      { "sources": list[str],        # ["InA", "InB"]
+        "source_indices": list[int],  # [0, 1]
+        "mask": int }                 # 0x03
+
+    A mask of 0x00 means no input (silence). Default routing is 1:1 diagonal:
+    [0x01, 0x02, 0x04, 0x08] (Out1←InA, Out2←InB, Out3←InC, Out4←InD).
+    """
+    results: list[dict] = []
+    for i in range(4):
+        mask = routings[i] if i < len(routings) else (1 << i)
+        source_indices = [b for b in range(4) if mask & (1 << b)]
+        sources = [_ROUTING_INPUT_BITS[b] for b in source_indices]
+        results.append({
+            "sources": sources,
+            "source_indices": source_indices,
+            "mask": mask,
+        })
+    return results
