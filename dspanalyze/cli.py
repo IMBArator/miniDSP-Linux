@@ -156,6 +156,33 @@ def main() -> None:
                         help="Directory to scan (default: analysis/usb_captures)")
     p_list.set_defaults(func=cmd_list_captures)
 
+    # --- calibrate ---
+    p_cal = sub.add_parser("calibrate",
+                           help="Level meter calibration tool")
+    cal_sub = p_cal.add_subparsers(dest="calibrate_action", required=True)
+
+    p_cal_capture = cal_sub.add_parser("capture",
+                                       help="Capture raw levels at a known analog level")
+    p_cal_capture.add_argument("dbu", type=float,
+                               help="Known analog signal level in dBu (e.g. 0, -10, -30)")
+    p_cal_capture.add_argument("-c", "--channel", type=int, default=0,
+                               help="Channel index 0-7 (default: 0=InA)")
+    p_cal_capture.add_argument("-s", "--samples", type=int, default=None,
+                               help="Number of samples (default: 20)")
+    p_cal_capture.set_defaults(func=cmd_calibrate)
+
+    cal_sub.add_parser("show",
+                       help="Display stored calibration points and computed REF_LEVEL") \
+        .set_defaults(func=cmd_calibrate)
+
+    cal_sub.add_parser("apply",
+                       help="Compute best-fit REF_LEVEL and write to calibration.toml") \
+        .set_defaults(func=cmd_calibrate)
+
+    cal_sub.add_parser("reset",
+                       help="Revert calibration.toml to factory defaults") \
+        .set_defaults(func=cmd_calibrate)
+
     args = parser.parse_args()
     args.func(args)
 
@@ -266,3 +293,28 @@ def cmd_capture(args: argparse.Namespace) -> None:
         interface=args.interface,
         device_address=args.device_address,
     )
+
+
+def cmd_calibrate(args: argparse.Namespace) -> None:
+    """Dispatch calibration subcommands."""
+    from dspanalyze.calibrate import (
+        DEFAULT_SAMPLES,
+        cmd_calibrate_apply,
+        cmd_calibrate_capture,
+        cmd_calibrate_reset,
+        cmd_calibrate_show,
+    )
+
+    action = args.calibrate_action
+    if action == "capture":
+        n = args.samples or DEFAULT_SAMPLES
+        cmd_calibrate_capture(dbu=args.dbu, channel=args.channel, n_samples=n)
+    elif action == "show":
+        cmd_calibrate_show()
+    elif action == "apply":
+        cmd_calibrate_apply()
+    elif action == "reset":
+        cmd_calibrate_reset()
+    else:
+        print(f"Unknown calibrate action: {action}", file=sys.stderr)
+        sys.exit(1)

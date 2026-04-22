@@ -938,21 +938,83 @@ def delay_samples_to_ms(raw: int) -> float:
     return raw / 48.0
 
 
-# --- Level conversion ---
+# --- Level conversion & calibration ---
 
-# Two-point dB calibration from captures: 0 dBu → uint16 ~188,
-# −30 dBu → uint16 ~5.  REF_LEVEL = 188 * 10^(15.75/20) ≈ 1153.
-LEVEL_REF_UINT16 = 1153
+# Factory calibration: designed for 63 dB display range matching the
+# manufacturer's LED meter layout.  0 dBu → uint16 ~188, -30 dBu → uint16 ~5.
+LEVEL_REF_UINT16_FACTORY = 1153
+LEVEL_REF_UINT16 = LEVEL_REF_UINT16_FACTORY
+
+_CALIBRATION_LOADED = False
+
+
+def _load_calibration_ref() -> float | None:
+    """Load calibrated REF_LEVEL from package-bundled calibration.toml."""
+    import importlib.resources
+    import tomllib
+    try:
+        data = importlib.resources.files("minidsp").joinpath("calibration.toml")
+        with importlib.resources.as_file(data) as path:
+            if path.exists():
+                with open(path, "rb") as f:
+                    cal = tomllib.load(f)
+                return cal.get("ref_level")
+    except Exception:
+        log.debug("No calibration.toml found in package, using factory default")
+    return None
+
+
+def _ensure_ref_level() -> float:
+    """Return the effective REF_LEVEL, loading package calibration once."""
+    global LEVEL_REF_UINT16, _CALIBRATION_LOADED
+    if not _CALIBRATION_LOADED:
+        _CALIBRATION_LOADED = True
+        ref = _load_calibration_ref()
+        if ref is not None:
+            LEVEL_REF_UINT16 = ref
+            log.debug("Loaded calibrated REF_LEVEL = %.2f", ref)
+    return LEVEL_REF_UINT16
 
 
 def level_uint16_to_dbu(raw: int | float) -> float:
-    """Linear uint16 amplitude → dBu using the device's calibrated reference.
+    """Linear uint16 amplitude → dBu using the calibrated reference level.
 
-    Returns -inf for raw ≈ 0 (silence). Formula: 20·log10(raw / 1153).
+    Uses REF_LEVEL from ``minidsp/calibration.toml`` if present,
+    otherwise the factory default (1153).
+    Returns -inf for raw ≈ 0 (silence).
     """
     if raw < 0.01:
         return float("-inf")
-    return 20.0 * math.log10(raw / LEVEL_REF_UINT16)
+    ref = _ensure_ref_level()
+    return 20.0 * math.log10(raw / ref)
+
+
+def calibrate_compute_ref(points: list[dict]) -> float | None:
+    """Compute best-fit REF_LEVEL from calibration points using weighted least-squares.
+
+    Each point has 'dbu' and 'mean_uint16'. We fit:
+      dbu = 20 * log10(uint16 / REF)
+    => REF = uint16 / 10^(dbu/20)
+
+    Returns the weighted geometric mean of per-point REF values, weighted
+    by uint16 magnitude (higher values have less quantization error).
+    """
+    if len(points) < 2:
+        return None
+    log_refs = []
+    weights = []
+    for p in points:
+        v = p["mean_uint16"]
+        if v < 1:
+            continue
+        ref = v / (10.0 ** (p["dbu"] / 20.0))
+        log_refs.append(math.log(ref))
+        weights.append(v)
+    if not log_refs:
+        return None
+    total_w = sum(weights)
+    weighted_mean = sum(lr * w for lr, w in zip(log_refs, weights)) / total_w
+    return math.exp(weighted_mean)
 
 
 # Human-readable name lookup tables for display

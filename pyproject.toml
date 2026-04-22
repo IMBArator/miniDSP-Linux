@@ -22,5 +22,8 @@ dspanalyze = "dspanalyze.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["minidsp", "dspanalyze"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"minidsp/calibration.toml" = "minidsp/calibration.toml"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

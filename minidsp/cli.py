@@ -4,6 +4,8 @@ the t.racks DSP 4x4 Mini — CLI control tool.
 
 Usage:
     python -m minidsp dump            # Dump full DSP configuration as tables
+    python -m minidsp levels          # Snapshot live levels (raw + dB)
+    python -m minidsp levels --watch  # Continuous level monitoring
     python -m minidsp mute 1         # Mute input channel 1
     python -m minidsp unmute 1        # Unmute input channel 1
     python -m minidsp mute 1 2 3 4   # Mute all input channels
@@ -12,8 +14,12 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import csv
 import logging
+import signal as signal_mod
 import sys
+import time
+from pathlib import Path
 
 from .device import DSPmini
 
@@ -201,6 +207,94 @@ def cmd_dump(args: argparse.Namespace) -> None:
         console.print(tp)
 
 
+def cmd_levels(args: argparse.Namespace) -> None:
+    """Poll device levels and display raw uint16 + dB for all 8 channels."""
+    from rich.console import Console
+    from rich.table import Table
+    from rich import box as rich_box
+    from .protocol import (
+        level_uint16_to_dbu,
+        INPUT_CHANNEL_NAMES, OUTPUT_CHANNEL_NAMES,
+    )
+
+    console = Console()
+    ch_names = list(INPUT_CHANNEL_NAMES) + list(OUTPUT_CHANNEL_NAMES)
+
+    csv_file = None
+    csv_writer = None
+    if args.csv:
+        csv_path = Path(args.csv)
+        csv_file = open(csv_path, "w", newline="")
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(["timestamp"] + [f"{n}_raw" for n in ch_names]
+                            + [f"{n}_dB" for n in ch_names])
+
+    count = args.count or 0
+    interval = args.interval or 0.3
+    watch = args.watch
+    if watch:
+        count = 0
+
+    dsp = DSPmini()
+    try:
+        dsp.open()
+    except Exception as e:
+        print(f"Error: Could not open device: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    running = True
+
+    def _stop(sig, frame):
+        nonlocal running
+        running = False
+
+    signal_mod.signal(signal_mod.SIGINT, _stop)
+
+    try:
+        n = 0
+        while running:
+            levels = dsp.poll_levels()
+            if levels is None:
+                print("  (timeout — no response)", file=sys.stderr)
+                if not watch:
+                    break
+                time.sleep(interval)
+                continue
+
+            inputs = levels["inputs"]
+            outputs = levels["outputs"]
+            all_vals = inputs + outputs
+
+            if csv_writer:
+                ts = f"{time.time():.3f}"
+                db_vals = [level_uint16_to_dbu(v) for v in all_vals]
+                db_strs = [f"{v:.2f}" if v != float("-inf") else "-inf" for v in db_vals]
+                csv_writer.writerow([ts] + all_vals + db_strs)
+                csv_file.flush()
+
+            if not args.csv_only:
+                t = Table(box=rich_box.SIMPLE, show_header=True)
+                t.add_column("Ch", style="bold", min_width=4)
+                t.add_column("Raw", justify="right", min_width=5)
+                t.add_column("dBu", justify="right", min_width=8)
+                for name, val in zip(ch_names, all_vals):
+                    db = level_uint16_to_dbu(val)
+                    db_str = f"{db:+.1f}" if db != float("-inf") else " -inf"
+                    t.add_row(name, str(val), db_str)
+                console.print(t)
+
+            n += 1
+            if count and n >= count:
+                break
+            if not watch and count == 0:
+                break
+            time.sleep(interval)
+    finally:
+        dsp.close()
+        if csv_file:
+            csv_file.close()
+
+
 def cmd_mute(args: argparse.Namespace) -> None:
     """Mute one or more input channels."""
     _do_mute(args.channels, mute=True)
@@ -246,6 +340,21 @@ def main() -> None:
     # dump
     p_dump = sub.add_parser("dump", help="Dump all DSP configuration parameters as tables")
     p_dump.set_defaults(func=cmd_dump)
+
+    # levels
+    p_levels = sub.add_parser("levels",
+                              help="Snapshot live level meter values (raw + dB)")
+    p_levels.add_argument("-n", "--count", type=int, default=None,
+                          help="Number of snapshots (default: 1)")
+    p_levels.add_argument("-w", "--watch", action="store_true",
+                          help="Continuous monitoring (Ctrl+C to stop)")
+    p_levels.add_argument("-i", "--interval", type=float, default=None,
+                          help="Poll interval in seconds (default: 0.3)")
+    p_levels.add_argument("--csv", type=str, default=None,
+                          help="Log all readings to CSV file")
+    p_levels.add_argument("--csv-only", action="store_true",
+                          help="Only write CSV, no console output")
+    p_levels.set_defaults(func=cmd_levels)
 
     # mute
     p_mute = sub.add_parser("mute", help="Mute input channel(s)")
