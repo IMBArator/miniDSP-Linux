@@ -44,8 +44,31 @@ All commands verified against real Wireshark captures on the device.
 
 ```
 dump                    Dump all DSP configuration parameters as tables
+levels [--watch]        Snapshot live level meters (raw uint16 + dBu)
 mute    [channel ...]   Mute input channel(s)
 unmute  [channel ...]   Unmute input channel(s)
+```
+
+### Level meter calibration (`dspanalyze calibrate`)
+
+The level meter calibration is maintained in `minidsp/calibration.toml` (shipped as a package resource). The analysis toolkit provides the tooling to calibrate it using a known signal source:
+
+```bash
+# Capture raw levels at a known analog level (e.g. 0 dBu from a signal generator)
+dspanalyze calibrate capture 0
+
+# Capture at more levels for better accuracy
+dspanalyze calibrate capture -10
+dspanalyze calibrate capture -30
+
+# View all calibration points and measured errors
+dspanalyze calibrate show
+
+# Compute best-fit REF_LEVEL and write it to the package
+dspanalyze calibrate apply
+
+# Revert to factory default
+dspanalyze calibrate reset
 ```
 
 ## Requirements
@@ -72,6 +95,15 @@ uv sync --extra dev  # also installs pytest for development
 # Dump all DSP parameters (presets, gains, EQ, crossover, compressor, …)
 minidsp dump
 
+# Snapshot live level meters (all 8 channels: raw uint16 + dBu)
+minidsp levels
+
+# Continuous level monitoring (Ctrl+C to stop)
+minidsp levels --watch
+
+# Log level readings to CSV for offline analysis
+minidsp levels --watch --csv levels.csv
+
 # Mute input channels 1 and 2
 minidsp mute 1 2
 
@@ -95,6 +127,11 @@ dspanalyze check capture.pcapng --assertion all
 
 # List all captures with metadata summaries
 dspanalyze list-captures analysis/usb_captures/
+
+# Calibrate level meters using a signal generator
+dspanalyze calibrate capture 0       # capture at 0 dBu
+dspanalyze calibrate show            # view points + errors
+dspanalyze calibrate apply           # compute and write REF_LEVEL
 ```
 
 See `Makefile` for pre-defined analysis workflows (`make analyze FILE=...`, `make diff-config FILE=...`, etc.).
@@ -165,10 +202,12 @@ minidsp/                  Python control package
   __main__.py             Entry point (delegates to cli.main)
   device.py               USB HID open/close, send/recv, config read
   protocol.py             Frame encoding/decoding, all command builders
-  cli.py                  CLI subcommands: dump, mute, unmute
+  calibration.toml        Level meter calibration (REF_LEVEL + anchor points)
+  cli.py                  CLI subcommands: dump, levels, mute, unmute
 
 dspanalyze/               Protocol analysis toolchain
-  cli.py                  Entry point: analyze, check, capture, diff-config, list-captures
+  cli.py                  Entry point: analyze, check, capture, diff-config, list-captures, calibrate
+  calibrate.py            Level meter calibration tool (capture, show, apply, reset)
   protocol_config.toml    All protocol knowledge (opcodes, fields, value formats)
   decode.py               Frame → structured command decoder
   capture.py              tshark-based USB capture with device auto-detect

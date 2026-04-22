@@ -164,6 +164,83 @@ dspanalyze list-captures [directory]
 
 Default directory: `analysis/usb_captures`. Scans for `.txt`, `.pcapng`, `.pcap` files and shows metadata summaries.
 
+### `calibrate` — Level meter calibration
+
+Calibrates the level meter dBu conversion by capturing raw uint16 values at known analog levels and computing a best-fit REF_LEVEL. The result is written to `minidsp/calibration.toml` (shipped as a package resource).
+
+```
+dspanalyze calibrate <action> [options]
+```
+
+**Actions:**
+
+| Action | Description |
+|--------|-------------|
+| `capture <dBu>` | Poll the device and record raw levels at a known analog level |
+| `show` | Display all stored calibration points, measured dBu, and errors |
+| `apply` | Compute best-fit REF_LEVEL from points and write to `calibration.toml` |
+| `reset` | Revert `calibration.toml` to factory defaults |
+
+**`capture` options:**
+
+| Flag | Description |
+|------|-------------|
+| `-c, --channel <int>` | Channel index 0-7 (default: 0 = InA) |
+| `-s, --samples <int>` | Number of samples to capture (default: 20) |
+
+**How it works:**
+
+The DSP reports linear amplitude as a uint16 value. The conversion to dBu uses the formula:
+
+```
+dBu = 20 * log10(uint16 / REF_LEVEL)
+```
+
+The factory `REF_LEVEL = 1153` is designed for display scaling (63 dB range matching the manufacturer's LED meter), not accurate dBu. The calibration tool lets you measure actual uint16 values at known analog levels and compute the correct REF_LEVEL.
+
+**Calibration workflow:**
+
+```bash
+# 1. Connect a calibrated signal generator to an input (e.g. InA)
+# 2. Set a known output level (e.g. 0 dBu sine wave at 1 kHz)
+
+# 3. Capture raw levels at that level
+dspanalyze calibrate capture 0
+
+# 4. Change the generator level and capture again
+dspanalyze calibrate capture -10
+dspanalyze calibrate capture -20
+dspanalyze calibrate capture -30
+
+# 5. Review all points and measured errors
+dspanalyze calibrate show
+
+# 6. Compute the best-fit REF_LEVEL and write it
+dspanalyze calibrate apply
+
+# 7. Verify with the live level display
+minidsp levels --watch
+```
+
+The `apply` step computes a weighted least-squares fit: each calibration point implies a REF_LEVEL (`uint16 / 10^(dBu/20)`), and the final value is the geometric mean weighted by uint16 magnitude (higher values have less quantization error). At least 2 points are required.
+
+**`show` output example:**
+
+```
+Calibration file: /path/to/minidsp/calibration.toml
+Current REF_LEVEL: 187.16 (factory: 1153)
+Calibration points: 4
+
+                              Mean                        Measured
+  #     dBu  Channel       uint16   Min   Max  Samples         dBu   Error
+  1   +6.0     InA          375.2   370   381       20      +6.04  +0.04
+  2    0.0     InA          187.1   185   190       20     -0.01  -0.01
+  3  -10.0     InA           18.8    18    20       20     -9.96  +0.04
+  4  -30.0     InA            5.0     5     5       20    -31.46  -1.46
+
+Best-fit REF_LEVEL: 187.16
+```
+
 ## Output Formats
 
 ### `claude` (default)
