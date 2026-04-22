@@ -457,15 +457,24 @@ class DSPmini:
         log.info("store_preset: sending name '%s' for slot %d", name, slot)
         payload = self._send_recv(cmd_store_preset_name(name), skip_polls=True)
         if payload is None:
+            log.warning("store_preset: device did not respond to name command (0x26)")
             return False
-        if not is_ack(payload):
-            log.warning("store_preset: device did not ACK name command")
+        if payload[0] != 0x01:
+            log.warning("store_preset: unexpected response to name command: %s",
+                         payload.hex(" "))
             return False
+        # 0x26 responds with 16-byte echo (01 02 + 14-char name), not a simple ACK
+        if len(payload) == 16:
+            echoed = payload[2:16].decode("ascii", errors="replace").rstrip()
+            if echoed != name:
+                log.warning("store_preset: name echo mismatch (sent=%r, got=%r)",
+                            name, echoed)
         # Store command — device takes ~2s to write to flash
         log.info("store_preset: sending store (0x21) with 3s timeout")
         payload = self._send_recv(
             cmd_store_preset(slot), timeout_ms=3000, skip_polls=True)
         if payload is None:
+            log.warning("store_preset: device did not respond to store command (0x21)")
             return False
         if not is_ack(payload):
             log.warning("store_preset: device did not ACK store command")

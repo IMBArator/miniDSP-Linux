@@ -20,7 +20,7 @@ opcodes_seen = [
 ]
 has_unknown_opcodes = false
 has_checksum_errors = false
-last_analyzed = "2026-04-07T22:21:49"
+last_analyzed = "2026-04-22T08:47:49"
 
 [analysis.opcode_counts]
 0x40 = 98
