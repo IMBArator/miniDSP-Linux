@@ -11,6 +11,7 @@ import glob
 import logging
 import os
 import select
+import time
 
 log = logging.getLogger(__name__)
 
@@ -131,9 +132,25 @@ class DSPmini:
                 )
         self._fd = os.open(device_path, os.O_RDWR)
         log.info("Opened %s", device_path)
-        # Device requires init handshake before it responds to any commands
-        self._send(cmd_init())
-        self._recv(timeout_ms=500)  # consume init response
+
+        max_retries = 5
+        retry_delay = 0.5
+        for attempt in range(1, max_retries + 1):
+            self._send(cmd_init())
+            response = self._recv(timeout_ms=500)
+            if response is not None:
+                log.debug("Init handshake succeeded (attempt %d/%d)",
+                          attempt, max_retries)
+                return
+            log.debug("Init handshake attempt %d/%d — no response",
+                      attempt, max_retries)
+            if attempt < max_retries:
+                time.sleep(retry_delay)
+
+        log.warning("Init handshake failed after %d attempts", max_retries)
+        os.close(self._fd)
+        self._fd = None
+        raise OSError("Device opened but not responding to init handshake")
 
     def close(self) -> None:
         """Close the HID device."""
@@ -350,7 +367,8 @@ class DSPmini:
         # Step 2: firmware string
         log.info("Step 2/8: firmware query (0x13)")
         if self._send_recv(cmd_firmware(), skip_polls=True) is None:
-            log.warning("Step 2/8: firmware query — no response")
+            log.warning("Step 2/8: firmware query — no response — device not ready")
+            return None
         # Step 3: device info — also contains the lock status flag
         log.info("Step 3/8: device info (0x2C)")
         device_info_payload = self._send_recv(cmd_device_info(), skip_polls=True)
