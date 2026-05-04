@@ -7,6 +7,7 @@ Falls back to cython-hidapi if available and hidraw not found.
 
 from __future__ import annotations
 
+import fcntl
 import glob
 import logging
 import os
@@ -131,7 +132,15 @@ class DSPmini:
                     "Check: lsusb | grep 0168"
                 )
         self._fd = os.open(device_path, os.O_RDWR)
-        log.info("Opened %s", device_path)
+        try:
+            fcntl.flock(self._fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except (OSError, BlockingIOError):
+            os.close(self._fd)
+            self._fd = None
+            raise OSError(
+                f"{device_path} is already in use by another process"
+            )
+        log.info("Opened %s (exclusive lock acquired)", device_path)
 
         max_retries = 5
         retry_delay = 0.5
