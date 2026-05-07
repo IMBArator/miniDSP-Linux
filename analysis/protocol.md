@@ -1009,7 +1009,7 @@ All parameters are uint16 LE.
 | Attack | 2–3 | 0–998 | 1–999 ms | ms = raw + 1 |
 | Release | 4–5 | 0–2999 | 1–3000 ms | ms = raw + 1 |
 | Hold | 6–7 | 9–998 | 10–999 ms | ms = raw + 1 (confirmed: raw 9 → 10 ms) |
-| Threshold | 8–9 | 1–180 | −90.0 to 0.0 dB | dB = raw × 0.5 − 90.0 |
+| Threshold | 8–9 | 0–180 | −90.0 to 0.0 dB | dB = raw × 0.5 − 90.0 |
 
 **Note:** The `ms = raw + 1` encoding is identical to the compressor attack/release.
 The raw minimum for attack was previously noted as 34 from captured sweeps; the
@@ -1204,7 +1204,7 @@ Offset  Size  Field
 10–11    2    **Gate attack**, LE uint16, raw 0–998 (ms = raw + 1 → 1–999 ms)
 12–13    2    **Gate release**, LE uint16, raw 0–2999 (ms = raw + 1 → 1–3000 ms)
 14–15    2    **Gate hold**, LE uint16, raw 9–998 (ms = raw + 1 → 10–999 ms)
-16–17    2    **Gate threshold**, LE uint16, raw 1–180 (−90.0 to 0.0 dB, 0.5 dB/step)
+16–17    2    **Gate threshold**, LE uint16, raw 0–180 (−90.0 to 0.0 dB, 0.5 dB/step)
 18–19    2    **Input gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
 20       1    **Phase invert**: 0x00=normal, 0x01=inverted (same as 0x36 command)
 21       1    Always 0x00 (mute state is NOT here — see footer bitmasks)

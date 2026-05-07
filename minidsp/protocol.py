@@ -421,7 +421,7 @@ def cmd_gate(channel: int, attack: int, release: int, hold: int, threshold: int)
     attack: raw 34–998 (maps to 1–999 ms)
     release: raw 0–2999 (maps to 0–3000 ms)
     hold: raw 9–998 (maps to 10–999 ms)
-    threshold: raw 1–180 (maps to −90.0 to 0.0 dB, 0.5 dB/step)
+    threshold: raw 0–180 (maps to −90.0 to 0.0 dB, 0.5 dB/step)
     """
     return build_frame(bytes([
         OP_GATE, channel,
@@ -666,7 +666,7 @@ _INPUT_GAIN_OFFSET = 18     # uint16 LE within input block
 _INPUT_GATE_ATTACK_OFFSET = 10  # uint16 LE, raw 34–998 (1–999 ms)
 _INPUT_GATE_RELEASE_OFFSET = 12 # uint16 LE, raw 0–2999 (0–3000 ms)
 _INPUT_GATE_HOLD_OFFSET = 14    # uint16 LE, raw 9–998 (10–999 ms)
-_INPUT_GATE_THRESH_OFFSET = 16  # uint16 LE, raw 1–180 (−90.0 to 0.0 dB, 0.5 dB/step)
+_INPUT_GATE_THRESH_OFFSET = 16  # uint16 LE, raw 0–180 (−90.0 to 0.0 dB, 0.5 dB/step)
 _INPUT_PHASE_OFFSET = 20    # 0x00=normal, 0x01=inverted
 _INPUT_LINK_FLAGS_OFFSET = 22  # bitmask: bit0=InA, bit1=InB, bit2=InC, bit3=InD; master=OR, slave=0x00
 
@@ -920,7 +920,7 @@ def comp_release_to_ms(raw: int) -> int:
 
 
 def gate_threshold_to_db(raw: int) -> float:
-    """raw 1–180 → dB; formula: raw × 0.5 − 90.0. Range −90 to 0 dB."""
+    """raw 0–180 → dB; formula: raw × 0.5 − 90.0. Range −90 to 0 dB."""
     return raw * 0.5 - 90.0
 
 
