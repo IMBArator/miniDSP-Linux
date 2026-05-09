@@ -28,17 +28,20 @@ minidsp/                  # Python package — the runtime control application
   __main__.py             # entry point (CLI)
   device.py               # USB HID open/close, send/recv, config read
   protocol.py             # frame encoding/decoding, command builders, parsers
+  factory_defaults.toml   # F00 factory-preset values (raw protocol form); regenerate via `dspanalyze extract-defaults`
+  defaults.py             # load_factory_defaults() — parses the bundled TOML
   cli.py                  # CLI (dump, mute/unmute)
 
 dspanalyze/               # Protocol analysis toolchain
   __init__.py
   __main__.py             # python -m dspanalyze entry
-  cli.py                  # argparse: analyze, check, capture, list-captures
+  cli.py                  # argparse: analyze, check, capture, list-captures, extract-defaults
   config.py               # load protocol_config.toml, value format converters
   protocol_config.toml    # all protocol knowledge (opcodes, fields, formats)
   decode.py               # frame → structured command decoder
   capture.py              # tshark-based USB capture with device auto-detect
   check.py                # protocol assertion framework (12 assertions)
+  extract_defaults.py     # stitch F00 config pages → factory_defaults.json
   metadata.py             # per-capture .meta.toml sidecar files
   readers/
     __init__.py            # RawPacket dataclass, read_capture() dispatcher

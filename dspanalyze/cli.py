@@ -156,6 +156,16 @@ def main() -> None:
                         help="Directory to scan (default: analysis/usb_captures)")
     p_list.set_defaults(func=cmd_list_captures)
 
+    # --- extract-defaults ---
+    p_def = sub.add_parser(
+        "extract-defaults",
+        help="Extract factory default parameters from a preset-load capture",
+    )
+    p_def.add_argument("file", help="Path to capture (typically the F00 load capture)")
+    p_def.add_argument("--output", "-o", default="minidsp/factory_defaults.toml",
+                       help="TOML output path (default: minidsp/factory_defaults.toml)")
+    p_def.set_defaults(func=cmd_extract_defaults)
+
     # --- calibrate ---
     p_cal = sub.add_parser("calibrate",
                            help="Level meter calibration tool")
@@ -293,6 +303,21 @@ def cmd_capture(args: argparse.Namespace) -> None:
         interface=args.interface,
         device_address=args.device_address,
     )
+
+
+def cmd_extract_defaults(args: argparse.Namespace) -> None:
+    """Extract factory defaults from a preset-load capture and write JSON."""
+    from dspanalyze.extract_defaults import ExtractDefaultsError, extract_defaults
+
+    capture = Path(args.file)
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        extract_defaults(capture, output)
+    except ExtractDefaultsError as e:
+        print(f"extract-defaults: {e}", file=sys.stderr)
+        sys.exit(1)
+    print(f"Wrote {output}")
 
 
 def cmd_calibrate(args: argparse.Namespace) -> None:

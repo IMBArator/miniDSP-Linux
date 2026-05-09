@@ -24,6 +24,7 @@ packages = ["minidsp", "dspanalyze"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "minidsp/calibration.toml" = "minidsp/calibration.toml"
+"minidsp/factory_defaults.toml" = "minidsp/factory_defaults.toml"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

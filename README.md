@@ -128,6 +128,9 @@ dspanalyze check capture.pcapng --assertion all
 # List all captures with metadata summaries
 dspanalyze list-captures analysis/usb_captures/
 
+# Regenerate the bundled factory-default JSON from an F00-load capture
+dspanalyze extract-defaults analysis/usb_captures/capture_..._load_preset_f00.pcapng
+
 # Calibrate level meters using a signal generator
 dspanalyze calibrate capture 0       # capture at 0 dBu
 dspanalyze calibrate show            # view points + errors
@@ -203,11 +206,14 @@ minidsp/                  Python control package
   device.py               USB HID open/close, send/recv, config read
   protocol.py             Frame encoding/decoding, all command builders
   calibration.toml        Level meter calibration (REF_LEVEL + anchor points)
+  factory_defaults.toml   F00 factory-preset parameter values (raw protocol form)
+  defaults.py             load_factory_defaults() — parses the bundled TOML
   cli.py                  CLI subcommands: dump, levels, mute, unmute
 
 dspanalyze/               Protocol analysis toolchain
-  cli.py                  Entry point: analyze, check, capture, diff-config, list-captures, calibrate
+  cli.py                  Entry point: analyze, check, capture, diff-config, list-captures, calibrate, extract-defaults
   calibrate.py            Level meter calibration tool (capture, show, apply, reset)
+  extract_defaults.py     Stitch F00 config pages → factory_defaults.json
   protocol_config.toml    All protocol knowledge (opcodes, fields, value formats)
   decode.py               Frame → structured command decoder
   capture.py              tshark-based USB capture with device auto-detect

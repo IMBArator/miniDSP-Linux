@@ -1,0 +1,148 @@
+schema_version = 1
+preset = "F00"
+preset_name = "Default Preset"
+source_capture = "capture_20260407_185424_load_preset_f00.pcapng"
+encoding = "raw"
+channels = [
+    "InA",
+    "InB",
+    "InC",
+    "InD",
+    "Out1",
+    "Out2",
+    "Out3",
+    "Out4",
+]
+
+[params]
+names = [
+    "InA",
+    "InB",
+    "InC",
+    "InD",
+    "Out1",
+    "Out2",
+    "Out3",
+    "Out4",
+]
+gains = [
+    280,
+    280,
+    280,
+    280,
+    280,
+    280,
+    280,
+    280,
+]
+mutes = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+]
+phases = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+]
+link_flags = [
+    1,
+    2,
+    4,
+    8,
+    1,
+    2,
+    4,
+    8,
+]
+routings = [
+    1,
+    2,
+    4,
+    8,
+]
+delays = [
+    0,
+    0,
+    0,
+    0,
+]
+test_tone_mode = 0
+sine_freq_index = 0
+delay_unit = 0
+gates = [
+    { attack = 49, release = 499, hold = 99, threshold = 0 },
+    { attack = 49, release = 499, hold = 99, threshold = 0 },
+    { attack = 49, release = 499, hold = 99, threshold = 0 },
+    { attack = 49, release = 499, hold = 99, threshold = 0 },
+]
+crossovers = [
+    { hipass_freq = 0, lopass_freq = 300, hipass_slope = 0, lopass_slope = 0 },
+    { hipass_freq = 0, lopass_freq = 300, hipass_slope = 0, lopass_slope = 0 },
+    { hipass_freq = 0, lopass_freq = 300, hipass_slope = 0, lopass_slope = 0 },
+    { hipass_freq = 0, lopass_freq = 300, hipass_slope = 0, lopass_slope = 0 },
+]
+compressors = [
+    { ratio = 0, knee = 0, attack = 49, release = 499, threshold = 220 },
+    { ratio = 0, knee = 0, attack = 49, release = 499, threshold = 220 },
+    { ratio = 0, knee = 0, attack = 49, release = 499, threshold = 220 },
+    { ratio = 0, knee = 0, attack = 49, release = 499, threshold = 220 },
+]
+
+[[params.peqs]]
+channel_bypass = false
+bands = [
+    { gain = 120, freq = 31, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 71, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 118, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 161, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 200, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 240, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 270, q = 25, type = 0, bypass = false },
+]
+
+[[params.peqs]]
+channel_bypass = false
+bands = [
+    { gain = 120, freq = 31, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 71, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 118, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 161, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 200, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 240, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 270, q = 25, type = 0, bypass = false },
+]
+
+[[params.peqs]]
+channel_bypass = false
+bands = [
+    { gain = 120, freq = 31, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 71, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 118, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 161, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 200, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 240, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 270, q = 25, type = 0, bypass = false },
+]
+
+[[params.peqs]]
+channel_bypass = false
+bands = [
+    { gain = 120, freq = 31, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 71, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 118, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 161, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 200, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 240, q = 25, type = 0, bypass = false },
+    { gain = 120, freq = 270, q = 25, type = 0, bypass = false },
+]
