@@ -37,6 +37,7 @@ def cmd_dump(args: argparse.Namespace) -> None:
         INPUT_CHANNEL_NAMES, OUTPUT_CHANNEL_NAMES,
         CHANNEL_NAMES, decode_link_groups, decode_routing_matrix,
         peq_raw_to_gain, peq_raw_to_q,
+        TONE_MODE_NAMES, SINE_FREQ_NAMES, TONE_SINE,
     )
 
     dsp = DSPmini()
@@ -205,6 +206,18 @@ def cmd_dump(args: argparse.Namespace) -> None:
                 style=row_style,
             )
         console.print(tp)
+
+    # ── Test tone generator ─────────────────────────────────────────────
+    tone_mode  = cfg.get("tone_mode", 0)
+    sine_freq  = cfg.get("sine_freq_index", 0)
+    tt = Table(title="Test Tone Generator", box=rich_box.SIMPLE_HEAD)
+    tt.add_column("Parameter", style="bold", min_width=14)
+    tt.add_column("Value", min_width=14)
+    tt.add_row("Mode", TONE_MODE_NAMES.get(tone_mode, f"0x{tone_mode:02x}"))
+    tt.add_row("Frequency",
+               SINE_FREQ_NAMES.get(sine_freq, f"0x{sine_freq:02x}")
+               if tone_mode == TONE_SINE else "—")
+    console.print(tt)
 
 
 def cmd_levels(args: argparse.Namespace) -> None:

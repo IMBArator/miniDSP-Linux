@@ -695,6 +695,9 @@ _OUTPUT_MUTE_BITMASK_OFFSET = 410  # uint16 LE, bit 0=Out1 .. bit 3=Out4
 # PEQ bypass flags in config footer
 _PEQ_BAND_BYPASS_OFFSET = 412  # 4 bytes (one per output channel); bit 0=band1..bit6=band7; 1=bypassed
 _PEQ_CHANNEL_BYPASS_OFFSET = 428  # 4 bytes (one per output channel); 0x00=active, 0x01=all bands bypassed
+# Test tone generator state in the config footer (0x39 opcode persists here)
+_TEST_TONE_MODE_OFFSET = 420   # uint8: TONE_OFF/TONE_PINK/TONE_WHITE/TONE_SINE
+_SINE_FREQ_INDEX_OFFSET = 422  # uint8: last selected SINE_FREQ_* index
 
 
 def parse_preset_index(payload: bytes) -> int | None:
@@ -756,6 +759,8 @@ def parse_preset_params(config_data: bytes) -> dict | None:
       'peqs' (list[4], dict with 'bands' list[7] and 'channel_bypass' bool).
         Each band dict: gain (raw 0–240), freq (raw 0–300), q (raw 0–100),
         type (0–6, use PEQ_TYPE_* constants), bypass (bool — True=this band bypassed).
+      'tone_mode' (int — TONE_OFF/PINK/WHITE/SINE, persisted at config offset 420),
+      'sine_freq_index' (int — last selected SINE_FREQ_* index 0x00–0x1E at config offset 422).
     Channel order: inputs 0–3, outputs 4–7 (gates input-only; delays/crossovers/compressors/peqs output-only).
     """
     if len(config_data) < _OUTPUT_MUTE_BITMASK_OFFSET + 2:
@@ -840,10 +845,15 @@ def parse_preset_params(config_data: bytes) -> dict | None:
     for i in range(4):
         mutes.append(bool(output_mute_mask & (1 << i)))
 
+    # Test tone generator state (set by 0x39 command, persisted in config footer)
+    tone_mode = config_data[_TEST_TONE_MODE_OFFSET] if len(config_data) > _TEST_TONE_MODE_OFFSET else 0
+    sine_freq_index = config_data[_SINE_FREQ_INDEX_OFFSET] if len(config_data) > _SINE_FREQ_INDEX_OFFSET else 0
+
     return {"names": names, "gains": gains, "mutes": mutes, "phases": phases,
             "link_flags": link_flags, "routings": routings, "gates": gates,
             "delays": delays, "crossovers": crossovers, "compressors": compressors,
-            "peqs": peqs}
+            "peqs": peqs,
+            "tone_mode": tone_mode, "sine_freq_index": sine_freq_index}
 
 
 # --- Gain conversion ---
@@ -1042,6 +1052,24 @@ COMP_RATIO_NAMES: dict[int, str] = {
     0x04: "1:1.7",  0x05: "1:2.0",  0x06: "1:2.5",  0x07: "1:3.0",
     0x08: "1:3.5",  0x09: "1:4.0",  0x0A: "1:5.0",  0x0B: "1:6.0",
     0x0C: "1:8.0",  0x0D: "1:10.0", 0x0E: "1:20.0", 0x0F: "Limit",
+}
+
+TONE_MODE_NAMES: dict[int, str] = {
+    TONE_OFF:   "Off",
+    TONE_PINK:  "Pink Noise",
+    TONE_WHITE: "White Noise",
+    TONE_SINE:  "Sine Wave",
+}
+
+SINE_FREQ_NAMES: dict[int, str] = {
+    0x00: "20 Hz",    0x01: "25 Hz",    0x02: "31.5 Hz",  0x03: "40 Hz",
+    0x04: "50 Hz",    0x05: "63 Hz",    0x06: "80 Hz",    0x07: "100 Hz",
+    0x08: "125 Hz",   0x09: "160 Hz",   0x0A: "200 Hz",   0x0B: "250 Hz",
+    0x0C: "315 Hz",   0x0D: "400 Hz",   0x0E: "500 Hz",   0x0F: "630 Hz",
+    0x10: "800 Hz",   0x11: "1 kHz",    0x12: "1.25 kHz", 0x13: "1.6 kHz",
+    0x14: "2 kHz",    0x15: "2.5 kHz",  0x16: "3.15 kHz", 0x17: "4 kHz",
+    0x18: "5 kHz",    0x19: "6.3 kHz",  0x1A: "8 kHz",    0x1B: "10 kHz",
+    0x1C: "12.5 kHz", 0x1D: "16 kHz",   0x1E: "20 kHz",
 }
 
 # Channel display names. Inputs 0–3 (InA–InD), outputs 4–7 (Out1–Out4).

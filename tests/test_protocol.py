@@ -28,6 +28,7 @@ from minidsp.protocol import (
     TONE_WHITE,
     TONE_SINE,
     SINE_FREQ_20HZ,
+    SINE_FREQ_1KHZ,
     SINE_FREQ_20KHZ,
     parse_device_info,
     parse_pin_response,
@@ -501,6 +502,35 @@ def test_parse_preset_params_modified():
     assert result["gains"][4:] == [255, 286, 280, 300]
     assert result["mutes"] == [False, False, False, False, False, False, False, False]
     assert result["phases"] == [False, False, False, False, False, False, False, False]
+
+
+def test_parse_preset_params_tone_state_sine_1khz():
+    """tone_mode=TONE_SINE and sine_freq_index=SINE_FREQ_1KHZ parse from offsets 420/422."""
+    buf = bytearray(450)
+    buf[420] = TONE_SINE
+    buf[422] = SINE_FREQ_1KHZ
+    result = parse_preset_params(bytes(buf))
+    assert result is not None
+    assert result["tone_mode"] == TONE_SINE
+    assert result["sine_freq_index"] == SINE_FREQ_1KHZ
+
+
+def test_parse_preset_params_tone_state_defaults_off():
+    """A zeroed 450-byte buffer parses to TONE_OFF and freq index 0 (20 Hz)."""
+    result = parse_preset_params(bytes(450))
+    assert result is not None
+    assert result["tone_mode"] == TONE_OFF
+    assert result["sine_freq_index"] == SINE_FREQ_20HZ
+
+
+def test_parse_preset_params_tone_state_short_buffer_safe():
+    """Short config (just past mute bitmask) falls back to 0/0 rather than IndexError."""
+    # 412 bytes is the minimum that satisfies the early length guard
+    # (_OUTPUT_MUTE_BITMASK_OFFSET + 2 = 412) but is shorter than offset 420.
+    result = parse_preset_params(bytes(412))
+    assert result is not None
+    assert result["tone_mode"] == 0
+    assert result["sine_freq_index"] == 0
 
 
 def test_cmd_peq_band():
