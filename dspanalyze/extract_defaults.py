@@ -29,7 +29,7 @@ _CONFIG_BLOB_SIZE = _CONFIG_PAGES_EXPECTED * _CONFIG_PAGE_DATA_SIZE  # 450
 # Footer-byte offsets that parse_preset_params doesn't currently return.
 # Documented in analysis/protocol.md "Preset Structure".
 _TEST_TONE_MODE_OFFSET = 420
-_SINE_FREQ_INDEX_OFFSET = 422
+_TEST_TONE_FREQ_OFFSET = 422
 _DELAY_UNIT_OFFSET = 424
 
 
@@ -91,7 +91,7 @@ def build_defaults_dict(config_blob: bytes, source_capture: str) -> dict:
     """Build the factory_defaults structure from a 450-byte config blob.
 
     Returns parse_preset_params output plus footer-byte parameters
-    (test_tone_mode, sine_freq_index, delay_unit) and a metadata block.
+    (test_tone_mode, test_tone_freq, delay_unit) and a metadata block.
 
     Within each table, scalar/array fields come before arrays-of-tables —
     required for valid TOML serialization (a table can't have scalar keys
@@ -120,7 +120,7 @@ def build_defaults_dict(config_blob: bytes, source_capture: str) -> dict:
         "routings":         parsed["routings"],
         "delays":           parsed["delays"],
         "test_tone_mode":   config_blob[_TEST_TONE_MODE_OFFSET],
-        "sine_freq_index":  config_blob[_SINE_FREQ_INDEX_OFFSET],
+        "test_tone_freq":   config_blob[_TEST_TONE_FREQ_OFFSET],
         "delay_unit":       config_blob[_DELAY_UNIT_OFFSET],
         "gates":            parsed["gates"],
         "crossovers":       parsed["crossovers"],

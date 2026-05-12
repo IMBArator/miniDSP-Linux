@@ -208,15 +208,15 @@ def cmd_dump(args: argparse.Namespace) -> None:
         console.print(tp)
 
     # ── Test tone generator ─────────────────────────────────────────────
-    tone_mode  = cfg.get("tone_mode", 0)
-    sine_freq  = cfg.get("sine_freq_index", 0)
+    test_tone_mode = cfg.get("test_tone_mode", 0)
+    test_tone_freq = cfg.get("test_tone_freq", 0)
     tt = Table(title="Test Tone Generator", box=rich_box.SIMPLE_HEAD)
     tt.add_column("Parameter", style="bold", min_width=14)
     tt.add_column("Value", min_width=14)
-    tt.add_row("Mode", TONE_MODE_NAMES.get(tone_mode, f"0x{tone_mode:02x}"))
+    tt.add_row("Mode", TONE_MODE_NAMES.get(test_tone_mode, f"0x{test_tone_mode:02x}"))
     tt.add_row("Frequency",
-               SINE_FREQ_NAMES.get(sine_freq, f"0x{sine_freq:02x}")
-               if tone_mode == TONE_SINE else "—")
+               SINE_FREQ_NAMES.get(test_tone_freq, f"0x{test_tone_freq:02x}")
+               if test_tone_mode == TONE_SINE else "—")
     console.print(tt)
 
 

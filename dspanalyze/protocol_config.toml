@@ -317,7 +317,7 @@ verified = true
 
 [opcodes.0x39.fields.request]
 mode = { offset = 1, size = 1, format = "tone_generator_mode" }
-freq_index = { offset = 2, size = 1, format = "sine_freq_index" }
+freq_index = { offset = 2, size = 1, format = "test_tone_freq" }
 
 [opcodes.0x3a]
 name = "matrix_routing"
@@ -494,7 +494,7 @@ note = "Direct dB value, 1dB steps (0=hard knee, 12=softest). Verified from knee
 type = "enum"
 values = { "0" = "off", "1" = "pink_noise", "2" = "white_noise", "3" = "sine_wave" }
 
-[formats.sine_freq_index]
+[formats.test_tone_freq]
 type = "uint8"
 min = 0
 max = 30

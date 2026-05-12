@@ -25,7 +25,7 @@ def load_factory_defaults() -> dict:
     The dict has top-level keys ``schema_version``, ``preset``, ``preset_name``,
     ``source_capture``, ``encoding``, ``channels`` (8-element list), and
     ``params`` (matches ``parse_preset_params`` output plus ``test_tone_mode``,
-    ``sine_freq_index``, ``delay_unit``).
+    ``test_tone_freq``, ``delay_unit``).
 
     Raises FileNotFoundError if the package resource is missing — that means
     the package was built without the data file, which is a packaging bug.

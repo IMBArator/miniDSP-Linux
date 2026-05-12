@@ -78,7 +78,7 @@ delays = [
     0,
 ]
 test_tone_mode = 0
-sine_freq_index = 0
+test_tone_freq = 0
 delay_unit = 0
 gates = [
     { attack = 49, release = 499, hold = 99, threshold = 0 },
