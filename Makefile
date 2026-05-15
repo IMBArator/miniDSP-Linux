@@ -1,19 +1,46 @@
 UV      := uv
 CAPTURES := analysis/usb_captures
 
+.DEFAULT_GOAL := build
+
 .PHONY: sync install test analyze analyze-raw analyze-no-poll analyze-human \
         analyze-summary analyze-all diff-config check-all \
-        capture-enable capture-disable build version
+        capture-enable capture-disable build version help
+
+help:
+	@echo "Usage: make [target] [VAR=value]"
+	@echo ""
+	@echo "Build"
+	@echo "  build                   Build sdist and wheel (default)"
+	@echo "  version VERSION=X.Y.Z   Bump version, generate changelog, tag"
+	@echo ""
+	@echo "Development"
+	@echo "  sync                    Install all dependencies (incl. dev extras)"
+	@echo "  install                 Alias for sync"
+	@echo "  test                    Run test suite with pytest"
+	@echo ""
+	@echo "Analysis  (FILE=path/to/capture)"
+	@echo "  analyze                 Decode capture (claude format)"
+	@echo "  analyze-raw             Raw hex dump of capture"
+	@echo "  analyze-no-poll         Decode, excluding 0x40 poll/level noise"
+	@echo "  analyze-human           Decode with human-readable table output"
+	@echo "  analyze-summary         Summary only (no per-frame detail)"
+	@echo "  analyze-all             Summarise all captures in $(CAPTURES)"
+	@echo "  diff-config             Compare config reads within a capture"
+	@echo "  check-all               Run protocol assertions against all captures"
+	@echo ""
+	@echo "USB Capture"
+	@echo "  capture-enable          Load usbmon and grant non-root capture access"
+	@echo "  capture-disable         Revoke capture access and unload usbmon"
 
 sync:
 	$(UV) sync --extra dev
 
-install: sync   ## alias kept for muscle memory
+install: sync
 
 test:
 	$(UV) run pytest -v
 
-# Build the package (sdist and wheel)
 build:
 	$(UV) build
 
