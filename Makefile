@@ -3,7 +3,7 @@ CAPTURES := analysis/usb_captures
 
 .PHONY: sync install test analyze analyze-raw analyze-no-poll analyze-human \
         analyze-summary analyze-all diff-config check-all \
-        capture-enable capture-disable build
+        capture-enable capture-disable build version
 
 sync:
 	$(UV) sync --extra dev
@@ -16,6 +16,10 @@ test:
 # Build the package (sdist and wheel)
 build:
 	$(UV) build
+
+# Create a release (usage: make version VERSION=X.Y.Z)
+version:
+	@bash scripts/release.sh $(VERSION)
 
 # Analyze a single capture (usage: make analyze FILE="path/to/capture.txt")
 analyze:
