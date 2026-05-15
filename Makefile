@@ -46,7 +46,7 @@ build:
 
 # Create a release (usage: make version VERSION=X.Y.Z)
 version:
-	@bash scripts/release.sh $(VERSION)
+	@bash scripts/version.sh $(VERSION)
 
 # Analyze a single capture (usage: make analyze FILE="path/to/capture.txt")
 analyze:
