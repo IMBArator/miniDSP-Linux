@@ -1,25 +1,32 @@
-"""mkdocs hooks: post-process the transcluded README's relative links.
+"""mkdocs hooks: post-process transcluded files' relative links.
 
-The home page (docs/index.md) transcludes README.md via
-mkdocs-include-markdown-plugin with rewrite_relative_urls=true. README's
-GitHub-relative paths get rewritten to docs-tree paths, but our docs tree
-doesn't mirror the source layout (analysis/ files are surfaced at the
-site root, not under analysis/). Map those rewritten paths to their
-rendered counterparts so MkDocs' link checker stops warning.
+Several pages (docs/index.md, docs/changelog.md, …) transclude source
+files via mkdocs-include-markdown-plugin with rewrite_relative_urls=true.
+The source files' GitHub-relative paths get rewritten to docs-tree paths,
+but our docs tree doesn't mirror the source layout (analysis/ files are
+surfaced at the site root, not under analysis/). Map those rewritten
+paths to their rendered counterparts so MkDocs' link checker stops
+warning.
 """
 from __future__ import annotations
 
 import re
 
+# Pages that transclude an upstream Markdown file and therefore need
+# their relative links rewritten. Any page not listed here is passed
+# through unchanged.
+_TRANSCLUDED_PAGES = {"index.md", "changelog.md"}
+
 _LINK_MAP = {
     "../analysis/protocol.md": "protocol.md",
     "../analysis/feature-list.md": "feature-list.md",
     "../LICENSE": "https://github.com/IMBArator/miniDSP-Linux/blob/main/LICENSE",
+    "../CHANGELOG.md": "changelog.md",
 }
 
 
 def on_page_markdown(markdown: str, *, page, config, files) -> str:
-    if page.file.src_uri != "index.md":
+    if page.file.src_uri not in _TRANSCLUDED_PAGES:
         return markdown
     for old, new in _LINK_MAP.items():
         markdown = re.sub(
