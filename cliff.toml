@@ -1,22 +1,27 @@
 [git]
 conventional_commits = true
-filter_unconventional = false
+# Keep a Changelog is for humans — drop infra/meta commits so only
+# user-visible changes show up.
+filter_unconventional = true
+filter_commits = true
 commit_parsers = [
-    { message = "^feat", group = "Features" },
-    { message = "^fix", group = "Bug Fixes" },
-    { message = "^refactor", group = "Refactoring" },
-    { message = "^perf", group = "Performance" },
-    { message = "^docs", group = "Documentation" },
+    # Map conventional commit types to Keep a Changelog 1.0.0 categories.
+    { message = "^feat", group = "Added" },
+    { message = "^fix", group = "Fixed" },
+    { message = "^refactor", group = "Changed" },
+    { message = "^perf", group = "Changed" },
+    # Everything below is skipped: not user-visible per Keep a Changelog.
     { message = "^chore\\(release\\)", skip = true },
-    { message = "^chore", group = "Build/Misc" },
-    { message = "^build", group = "Build/Misc" },
-    { message = "^doc\\b", group = "Documentation" },
+    { message = "^chore", skip = true },
+    { message = "^build", skip = true },
+    { message = "^docs", skip = true },
+    { message = "^doc\\b", skip = true },
+    { message = "^test", skip = true },
+    { message = "^ci", skip = true },
+    { message = "^style", skip = true },
     { message = "^data", skip = true },
-    { message = "^test", group = "Tests" },
-    { message = "^ci", group = "CI" },
 ]
 protect_breaking_commits = false
-filter_commits = false
 tag_pattern = "v[0-9]*"
 
 [changelog]
@@ -40,9 +45,6 @@ body = """
         ([`{{ commit.id | truncate(length=7, end="") }}`](https://github.com/IMBArator/miniDSP-Linux/commit/{{ commit.id }}))\
     {% endfor %}
 {% endfor %}
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 """
 trim = true
 

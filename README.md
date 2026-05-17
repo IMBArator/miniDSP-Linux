@@ -234,6 +234,10 @@ analysis/                 Reverse engineering reference
 - [miniDSP-Linux-qt](https://github.com/IMBArator/miniDSP-Linux-qt) — Qt-based GUI for this library
 - [dsp-408-ui](https://github.com/Aeternitaas/dsp-408-ui) — Same Musicrown protocol over TCP for the DSP 408. Cross-referenced for shared encoding formulas (gain, frequency, Q).
 
+## Changelog
+
+Release notes are generated from [Conventional Commits](https://www.conventionalcommits.org/) with [git-cliff](https://git-cliff.org/) and recorded in [CHANGELOG.md](CHANGELOG.md). The changelog follows the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format, and version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## License
 
 This project is licensed under the [GNU General Public License v3.0](LICENSE).
