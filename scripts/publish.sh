@@ -102,10 +102,32 @@ if [[ "$(echo "$EXISTING" | jq -r '.id // empty')" != "" ]]; then
 fi
 
 # --- 4. release notes -------------------------------------------------------
+#
+# CHANGELOG.md is the authoritative source — it may include hand-curated
+# content (typical for milestone releases like v1.0.0). Extract the
+# `## [X.Y.Z]` section verbatim. The version heading itself is skipped
+# (GitHub already shows the release title) and leading/trailing blank
+# lines are trimmed.
 
-c_dim "Generating release notes via git-cliff..."
-NOTES="$(uvx --quiet git-cliff --tag "$TAG" --strip header 2>/dev/null)"
-[[ -n "$NOTES" ]] || die "git-cliff produced empty notes for $TAG"
+c_dim "Extracting release notes from CHANGELOG.md..."
+CHANGELOG="CHANGELOG.md"
+[[ -f "$CHANGELOG" ]] || die "$CHANGELOG not found (run 'make version VERSION=$VERSION' or create one by hand)"
+
+NOTES="$(awk -v ver="$VERSION" '
+    index($0, "## [" ver "]") == 1 { in_section = 1; next }
+    in_section && /^## \[/ { exit }
+    in_section {
+        if (!started && /^[[:space:]]*$/) next
+        started = 1
+        lines[++n] = $0
+    }
+    END {
+        while (n > 0 && lines[n] ~ /^[[:space:]]*$/) n--
+        for (i = 1; i <= n; i++) print lines[i]
+    }
+' "$CHANGELOG")"
+
+[[ -n "$NOTES" ]] || die "no [$VERSION] section in $CHANGELOG — add it (or run 'make version VERSION=$VERSION') before publishing"
 
 PRERELEASE=false
 [[ "$TAG" =~ -(rc|beta|alpha) ]] && PRERELEASE=true
