@@ -1,0 +1,4737 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="USB HID control and protocol analysis for the t.racks DSP 4x4 Mini">
+      
+      
+      
+        <link rel="canonical" href="https://imbarator.github.io/miniDSP-Linux/protocol/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../feature-list/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Protocol - miniDSP-Linux</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#the-tracks-dsp-4x4-mini-usb-hid-protocol-documentation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="miniDSP-Linux" class="md-header__button md-logo" aria-label="miniDSP-Linux" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            miniDSP-Linux
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Protocol
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/IMBArator/miniDSP-Linux" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    IMBArator/miniDSP-Linux
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Protocol
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../feature-list/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Feature List
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../usage/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  CLI Usage
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../development/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Development Notes
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../api/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API Reference
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="miniDSP-Linux" class="md-nav__button md-logo" aria-label="miniDSP-Linux" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    miniDSP-Linux
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/IMBArator/miniDSP-Linux" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    IMBArator/miniDSP-Linux
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protocol
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#physical-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Physical Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frame-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frame Format
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frame Format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#static-device-footer-bytes-5663" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Static Device Footer (bytes 56–63)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#initialization-sequence-host-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initialization Sequence (Host → Device)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Initialization Sequence (Host → Device)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#0x10-init-handshake" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x10 — Init Handshake
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x13-firmware-model-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x13 — Firmware / Model String
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x2c-device-info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x2c — Device Info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x2d-submit-lock-pin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x2d — Submit Lock PIN
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x2f-set-device-lock-pin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x2f — Set Device Lock PIN
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x22-active-preset-header" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x22 — Active Preset Header
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x14-active-preset-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x14 — Active Preset Index
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x15-set-delay-display-unit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x15 — Set Delay Display Unit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x29-read-preset-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x29 — Read Preset Name
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x27-read-config-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x27 — Read Config Page
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x12-activate-config-load-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x12 — Activate / Config Load Complete
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands-host-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commands (Host → Device)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Commands (Host → Device)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#0x40-poll-request-levels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x40 — Poll / Request Levels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x35-mute-input-channels-12-linked" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x35 — Mute Input (Channels 1+2 linked)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x34-input-gain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x34 — Input Gain
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#responses-device-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responses (Device → Host)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Responses (Device → Host)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ack-command-acknowledgment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ACK — Command Acknowledgment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x40-level-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x40 — Level Monitoring
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0x40 — Level Monitoring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#payload-layout-3-byte-channel-triplets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Payload layout — 3-byte channel triplets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#level-decoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Level decoding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limiter-active-channel-bitmask-offset-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limiter active channel bitmask (offset 25)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-flag-offset-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State flag (offset 26)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#communication-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Communication Pattern
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-register-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known Register Map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands-from-dsp-408-ui-not-yet-captured-on-4x4-mini" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commands from dsp-408-ui (Not Yet Captured on 4x4 Mini)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Commands from dsp-408-ui (Not Yet Captured on 4x4 Mini)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#0x33-peq-parametric-eq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x33 — PEQ (Parametric EQ)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x3c-peq-channel-bypass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x3c — PEQ Channel Bypass
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x31-lo-pass-crossover-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x31 — Lo-Pass Crossover Filter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x32-hi-pass-crossover-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x32 — Hi-Pass Crossover Filter
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0x32 — Hi-Pass Crossover Filter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#crossover-slope-encoding-byte-4-of-0x31-and-0x32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Crossover Slope Encoding (byte 4 of 0x31 and 0x32)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x3a-matrix-routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x3a — Matrix Routing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x3b-channel-link" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x3b — Channel Link
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x2a-prepare-link" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x2a — Prepare Link
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x3d-set-channel-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x3d — Set Channel Name
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x20-load-preset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x20 — Load Preset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x21-store-preset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x21 — Store Preset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x26-store-preset-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x26 — Store Preset Name
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x38-output-delay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x38 — Output Delay
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x3e-noise-gate-input-channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x3E — Noise Gate (Input Channels)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x39-test-tone-generator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x39 — Test Tone Generator
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unknowns-to-investigate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknowns / To Investigate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-file-format-unt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration File Format (.unt)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration File Format (.unt)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-structure-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Structure Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-header-50-bytes-offset-0x000x31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Header (50 bytes, offset 0x00–0x31)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#preset-structure-stored-config-blob-429-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preset Structure (stored config blob, 429 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-channel-block-24-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input Channel Block (24 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-channel-block-74-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Channel Block (74 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#empty-slot-filler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Empty Slot Filler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unt-format-unknowns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .unt Format Unknowns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature-list/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature List
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api/dspanalyze/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dspanalyze
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Dspanalyze
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/calibrate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.calibrate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/capture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.capture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/check/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.check
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.cli
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/decode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.decode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/diff_config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.diff_config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/extract_defaults/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.extract_defaults
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/metadata/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.metadata
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_10" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api/dspanalyze/output/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6_1_10" id="__nav_6_1_10_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Output
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/output/claude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.output.claude
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/output/human/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.output.human
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/output/raw/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.output.raw
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_11" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api/dspanalyze/readers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Readers
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6_1_11" id="__nav_6_1_11_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Readers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/readers/pcapng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.readers.pcapng
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/readers/wireshark_text/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.readers.wireshark_text
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api/minidsp/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Minidsp
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6_2" id="__nav_6_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Minidsp
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/minidsp/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    minidsp.cli
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/minidsp/defaults/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    minidsp.defaults
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/minidsp/device/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    minidsp.device
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/minidsp/protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    minidsp.protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#physical-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Physical Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frame-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frame Format
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frame Format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#static-device-footer-bytes-5663" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Static Device Footer (bytes 56–63)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#initialization-sequence-host-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initialization Sequence (Host → Device)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Initialization Sequence (Host → Device)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#0x10-init-handshake" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x10 — Init Handshake
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x13-firmware-model-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x13 — Firmware / Model String
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x2c-device-info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x2c — Device Info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x2d-submit-lock-pin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x2d — Submit Lock PIN
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x2f-set-device-lock-pin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x2f — Set Device Lock PIN
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x22-active-preset-header" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x22 — Active Preset Header
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x14-active-preset-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x14 — Active Preset Index
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x15-set-delay-display-unit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x15 — Set Delay Display Unit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x29-read-preset-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x29 — Read Preset Name
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x27-read-config-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x27 — Read Config Page
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x12-activate-config-load-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x12 — Activate / Config Load Complete
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands-host-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commands (Host → Device)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Commands (Host → Device)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#0x40-poll-request-levels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x40 — Poll / Request Levels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x35-mute-input-channels-12-linked" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x35 — Mute Input (Channels 1+2 linked)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x34-input-gain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x34 — Input Gain
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#responses-device-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responses (Device → Host)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Responses (Device → Host)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ack-command-acknowledgment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ACK — Command Acknowledgment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x40-level-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x40 — Level Monitoring
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0x40 — Level Monitoring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#payload-layout-3-byte-channel-triplets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Payload layout — 3-byte channel triplets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#level-decoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Level decoding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limiter-active-channel-bitmask-offset-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limiter active channel bitmask (offset 25)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-flag-offset-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State flag (offset 26)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#communication-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Communication Pattern
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-register-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known Register Map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands-from-dsp-408-ui-not-yet-captured-on-4x4-mini" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commands from dsp-408-ui (Not Yet Captured on 4x4 Mini)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Commands from dsp-408-ui (Not Yet Captured on 4x4 Mini)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#0x33-peq-parametric-eq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x33 — PEQ (Parametric EQ)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x3c-peq-channel-bypass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x3c — PEQ Channel Bypass
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x31-lo-pass-crossover-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x31 — Lo-Pass Crossover Filter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x32-hi-pass-crossover-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x32 — Hi-Pass Crossover Filter
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0x32 — Hi-Pass Crossover Filter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#crossover-slope-encoding-byte-4-of-0x31-and-0x32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Crossover Slope Encoding (byte 4 of 0x31 and 0x32)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x3a-matrix-routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x3a — Matrix Routing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x3b-channel-link" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x3b — Channel Link
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x2a-prepare-link" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x2a — Prepare Link
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x3d-set-channel-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x3d — Set Channel Name
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x20-load-preset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x20 — Load Preset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x21-store-preset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x21 — Store Preset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x26-store-preset-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x26 — Store Preset Name
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x38-output-delay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x38 — Output Delay
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x3e-noise-gate-input-channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x3E — Noise Gate (Input Channels)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#0x39-test-tone-generator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0x39 — Test Tone Generator
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unknowns-to-investigate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unknowns / To Investigate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-file-format-unt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration File Format (.unt)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration File Format (.unt)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-structure-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Structure Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-header-50-bytes-offset-0x000x31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Header (50 bytes, offset 0x00–0x31)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#preset-structure-stored-config-blob-429-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preset Structure (stored config blob, 429 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-channel-block-24-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input Channel Block (24 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-channel-block-74-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Channel Block (74 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#empty-slot-filler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Empty Slot Filler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unt-format-unknowns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .unt Format Unknowns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="the-tracks-dsp-4x4-mini-usb-hid-protocol-documentation">the t.racks DSP 4x4 Mini — USB HID Protocol Documentation<a class="headerlink" href="#the-tracks-dsp-4x4-mini-usb-hid-protocol-documentation" title="Permanent link">&para;</a></h1>
+<p>Reverse-engineered from Wireshark USBPcap sessions (all in <code>usb_captures/</code>):</p>
+<p><strong>Startup &amp; initialization:</strong>
+- <code>miniDSP Capture - Start and close windows edit software.txt</code> — full manufacturer startup sequence (init → config read → polling → shutdown)
+- <code>miniDSP Capture - startup in4 and out4 muted.txt</code> — startup with In4+Out4 muted (mute bitmask discovery)
+- <code>miniDSP Capture - startup in4 and out4 not muted.txt</code> — startup with nothing muted (mute bitmask control)</p>
+<p><strong>Mute &amp; gain:</strong>
+- <code>miniDSP Capture.txt</code> — mute/unmute input ch1 (linked to ch2)
+- <code>miniDSP Capture - Input gain fader moved.txt</code> — input gain ch1 fader sweep
+- <code>miniDSP Capture - move input gain fader ch3 from -60 to *.txt</code> (×5) — gain calibration at -12, 0, +3, +6, +12 dB</p>
+<p><strong>Level metering:</strong>
+- <code>miniDSP Capture - monitoring sine wave at static level.txt</code> — 220 packets, normal/high-res mode switching
+- <code>miniDSP Capture - monitoring sine wave at increasing and decreasing level.txt</code> — full sweep, uint16 reaching 264
+- <code>miniDSP Capture - monitoring sine wave at static level 0dBu.txt</code> — meter calibration at 0 dBu
+- <code>miniDSP Capture - monitoring sine wave at static level -30dBu.txt</code> — meter calibration at -30 dBu
+- <code>miniDSP Capture - monitoring sine wave at static level right before visible level.txt</code> — below display threshold
+- <code>miniDSP Capture - monitoring sine wave at static level first visible level.txt</code> — minimum visible level
+- <code>miniDSP Capture - monitoring sine wave at static level end of green area.txt</code> — green/yellow boundary
+- <code>miniDSP Capture - monitoring sine wave at static level start of yellow area.txt</code> — yellow zone start
+- <code>miniDSP Capture - clip channel 1+2 in+out.txt</code> — clipping test on ch1+2 in/out
+- <code>miniDSP Capture - trigger limiter indicator on out channel 4.txt</code> — compressor/limiter bitmask discovery</p>
+<p><strong>Channel linking:</strong>
+- <code>miniDSP Capture - link input channel channel 1 and 2.txt</code>
+- <code>miniDSP Capture - unlink input channel channel 1 and 2.txt</code>
+- <code>miniDSP Capture - link outut channel channel 2 and 3.txt</code>
+- <code>miniDSP Capture - unlink output channel channel 2 and 3.txt</code>
+- <code>miniDSP Capture - link unlink out channel 1 and 2.txt</code>
+- <code>miniDSP Capture - link unlink out channel 3 and 4.txt</code>
+- <code>miniDSP Capture - link unlink out channel 1,2,3 and 4.txt</code>
+- <code>capture_20260407_190307_link_input_ch1_and_ch2.pcapng</code> — link input Ch1+Ch2 then restart
+- <code>capture_20260407_190414_link_input_ch1_ch2_and_ch3.pcapng</code> — link input Ch1+Ch2+Ch3 then restart
+- <code>capture_20260407_190705_link_output_ch1_and_ch2.pcapng</code> — link output Ch1+Ch2 then restart</p>
+<p><strong>Phase invert:</strong>
+- <code>capture_20260405_000924_input_channel_phase_invert.pcapng</code> — InC phase toggled normal↔inverted (opcode 0x36 discovery)
+- <code>capture_20260405_003445_output_channel_phase_invert.pcapng</code> — Out4 phase toggled (confirms 0x36 works for outputs, config byte 68 in output block)</p>
+<p><strong>Noise gate:</strong>
+- <code>capture_20260405_010105_input_channel_gate_threshold.pcapng</code> — InC gate threshold swept −90.0→0.0 dB (opcode 0x3e discovery)
+- <code>capture_20260405_010241_input_channel_gate_attack.pcapng</code> — InC gate attack swept 1→999 ms
+- <code>capture_20260405_010538_input_channel_gate_hold.pcapng</code> — InC gate hold swept 10→999 ms
+- <code>capture_20260405_010640_input_channel_gate_release.pcapng</code> — InC gate release swept 1→3000 ms
+- <code>capture_20260405_011619_input_channel_gate_threshold_2.pcapng</code> — InC threshold (disambiguated: bytes 8-9)
+- <code>capture_20260405_011722_input_channel_gate_attack_2.pcapng</code> — InC attack (disambiguated: bytes 2-3)
+- <code>capture_20260405_122541_input_channel_gate_all_params.pcapng</code> — InC all 4 params swept min→max→min→max (corrected hold min=9, release min=0)</p>
+<p><strong>Output delay:</strong>
+- <code>capture_20260405_123925_output_channel_delay.pcapng</code> — Out4 delay swept 0→680→0→680 ms (opcode 0x38 discovery, sample-based encoding)
+- <code>capture_20260409_220822_output_delay_unit.pcapng</code> — delay unit cycled ms→m→ft→ms→m (opcode 0x15 discovery; config byte 424 confirmed)</p>
+<p><strong>Crossover filters:</strong>
+- <code>capture_20260405_170911_output_channel_xover_highpass.pcapng</code> — Out3 hi-pass freq swept raw 0→300→0→300 (opcode 0x32, first capture verification on 4x4 Mini)
+- <code>capture_20260405_171114_output_channel_xover_lowpass.pcapng</code> — Out3 lo-pass freq swept raw 300→0→300→0 (opcode 0x31, confirmed config bytes 12–13)
+- <code>capture_20260405_174550_output_channel_xover_highpass_2.pcapng</code> — Out3 hi-pass to ~50% fader (raw 128 = 379 Hz, confirmed formula Hz = 19.70 × (20160/19.70)^(raw/300))
+- <code>capture_20260405_171715_output_channel_xover_lowpass_bypass.pcapng</code> — Out3 lo-pass bypass toggled (confirmed slope byte 0x00=bypass, 0x0a=LR-24 active)
+- <code>capture_20260405_171839_output_channel_xover_highpass_bypass.pcapng</code> — Out3 hi-pass bypass toggled (same encoding, config byte 14)
+- <code>capture_20260405_172431_output_channel_xover_highpass_slope.pcapng</code> — Out3 hi-pass slope swept through all 10 types (LR-24→BW-6→LR-24, verified full enum)</p>
+<p><strong>Output compressor:</strong>
+- <code>capture_20260407_184757_output_channel_compressor_threshold.pcapng</code> — Out3 compressor threshold +20→−90→+20→−90 dB (opcode 0x30 discovery, 87 occurrences)
+- <code>capture_20260407_184842_output_channel_compressor_attack.pcapng</code> — Out3 compressor attack 50→1→999→1 ms
+- <code>capture_20260407_185003_output_channel_compressor_release.pcapng</code> — Out3 compressor release 500→10→3000→1 ms
+- <code>capture_20260407_185056_output_channel_compressor_ratio.pcapng</code> — Out3 compressor ratio 1:1.0→1:20→Limit→1:1.1
+- <code>capture_20260407_185154_output_channel_compressor_knee.pcapng</code> — Out3 compressor knee 0→12→0→1 dB in 1 dB steps
+- <code>capture_20260407_233926_change_name_of_out_3.pcapng</code> — Out3 name changed "Out3"→"AUSGANG3"; confirmed output channel name is 8 bytes (0–7)</p>
+<p><strong>Preset management:</strong>
+- <code>capture_20260407_185424_load_preset_f00.pcapng</code> — load factory preset F00 (Default Preset)
+- <code>capture_20260407_185541_load_preset_u01.pcapng</code> — load user preset U01 (DIY Mon)
+- <code>capture_20260407_185634_load_preset_u30.pcapng</code> — load user preset U30 (empty user preset)
+- <code>capture_20260407_185756_load_preset_change_from_u01_to_u02.pcapng</code> — switch from U01→U02 mid-session then restart
+- <code>capture_20260407_190042_store_preset_u30.pcapng</code> — store settings to U30 with name "Capture Test"</p>
+<p><strong>Routing matrix:</strong>
+- <code>capture_20260407_191659_matrix_Out1_from_InA_and_InB.pcapng</code> — Out1 routed from InA+InB (default: 1:1 diagonal)
+- <code>capture_20260407_191838_matrix_Out1_from_InA_InB_InC_InD.pcapng</code> — Out1 summed from all 4 inputs
+- <code>capture_20260407_192739_matrix_remove_source_of_Out1.pcapng</code> — Out1 silenced (no source); no init sequence included</p>
+<p><strong>Device lock:</strong>
+- <code>capture_20260409_091144_device_lock_set_pin.pcapng</code> — full app load, then PIN "7654" set via 0x2f; device locks and disconnects
+- <code>capture_20260409_091341_device_lock_unlock.pcapng</code> — locked device; app waits in 0x12 loop, correct PIN "7654" submitted via 0x2d → response 01, then normal config load
+- <code>capture_20260409_091530_device_lock_unlock_wrong_pin.pcapng</code> — locked device; wrong PIN "8888" submitted via 0x2d → response 00, device stays locked</p>
+<p><strong>Other:</strong>
+- <code>miniDSP USBTree output.txt</code> — USB device descriptor (VID/PID/endpoints)</p>
+<h2 id="physical-layer">Physical Layer<a class="headerlink" href="#physical-layer" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vendor ID</td>
+<td><code>0x0168</code> (Musicrown)</td>
+</tr>
+<tr>
+<td>Product ID</td>
+<td><code>0x0821</code></td>
+</tr>
+<tr>
+<td>Manufacturer string</td>
+<td>"Musicrown"</td>
+</tr>
+<tr>
+<td>Product string</td>
+<td>"Dsp Process"</td>
+</tr>
+<tr>
+<td>USB version</td>
+<td>1.1 (Full-Speed, 12 Mbit/s)</td>
+</tr>
+<tr>
+<td>Interface class</td>
+<td>USB HID (0x03), no subclass, no protocol</td>
+</tr>
+<tr>
+<td>HID report size</td>
+<td>64 bytes (IN and OUT)</td>
+</tr>
+<tr>
+<td>OUT endpoint</td>
+<td>0x02 (Interrupt, 1 ms interval)</td>
+</tr>
+<tr>
+<td>IN endpoint</td>
+<td>0x81 (Interrupt, 1 ms interval)</td>
+</tr>
+<tr>
+<td>Max power</td>
+<td>100 mA (bus powered)</td>
+</tr>
+<tr>
+<td>Serial number</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<h2 id="frame-format">Frame Format<a class="headerlink" href="#frame-format" title="Permanent link">&para;</a></h2>
+<p>All communication uses the same serial-style framing inside the 64-byte HID report:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a> Byte:  [0]   [1]   [2]   [3]   [4]      [5 .. 4+LEN]     [5+LEN] [6+LEN] [7+LEN]
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>        0x10  0x02  SRC   DST   LEN      PAYLOAD            0x10    0x03    CHK
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        └──────────┘                                         └───────────┘
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>          STX                                                     ETX
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Size</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>STX</td>
+<td>2</td>
+<td>Always <code>10 02</code> — start of frame</td>
+</tr>
+<tr>
+<td>SRC</td>
+<td>1</td>
+<td>Source: <code>0x00</code> = host, <code>0x01</code> = device</td>
+</tr>
+<tr>
+<td>DST</td>
+<td>1</td>
+<td>Destination: <code>0x01</code> = device, <code>0x00</code> = host</td>
+</tr>
+<tr>
+<td>LEN</td>
+<td>1</td>
+<td>Byte count of PAYLOAD</td>
+</tr>
+<tr>
+<td>PAYLOAD</td>
+<td>LEN</td>
+<td>Command or response data (see below)</td>
+</tr>
+<tr>
+<td>ETX</td>
+<td>2</td>
+<td>Always <code>10 03</code> — end of frame</td>
+</tr>
+<tr>
+<td>CHK</td>
+<td>1</td>
+<td>XOR of LEN and all PAYLOAD bytes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Checksum formula:</strong> <code>CHK = LEN ^ PAYLOAD[0] ^ PAYLOAD[1] ^ ... ^ PAYLOAD[LEN-1]</code></p>
+<blockquote>
+<p>Verified across all 766 packets (156 + 610) in both captures — 0 failures.</p>
+</blockquote>
+<p>Bytes after <code>CHK</code> up to position 55 are <strong>zero-padded</strong>. Bytes 56–63 contain a
+static device footer (see below). The receiver should parse only the framed
+portion and ignore padding.</p>
+<h3 id="static-device-footer-bytes-5663">Static Device Footer (bytes 56–63)<a class="headerlink" href="#static-device-footer-bytes-5663" title="Permanent link">&para;</a></h3>
+<p>Every IN report ends with the same 8 bytes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>00 10 03 3d 00 0a bc 8d
+</code></pre></div>
+<p><code>0x000abc8d</code> (703629 decimal) is likely a device identifier or firmware version.</p>
+<hr />
+<h2 id="initialization-sequence-host-device">Initialization Sequence (Host → Device)<a class="headerlink" href="#initialization-sequence-host-device" title="Permanent link">&para;</a></h2>
+<p>Discovered from <code>miniDSP Capture - Start and close windows edit software.txt</code>
+(126 HID packets captured during Windows software startup and shutdown).</p>
+<p>The software performs the following sequence on startup:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Step  Command    Response    Description
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>────  ─────────  ─────────   ──────────────────────────────────────────
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a> 1    0x10       0x10        Init handshake
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a> 2    0x13       0x13        Firmware/model string query
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a> 3    0x2c       0x2c        Device info query
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a> 4    0x22       0x22        Active preset header query
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a> 5    0x14       0x14        Active preset index query
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a> 6    0x29 ×30   0x29 ×30    Read all 30 preset names (slots 0–29)
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a> 7    0x27 ×9    0x24 ×9     Read active preset config (9 pages)
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a> 8    0x12       0x01 (ACK)  Config load complete / activate
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a> 9    0x40 loop  0x40 loop   Normal level monitoring begins
+</code></pre></div>
+<p>No special shutdown sequence — the software simply stops polling.</p>
+<h3 id="0x10-init-handshake">0x10 — Init Handshake<a class="headerlink" href="#0x10-init-handshake" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Payload (1 byte): 10
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>Full frame:       10 02 00 01 01 10 10 03 11
+</code></pre></div>
+<p>Device responds with 2-byte payload: <code>10 1e</code> (0x1e = 30, possibly max preset count).</p>
+<h3 id="0x13-firmware-model-string">0x13 — Firmware / Model String<a class="headerlink" href="#0x13-firmware-model-string" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Payload (1 byte): 13
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>Full frame:       10 02 00 01 01 13 10 03 12
+</code></pre></div>
+<p>Device responds with 13-byte payload: <code>13</code> + ASCII string <code>"4x4MINI V010"</code>.
+This matches the magic header in the <code>.unt</code> config file (<code>***4x4MINIV010**</code>).</p>
+<h3 id="0x2c-device-info">0x2c — Device Info<a class="headerlink" href="#0x2c-device-info" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Payload (1 byte): 2c
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>Full frame:       10 02 00 01 01 2c 10 03 2d
+</code></pre></div>
+<p>Device responds with 8-byte payload. Byte 6 is a <strong>lock status flag</strong>:
+- Unlocked: <code>2c 00 27 0f 00 00 **00** 00</code>
+- Locked:   <code>2c 00 27 0f 00 00 **01** 00</code></p>
+<table>
+<thead>
+<tr>
+<th>Byte</th>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><code>2c</code></td>
+<td>opcode</td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>00</code></td>
+<td>padding</td>
+</tr>
+<tr>
+<td>2–3</td>
+<td><code>27 0f</code></td>
+<td>0x0F27 (big-endian: 0x270F = 9999) — possibly serial or counter; also in <code>.unt</code> header at offset 0x19–0x1A</td>
+</tr>
+<tr>
+<td>4–5</td>
+<td><code>00 00</code></td>
+<td>unknown</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>00</code> / <code>01</code></td>
+<td><strong>Lock status: <code>0x00</code> = unlocked, <code>0x01</code> = locked</strong></td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>00</code></td>
+<td>unknown</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Lock flag verified</strong> by comparing the <code>0x2c</code> response across 3 captures (set-pin=unlocked, device-lock-unlock=locked, device-lock-wrong-pin=locked). All other bytes are identical.</p>
+<h3 id="0x2d-submit-lock-pin">0x2d — Submit Lock PIN<a class="headerlink" href="#0x2d-submit-lock-pin" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>OUT payload (6 bytes): 2d 00 [pin_byte0] [pin_byte1] [pin_byte2] [pin_byte3]
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>IN  payload (3 bytes): 2d 00 [result]
+</code></pre></div>
+<p>Sent when the device is locked. The PIN is 4 ASCII digit characters (e.g. "7654" = <code>37 36 35 34</code>).</p>
+<table>
+<thead>
+<tr>
+<th>Byte</th>
+<th>Direction</th>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>both</td>
+<td><code>2d</code></td>
+<td>opcode</td>
+</tr>
+<tr>
+<td>1</td>
+<td>both</td>
+<td><code>00</code></td>
+<td>padding</td>
+</tr>
+<tr>
+<td>2–5</td>
+<td>OUT</td>
+<td>ASCII digits</td>
+<td>PIN digits as ASCII (e.g. "7654" = 37 36 35 34)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>IN</td>
+<td><code>0x01</code> / <code>0x00</code></td>
+<td><code>0x01</code> = PIN correct, <code>0x00</code> = PIN wrong</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Behavior:</strong>
+- When locked, the device sits in an ACK loop (responding <code>0x01</code> to <code>0x12</code> activate) without loading config.
+- On correct PIN → device responds <code>2d 00 01</code> → app proceeds with normal config load (<code>0x22</code>, <code>0x14</code>, <code>0x29</code>, <code>0x27</code> × 9, <code>0x12</code>).
+- On wrong PIN → device responds <code>2d 00 00</code> → device remains locked; app shows error.</p>
+<p><strong>Verified captures:</strong>
+- Correct PIN "7654": OUT <code>2d 00 37 36 35 34</code> → IN <code>2d 00 01</code> → full config load follows
+- Wrong PIN "8888":  OUT <code>2d 00 38 38 38 38</code> → IN <code>2d 00 00</code> → device stays locked</p>
+<h3 id="0x2f-set-device-lock-pin">0x2f — Set Device Lock PIN<a class="headerlink" href="#0x2f-set-device-lock-pin" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>OUT payload (5 bytes): 2f [pin_byte0] [pin_byte1] [pin_byte2] [pin_byte3]
+</code></pre></div>
+<p>Sets the device lock PIN and immediately locks the device. No dedicated IN response — the device sends <code>0x01</code> ACK then disconnects.</p>
+<table>
+<thead>
+<tr>
+<th>Byte</th>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><code>2f</code></td>
+<td>opcode</td>
+</tr>
+<tr>
+<td>1–4</td>
+<td>ASCII digits</td>
+<td>PIN digits as ASCII (e.g. "7654" = 37 36 35 34)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>⚠ WARNING:</strong> After receiving this command, the device immediately locks and the USB connection is terminated. The device cannot be controlled until the correct PIN is submitted via <code>0x2d</code> on next connection. If the PIN is lost, factory reset procedure is unknown — do not use this without careful consideration.</p>
+<p><strong>Verified capture:</strong> Set PIN "7654" → OUT <code>2f 37 36 35 34</code> → <code>0x01</code> ACK → device disconnects.</p>
+<h3 id="0x22-active-preset-header">0x22 — Active Preset Header<a class="headerlink" href="#0x22-active-preset-header" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Payload (1 byte): 22
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>Full frame:       10 02 00 01 01 22 10 03 23
+</code></pre></div>
+<p>Device responds with 31-byte payload: <code>22 ff ff</code> + 28 zero bytes.
+The <code>0xFFFF</code> matches the preset start marker in the <code>.unt</code> file format.
+The trailing zeros suggest the current state doesn't carry extra header data.</p>
+<h3 id="0x14-active-preset-index">0x14 — Active Preset Index<a class="headerlink" href="#0x14-active-preset-index" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Payload (1 byte): 14
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>Full frame:       10 02 00 01 01 14 10 03 15
+</code></pre></div>
+<p>Device responds with 2-byte payload: <code>14 [slot]</code>.
+The slot value uses the same direct index as <code>0x20</code>: 0=F00, 1=U01, …, 30=U30.</p>
+<p><strong>Verified examples:</strong>
+- <code>14 01</code> → U01 ("DIY Mon") is the active preset
+- <code>14 02</code> → U02 ("DIY Mon offset") is the active preset (confirmed after mid-session
+  preset change from U01→U02 and app restart — device remembers the last loaded preset)</p>
+<h3 id="0x15-set-delay-display-unit">0x15 — Set Delay Display Unit<a class="headerlink" href="#0x15-set-delay-display-unit" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Payload (2 bytes): 15 [unit]
+</code></pre></div>
+<p>Sets the delay display unit shown in the application UI. This is a <strong>display-only</strong> setting — the delay value itself is always transmitted in samples via opcode <code>0x38</code> regardless of the selected unit.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Byte</th>
+<th>Type</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unit</td>
+<td>1</td>
+<td>uint8</td>
+<td><code>0x00</code>=ms (milliseconds, default), <code>0x01</code>=m (meters), <code>0x02</code>=ft (feet)</td>
+</tr>
+</tbody>
+</table>
+<p>Device responds with ACK (<code>0x01</code>).</p>
+<p><strong>Config storage:</strong> persisted at config offset <strong>424</strong> (page 8, byte 24). Value 0x00/0x01/0x02 matches the unit enum above.</p>
+<p><strong>Verified from capture</strong> <code>capture_20260409_220822_output_delay_unit.pcapng</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Frame</th>
+<th>Raw frame</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>#223</td>
+<td><code>10 02 00 01 02 15 01 10 03 16</code></td>
+<td>set unit → m</td>
+</tr>
+<tr>
+<td>#247</td>
+<td><code>10 02 00 01 02 15 02 10 03 15</code></td>
+<td>set unit → ft</td>
+</tr>
+<tr>
+<td>#271</td>
+<td><code>10 02 00 01 02 15 00 10 03 17</code></td>
+<td>set unit → ms</td>
+</tr>
+<tr>
+<td>#307</td>
+<td><code>10 02 00 01 02 15 01 10 03 16</code></td>
+<td>set unit → m</td>
+</tr>
+</tbody>
+</table>
+<p>The diff-config between the two config reads in that capture shows only byte 424 changing (0x00→0x01), confirming the unit is the only thing stored.</p>
+<h3 id="0x29-read-preset-name">0x29 — Read Preset Name<a class="headerlink" href="#0x29-read-preset-name" title="Permanent link">&para;</a></h3>
+<p>Reads the name of a user preset. The command uses a <strong>0-based request index</strong> that
+maps to user presets U01–U30 (30 entries). F00 is the factory default and has no
+entry here — its name cannot be read or written via 0x29.</p>
+<p><strong>Index mapping: request index 0 = U01, 1 = U02, …, 29 = U30.</strong>
+To convert to the 0x14/0x20 slot number: <code>slot = request_index + 1</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Payload (2 bytes): 29 [request_index]   (0x00–0x1D, i.e. 0–29)
+</code></pre></div>
+<p>Device responds with 16-byte payload: <code>29 [request_index] [14 bytes ASCII name]</code>.
+Names are space-padded to 14 characters.</p>
+<p><strong>Example</strong> (from a device with two custom presets):</p>
+<table>
+<thead>
+<tr>
+<th>Request index</th>
+<th>User Preset</th>
+<th>Request</th>
+<th>Response (ASCII)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>U01</td>
+<td><code>29 00</code></td>
+<td><code>"DIY Mon       "</code></td>
+</tr>
+<tr>
+<td>1</td>
+<td>U02</td>
+<td><code>29 01</code></td>
+<td><code>"DIY Mon offset"</code></td>
+</tr>
+<tr>
+<td>2–29</td>
+<td>U03–U30</td>
+<td><code>29 02</code>–<code>29 1d</code></td>
+<td><code>"Default Preset"</code></td>
+</tr>
+</tbody>
+</table>
+<p>Cross-check with 0x14: <code>14 01</code> (U01 active) → name is at request index 0; <code>14 02</code> (U02 active) → name is at request index 1.</p>
+<h3 id="0x27-read-config-page">0x27 — Read Config Page<a class="headerlink" href="#0x27-read-config-page" title="Permanent link">&para;</a></h3>
+<p>Reads the active preset's configuration in 50-byte pages. The device responds
+with opcode <code>0x24</code> (not <code>0x27</code>).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Payload (2 bytes): 27 [page_index]
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>  page_index = 0x00 through 0x08 (9 pages)
+</code></pre></div>
+<p>Device responds with 52-byte payload: <code>24 [page_index] [50 bytes data]</code>.</p>
+<p>The 9 pages (9 × 50 = 450 data bytes) reconstruct the <strong>exact same binary
+structure</strong> as a preset block in the <code>.unt</code> configuration file:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>Page 0: FFFF marker + preset name + InA block start
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>Page 1: InB + InC + InD block start
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>Page 2: InD end + Out1 block start
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>Page 3: Out1 end + Out2 block start
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>Page 4: Out2 middle
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>Page 5: Out2 end + Out3 block start
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>Page 6: Out3 end + Out4 block start
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>Page 7: Out4 middle
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>Page 8: Out4 end + zero padding
+</code></pre></div>
+<p><strong>Verification:</strong> All 429 data bytes from the capture matched byte-for-byte
+with preset 2 ("DIY Mon offset") in the <code>.unt</code> file. This confirms the <code>.unt</code>
+file is a direct dump of device configuration memory.</p>
+<h3 id="0x12-activate-config-load-complete">0x12 — Activate / Config Load Complete<a class="headerlink" href="#0x12-activate-config-load-complete" title="Permanent link">&para;</a></h3>
+<p>Sent after reading all config pages, before starting the polling loop.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>Payload (1 byte): 12
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>Full frame:       10 02 00 01 01 12 10 03 13
+</code></pre></div>
+<p>Device responds with standard ACK (<code>01</code>).</p>
+<hr />
+<h2 id="commands-host-device">Commands (Host → Device)<a class="headerlink" href="#commands-host-device" title="Permanent link">&para;</a></h2>
+<h3 id="0x40-poll-request-levels">0x40 — Poll / Request Levels<a class="headerlink" href="#0x40-poll-request-levels" title="Permanent link">&para;</a></h3>
+<p>Requests the device to respond with current metering data.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>Payload (1 byte): 40
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>Full frame:       10 02 00 01 01 40 10 03 41
+</code></pre></div>
+<p>This is sent continuously (~150 ms interval) to keep the level meters updated.</p>
+<h3 id="0x35-mute-input-channels-12-linked">0x35 — Mute Input (Channels 1+2 linked)<a class="headerlink" href="#0x35-mute-input-channels-12-linked" title="Permanent link">&para;</a></h3>
+<p>Sets the mute state for linked input channels 1+2.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>Payload (3 bytes): 35 00 XX
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>  XX = 01  →  MUTE ON
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>  XX = 00  →  MUTE OFF
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Full frame</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mute ON</td>
+<td><code>10 02 00 01 03 35 00 01 10 03 37</code></td>
+</tr>
+<tr>
+<td>Mute OFF</td>
+<td><code>10 02 00 01 03 35 00 00 10 03 36</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Observations from the capture:</strong>
+- 4 mute-on / 4 mute-off toggles were recorded.
+- The byte at payload[1] (<code>0x00</code>) may be a channel-pair selector
+  (e.g., <code>0x00</code> = pair 1+2, possibly <code>0x01</code> = pair 3+4 — untested).
+- After each mute command, the device responds with a generic ACK (see below).</p>
+<h3 id="0x34-input-gain">0x34 — Input Gain<a class="headerlink" href="#0x34-input-gain" title="Permanent link">&para;</a></h3>
+<p>Sets the input gain for a channel.</p>
+<p>Sources:
+- <code>miniDSP Capture - Input gain fader moved.txt</code> — 205 commands, ch1, full sweep 0–400
+- <code>miniDSP Capture - move input gain fader ch3 from -60 to 0 dB.txt</code> — 95 commands, ch3, −60→0 dB</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>Payload (4 bytes): 34 CC LL HH
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>  CC    = channel selector (0-indexed: 0x00=ch1, 0x01=ch2, 0x02=ch3, 0x03=ch4)
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>  LL HH = gain value, 16-bit little-endian
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Opcode</td>
+<td><code>0x34</code></td>
+</tr>
+<tr>
+<td>Channel</td>
+<td>Byte 1: 0-indexed (<code>0x00</code>=ch1, <code>0x02</code>=ch3 confirmed)</td>
+</tr>
+<tr>
+<td>Value</td>
+<td>Bytes 2–3: little-endian uint16, range <strong>0–400</strong> (0x0000–0x0190)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Gain-to-dB mapping:</strong></p>
+<p>Confirmed from 5 ch3 captures AND cross-referenced with <code>dsp-408-ui</code> (same protocol).
+The mapping uses <strong>dual resolution</strong> with a breakpoint at −20 dB:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>Segment 1 (coarse): raw 0–79   → −60.0 to −20.5 dB  (0.5 dB/step)
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>Segment 2 (fine):   raw 80–400 → −20.0 to +12.0 dB   (0.1 dB/step)
+</code></pre></div>
+<p><strong>Formulas:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>dB → raw:
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>  if dB &lt; −20:  raw = (dB + 60) × 2
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>  if dB ≥ −20:  raw = 80 + (dB + 20) × 10
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>raw → dB:
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>  if raw &lt; 80:  dB = raw / 2 − 60
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>  if raw ≥ 80:  dB = (raw − 80) / 10 − 20
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Raw</th>
+<th>dB</th>
+<th>Resolution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>−60.0 dB (minimum)</td>
+<td>0.5 dB/step</td>
+</tr>
+<tr>
+<td>80</td>
+<td>−20.0 dB (breakpoint)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>160</td>
+<td>−12.0 dB</td>
+<td>0.1 dB/step</td>
+</tr>
+<tr>
+<td>280</td>
+<td>0.0 dB (unity)</td>
+<td>0.1 dB/step</td>
+</tr>
+<tr>
+<td>400</td>
+<td>+12.0 dB (maximum)</td>
+<td>0.1 dB/step</td>
+</tr>
+</tbody>
+</table>
+<p>All 5 capture calibration points (−12, 0, +3, +6, +12 dB) match with zero error.
+The earlier simple linear formula (<code>raw × 0.1 − 28</code>) was coincidentally correct
+for all test points (all above −20 dB) but wrong below −20 dB.</p>
+<blockquote>
+<p>The software sends updates at roughly every ~150 ms fader position change.
+Faster fader movement produces larger value jumps; slower movement near the
+target produces single-unit increments.</p>
+</blockquote>
+<p><strong>Example frames:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Gain</th>
+<th>Payload</th>
+<th>Full frame</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Min (0)</td>
+<td><code>34 00 00 00</code></td>
+<td><code>10 02 00 01 04 34 00 00 00 10 03 30</code></td>
+</tr>
+<tr>
+<td>Mid (200)</td>
+<td><code>34 00 c8 00</code></td>
+<td><code>10 02 00 01 04 34 00 c8 00 10 03 f8</code></td>
+</tr>
+<tr>
+<td>Max (400)</td>
+<td><code>34 00 90 01</code></td>
+<td><code>10 02 00 01 04 34 00 90 01 10 03 a1</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="responses-device-host">Responses (Device → Host)<a class="headerlink" href="#responses-device-host" title="Permanent link">&para;</a></h2>
+<h3 id="ack-command-acknowledgment">ACK — Command Acknowledgment<a class="headerlink" href="#ack-command-acknowledgment" title="Permanent link">&para;</a></h3>
+<p>Sent in reply to a mute (or other write) command.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>Payload (1 byte): 01
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>Full frame:       10 02 01 00 01 01 10 03 00
+</code></pre></div>
+<p>A single <code>0x01</code> byte = success. Seen for every mute and gain command.</p>
+<h3 id="0x40-level-monitoring">0x40 — Level Monitoring<a class="headerlink" href="#0x40-level-monitoring" title="Permanent link">&para;</a></h3>
+<p>Sent in reply to each poll command. Contains real-time metering data for inputs
+and outputs.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>Payload (28 bytes): 40 [8 × 3-byte channel triplets] [3-byte tail]
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>Full frame header: 10 02 01 00 1c 40 ...
+</code></pre></div>
+<h4 id="payload-layout-3-byte-channel-triplets">Payload layout — 3-byte channel triplets<a class="headerlink" href="#payload-layout-3-byte-channel-triplets" title="Permanent link">&para;</a></h4>
+<p>Each channel is encoded as a <strong>3-byte triplet: <code>[val_lo] [val_hi] [instant]</code></strong>.</p>
+<p>The first two bytes form a <strong>uint16 LE</strong> filtered/peak level (range 0–~264,
+observed Out2 reaching 264 at max analog input). The third byte is a noisy
+instantaneous sample (0–255).</p>
+<p>The device autonomously switches between two reporting modes:
+- <strong>Normal mode (state=0x00):</strong> uint16=0, <code>instant</code> has the level — use instant byte
+- <strong>High-res mode (state=0x01):</strong> uint16&gt;0, smooth firmware-filtered value — use uint16</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>Offset  Size  Field
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>──────  ────  ─────────────────────────────────────────
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>  0      1    Sub-type: always 0x40
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a> ── Input channel triplets ────────────────────────────
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>  1–3    3    Input 1: [val_lo, val_hi, instant]
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>  4–6    3    Input 2: [val_lo, val_hi, instant]
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>  7–9    3    Input 3: [val_lo, val_hi, instant]
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a> 10–12   3    Input 4: [val_lo, val_hi, instant]
+<a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a>
+<a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a> ── Output channel triplets ───────────────────────────
+<a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a> 13–15   3    Output 1: [val_lo, val_hi, instant]
+<a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a> 16–18   3    Output 2: [val_lo, val_hi, instant]
+<a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a> 19–21   3    Output 3: [val_lo, val_hi, instant]
+<a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a> 22–24   3    Output 4: [val_lo, val_hi, instant]
+<a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a>
+<a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a> ── Tail ──────────────────────────────────────────────
+<a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a> 25      1    Limiter active channel bitmask (see below)
+<a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a> 26      1    State flag (see below)
+<a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a> 27      1    Reserved (0x00)
+</code></pre></div>
+<h4 id="level-decoding">Level decoding<a class="headerlink" href="#level-decoding" title="Permanent link">&para;</a></h4>
+<p>Use only the uint16 LE value for metering:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>level = val_lo + val_hi * 256
+</code></pre></div></p>
+<p>The uint16 is a <strong>linear amplitude</strong> value. When uint16 = 0, the signal is
+below the display threshold (including noise floor). The instant byte is on an
+incompatible scale and should be ignored for metering purposes.</p>
+<p><strong>Calibration</strong> (verified from captures at known analog levels):</p>
+<table>
+<thead>
+<tr>
+<th>Analog level</th>
+<th>uint16 (In1)</th>
+<th>Manufacturer display</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-30 dBu</td>
+<td>~5</td>
+<td>2 green LEDs</td>
+</tr>
+<tr>
+<td>0 dBu</td>
+<td>~188</td>
+<td>1 yellow LED (green/yellow boundary)</td>
+</tr>
+<tr>
+<td>Max console out</td>
+<td>~264</td>
+<td>Well into yellow</td>
+</tr>
+</tbody>
+</table>
+<p>The 30 dB difference between 188 and 5 confirms linear amplitude encoding:
+188 / 5 = 37.6 ≈ 10^(31.5/20) = 37.6. The small deviation from the expected
+ratio of 31.6 is due to integer quantization at low values.</p>
+<p><strong>Display scaling</strong>: dB conversion with <code>20*log10(level / 1153)</code> and a 63 dB
+range places -30 dBu at 25% and 0 dBu at 75% of the meter, matching the
+manufacturer's LED meter layout.</p>
+<h4 id="limiter-active-channel-bitmask-offset-25">Limiter active channel bitmask (offset 25)<a class="headerlink" href="#limiter-active-channel-bitmask-offset-25" title="Permanent link">&para;</a></h4>
+<p>Reports <strong>which output channel(s)</strong> have their compressor/limiter currently
+triggered. Same bitmask scheme as the channel link flags:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>Bit 0 (0x01) = Out1
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>Bit 1 (0x02) = Out2
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>Bit 2 (0x04) = Out3
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>Bit 3 (0x08) = Out4
+</code></pre></div>
+<p>In the limiter capture (output ch4 triggered 3 times): byte 25 = <code>0x08</code> during
+each event, <code>0x00</code> otherwise. Exactly 3 transitions from <code>0x00</code> to <code>0x08</code>.</p>
+<h4 id="state-flag-offset-26">State flag (offset 26)<a class="headerlink" href="#state-flag-offset-26" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>0x00</code> = normal metering mode (uint16=0, levels in instant byte of each triplet).</li>
+<li><code>0x01</code> = high-res mode (levels in uint16 LE of each triplet) or init/processing active.</li>
+</ul>
+<hr />
+<h2 id="communication-pattern">Communication Pattern<a class="headerlink" href="#communication-pattern" title="Permanent link">&para;</a></h2>
+<p>Normal monitoring loop (~6–7 packets/second):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>Host  ──[POLL 0x40]──►  Device
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>Host  ◄──[LEVEL 0x40]──  Device
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>Host  ──[POLL 0x40]──►  Device
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>Host  ◄──[LEVEL 0x40]──  Device
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>  ...repeats...
+</code></pre></div>
+<p>Parameter change (mute, gain, etc.):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>Host  ──[CMD 0x35/0x34/...]──►  Device
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>Host  ◄──[ACK 0x01]────────────  Device
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>Host  ──[POLL 0x40]────────────►  Device     (resumes normal polling)
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>Host  ◄──[LEVEL 0x40]──────────  Device
+</code></pre></div>
+<p>During rapid fader movement, commands are interleaved with polling:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>Host  ──[GAIN 0x34 val1]──►  Device
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>Host  ◄──[ACK]──────────────  Device
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>Host  ──[GAIN 0x34 val2]──►  Device
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>Host  ◄──[ACK]──────────────  Device
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a>  ...burst of gain updates...
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>Host  ──[POLL 0x40]────────►  Device       (when fader stops moving)
+<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a>Host  ◄──[LEVEL 0x40]──────  Device
+</code></pre></div>
+<hr />
+<h2 id="known-register-map">Known Register Map<a class="headerlink" href="#known-register-map" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>Length</th>
+<th>Dir</th>
+<th>Function</th>
+<th>Value format</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0x10</code></td>
+<td>1</td>
+<td>OUT</td>
+<td>Init handshake</td>
+<td><code>10</code> — device responds <code>10 1e</code></td>
+</tr>
+<tr>
+<td><code>0x12</code></td>
+<td>1</td>
+<td>OUT</td>
+<td>Activate config</td>
+<td><code>12</code> — device responds ACK</td>
+</tr>
+<tr>
+<td><code>0x13</code></td>
+<td>1</td>
+<td>OUT</td>
+<td>Firmware string</td>
+<td><code>13</code> — device responds ASCII <code>"4x4MINI V010"</code></td>
+</tr>
+<tr>
+<td><code>0x14</code></td>
+<td>1</td>
+<td>OUT</td>
+<td>Active preset index</td>
+<td><code>14</code> — device responds <code>14 [idx]</code></td>
+</tr>
+<tr>
+<td><code>0x15</code></td>
+<td>2</td>
+<td>OUT</td>
+<td>Delay display unit</td>
+<td><code>15 [unit]</code> — 0x00=ms, 0x01=m, 0x02=ft; display-only</td>
+</tr>
+<tr>
+<td><code>0x20</code></td>
+<td>2</td>
+<td>OUT</td>
+<td>Load preset</td>
+<td><code>20 [slot]</code> — direct index: 0=F00, 1=U01…30=U30</td>
+</tr>
+<tr>
+<td><code>0x2a</code></td>
+<td>3</td>
+<td>OUT</td>
+<td>Prepare link</td>
+<td><code>2a [master_ch] [slave_ch]</code> — one per pair, sent before linking</td>
+</tr>
+<tr>
+<td><code>0x21</code></td>
+<td>2</td>
+<td>OUT</td>
+<td>Store preset</td>
+<td><code>21 [slot]</code> — direct index, same as 0x20. <strong>Never use slot 0 (F00)!</strong></td>
+</tr>
+<tr>
+<td><code>0x22</code></td>
+<td>1</td>
+<td>OUT</td>
+<td>Preset header</td>
+<td><code>22</code> — device responds <code>22 ffff</code> + 28 zeros</td>
+</tr>
+<tr>
+<td><code>0x26</code></td>
+<td>15</td>
+<td>OUT</td>
+<td>Store preset name</td>
+<td><code>26 [14-char name]</code> — space-padded, sent before 0x21. Max 14 chars!</td>
+</tr>
+<tr>
+<td><code>0x27</code></td>
+<td>2</td>
+<td>OUT</td>
+<td>Read config page</td>
+<td><code>27 [page]</code> — device responds <code>24 [page] [50 bytes]</code></td>
+</tr>
+<tr>
+<td><code>0x29</code></td>
+<td>2</td>
+<td>OUT</td>
+<td>Read preset name</td>
+<td><code>29 [idx]</code> — idx 0=U01…29=U30 (NOT 0x14 slot); responds <code>29 [idx] [14 char name]</code></td>
+</tr>
+<tr>
+<td><code>0x2c</code></td>
+<td>1</td>
+<td>OUT</td>
+<td>Device info</td>
+<td><code>2c</code> — device responds <code>2c</code> + 7 bytes</td>
+</tr>
+<tr>
+<td><code>0x2d</code></td>
+<td>6</td>
+<td>BOTH</td>
+<td>Submit lock PIN</td>
+<td>OUT: <code>2d 00 [4 ASCII digits]</code>; IN: <code>2d 00 [01=correct/00=wrong]</code></td>
+</tr>
+<tr>
+<td><code>0x2f</code></td>
+<td>5</td>
+<td>OUT</td>
+<td>Set lock PIN</td>
+<td><code>2f [4 ASCII digits]</code> — ⚠ locks device immediately on receipt</td>
+</tr>
+<tr>
+<td><code>0x30</code></td>
+<td>10</td>
+<td>OUT</td>
+<td>Compressor/limiter</td>
+<td><code>30 [ch] [ratio] [knee] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [thr_lo] [thr_hi]</code></td>
+</tr>
+<tr>
+<td><code>0x31</code></td>
+<td>5</td>
+<td>OUT</td>
+<td>Lo-pass filter</td>
+<td><code>31 [ch] [freq_lo] [freq_hi] [slope]</code> — log freq 0–300, slope 0=bypass</td>
+</tr>
+<tr>
+<td><code>0x32</code></td>
+<td>5</td>
+<td>OUT</td>
+<td>Hi-pass filter</td>
+<td><code>32 [ch] [freq_lo] [freq_hi] [slope]</code> — log freq 0–300, slope 0=bypass</td>
+</tr>
+<tr>
+<td><code>0x33</code></td>
+<td>10</td>
+<td>OUT</td>
+<td>PEQ band</td>
+<td><code>33 [ch] [band] [gain_lo] [gain_hi] [freq_lo] [freq_hi] [Q] [type] [bypass]</code> — outputs verified, 7 bands</td>
+</tr>
+<tr>
+<td><code>0x34</code></td>
+<td>4</td>
+<td>OUT</td>
+<td>Gain</td>
+<td><code>34 [ch] [val_lo] [val_hi]</code> — LE uint16, 0–400</td>
+</tr>
+<tr>
+<td><code>0x35</code></td>
+<td>3</td>
+<td>OUT</td>
+<td>Mute</td>
+<td><code>35 [ch] [state]</code> — 0x00=off, 0x01=on</td>
+</tr>
+<tr>
+<td><code>0x36</code></td>
+<td>3</td>
+<td>OUT</td>
+<td>Phase invert</td>
+<td><code>36 [ch] [state]</code> — 0x00=normal, 0x01=inverted</td>
+</tr>
+<tr>
+<td><code>0x38</code></td>
+<td>4</td>
+<td>OUT</td>
+<td>Output delay</td>
+<td><code>38 [ch] [samples_lo] [samples_hi]</code> — LE uint16, 0–32640 (samples @ 48 kHz)</td>
+</tr>
+<tr>
+<td><code>0x39</code></td>
+<td>3</td>
+<td>OUT</td>
+<td>Test tone generator</td>
+<td><code>39 [mode] [freq_idx]</code> — mode: 0=off,1=pink,2=white,3=sine; freq_idx: 0x00–0x1E (ISO 1/3-oct 20Hz–20kHz)</td>
+</tr>
+<tr>
+<td><code>0x3e</code></td>
+<td>10</td>
+<td>OUT</td>
+<td>Noise gate</td>
+<td><code>3e [ch] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [hold_lo] [hold_hi] [thr_lo] [thr_hi]</code></td>
+</tr>
+<tr>
+<td><code>0x3b</code></td>
+<td>3</td>
+<td>OUT</td>
+<td>Channel link</td>
+<td><code>3b [ch] [link_flags]</code> — see below</td>
+</tr>
+<tr>
+<td><code>0x3a</code></td>
+<td>3</td>
+<td>OUT</td>
+<td>Matrix routing</td>
+<td><code>3a [output_ch] [input_bitmask]</code></td>
+</tr>
+<tr>
+<td><code>0x3c</code></td>
+<td>3</td>
+<td>OUT</td>
+<td>PEQ channel bypass</td>
+<td><code>3c [ch] [state]</code> — 0x00=all active, 0x01=all bands bypassed</td>
+</tr>
+<tr>
+<td><code>0x3d</code></td>
+<td>10</td>
+<td>OUT</td>
+<td>Set channel name</td>
+<td><code>3d [ch] [8 ASCII bytes]</code> — zero-padded name</td>
+</tr>
+<tr>
+<td><code>0x40</code></td>
+<td>1</td>
+<td>OUT</td>
+<td>Poll levels</td>
+<td><code>40</code> — request only, no parameters</td>
+</tr>
+<tr>
+<td>0x33 verified on 4x4 Mini from 7 captures. <strong>The 4x4 Mini has no GEQ</strong> — that is a DSP 408 feature only.</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Channel byte (<code>ch</code>):</strong> Inputs 0x00–0x03, outputs 0x04–0x07.
+Confirmed for inputs: <code>0x00</code>=ch1, <code>0x02</code>=ch3. Output numbering from <code>dsp-408-ui</code>.</p>
+<hr />
+<h2 id="commands-from-dsp-408-ui-not-yet-captured-on-4x4-mini">Commands from dsp-408-ui (Not Yet Captured on 4x4 Mini)<a class="headerlink" href="#commands-from-dsp-408-ui-not-yet-captured-on-4x4-mini" title="Permanent link">&para;</a></h2>
+<p>The following command details are from the <code>Aeternitaas/dsp-408-ui</code> project, which
+reverse-engineered the same Musicrown protocol for the DSP 408 over TCP/Ethernet.
+The binary protocol is transport-agnostic — these should work identically over USB HID.</p>
+<h3 id="0x33-peq-parametric-eq">0x33 — PEQ (Parametric EQ)<a class="headerlink" href="#0x33-peq-parametric-eq" title="Permanent link">&para;</a></h3>
+<p>Verified from 7 captures on 4x4 Mini (output channel 1, all parameters swept independently).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>Payload (10 bytes): 33 [ch] [band] [gain_lo] [gain_hi] [freq_lo] [freq_hi] [Q] [type] [bypass]
+</code></pre></div>
+<ul>
+<li><strong>Channel:</strong> output channels only verified: Out1=0x04, Out2=0x05, Out3=0x06, Out4=0x07</li>
+<li><strong>Band:</strong> 0-indexed (0=band 1 … 6=band 7); 7 bands per output channel</li>
+<li><strong>Gain:</strong> LE uint16, raw 0–240; <code>gain_dB = (raw − 120) / 10.0</code>; ±12 dB, 0.1 dB resolution; 0 dB = raw 120</li>
+<li><strong>Frequency:</strong> LE uint16, raw 0–300; same formula as crossover: <code>Hz = 19.70 × (20160/19.70)^(raw/300)</code></li>
+<li><strong>Q:</strong> uint8, raw 0–100; <code>Q = 0.4 × 320^(raw/100)</code>; min Q=0.4 (raw=0), max Q=128 (raw=100)</li>
+<li>Shelf and pass filters restrict Q to 0.4–3.0 (raw 0–35) in the app UI</li>
+<li>Note: the Windows editor displays Q with 1-decimal rounding, so the default raw=25 (<code>Q = 1.6919…</code>) appears as <code>1.70</code> there while <code>minidsp dump</code> shows <code>1.69</code> (2-decimal rounding). Both are correct — see also the "≈1.7" notes below.</li>
+<li><strong>Type:</strong> uint8
+  | raw | Filter type |
+  |-----|-------------|
+  | 0x00 | Peak (default) |
+  | 0x01 | Low Shelf |
+  | 0x02 | High Shelf |
+  | 0x03 | Low Pass |
+  | 0x04 | High Pass |
+  | 0x05 | Allpass 1st order |
+  | 0x06 | Allpass 2nd order |</li>
+<li><strong>Bypass:</strong> uint8, 0x00=active, 0x01=band bypassed (stored separately in config footer)</li>
+</ul>
+<p><strong>Config storage:</strong> output block bytes 16–57 (verified); each of 7 bands = 6 bytes:
+<code>[gain_lo] [gain_hi] [freq_lo] [freq_hi] [Q] [type]</code>
+Band bypass is NOT stored in the band data — see footer (offset 412–415).</p>
+<p><strong>EQ Reset:</strong> No dedicated opcode — the app sends one <code>0x33</code> per band with 0 dB gain, Peak type, Q_raw=25 (Q≈1.7), and these preset frequencies:</p>
+<table>
+<thead>
+<tr>
+<th>Band</th>
+<th>freq_raw</th>
+<th>≈Hz</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>31</td>
+<td>40 Hz</td>
+</tr>
+<tr>
+<td>2</td>
+<td>71</td>
+<td>102 Hz</td>
+</tr>
+<tr>
+<td>3</td>
+<td>118</td>
+<td>301 Hz</td>
+</tr>
+<tr>
+<td>4</td>
+<td>161</td>
+<td>813 Hz</td>
+</tr>
+<tr>
+<td>5</td>
+<td>200</td>
+<td>2001 Hz</td>
+</tr>
+<tr>
+<td>6</td>
+<td>240</td>
+<td>5041 Hz</td>
+</tr>
+<tr>
+<td>7</td>
+<td>270</td>
+<td>10081 Hz</td>
+</tr>
+</tbody>
+</table>
+<p>Verified from <code>capture_20260409_200328_output_peq_channel_3_reset_eq.pcapng</code> (Out3).</p>
+<p><strong>Captured examples (Out1 band 1):</strong>
+- <code>33 04 00 78 00 00 00 19 00 00</code> → gain=0dB, freq=min, Q=25(≈1.7), Peak, active
+- <code>33 04 00 78 00 00 00 0a 01 01</code> → gain=0dB, freq=min, Q=10(≈0.8), Low Shelf, bypassed</p>
+<h3 id="0x3c-peq-channel-bypass">0x3c — PEQ Channel Bypass<a class="headerlink" href="#0x3c-peq-channel-bypass" title="Permanent link">&para;</a></h3>
+<p>Discovered from <code>capture_20260409_091811_output_peq_channel_1_bypass.pcapng</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>Payload (3 bytes): 3c [ch] [state]
+</code></pre></div>
+<ul>
+<li><strong>Channel:</strong> same unified numbering — Out1=0x04 … Out4=0x07</li>
+<li><strong>State:</strong> 0x00=all PEQ bands active, 0x01=all PEQ bands bypassed for this channel</li>
+<li><strong>Config storage:</strong> footer byte at absolute config offset 428 (Out1); predicted Out2=429, Out3=430, Out4=431</li>
+</ul>
+<p>Device responds with <code>0x01</code> ACK.</p>
+<p><strong>Captured:</strong> <code>3c 04 01</code> (Out1 all bypassed) → config offset 428: 0x00→0x01</p>
+<h3 id="0x31-lo-pass-crossover-filter">0x31 — Lo-Pass Crossover Filter<a class="headerlink" href="#0x31-lo-pass-crossover-filter" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>Payload (5 bytes): 31 [ch] [freq_lo] [freq_hi] [slope]
+</code></pre></div>
+<ul>
+<li><strong>Channel:</strong> output channels 0x04–0x07</li>
+<li><strong>Frequency:</strong> log-scale LE uint16, raw 0–300 on 4x4 Mini. Hz = 19.70 × (20160/19.70)^(raw/300).
+  DSP 408 uses 0–1000 with /1000 denominator; same frequency range, fewer steps.</li>
+<li><strong>Slope</strong> (byte): combined bypass + slope type. See slope table below.</li>
+<li><strong>Config storage:</strong> output block bytes 12–13 (freq), byte 15 (slope)</li>
+</ul>
+<p><strong>Capture-verified:</strong> Out3 freq swept raw 300→0→300→0; bypass toggled; slope sweep on hi-pass (same encoding).</p>
+<h3 id="0x32-hi-pass-crossover-filter">0x32 — Hi-Pass Crossover Filter<a class="headerlink" href="#0x32-hi-pass-crossover-filter" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>Payload (5 bytes): 32 [ch] [freq_lo] [freq_hi] [slope]
+</code></pre></div>
+<ul>
+<li><strong>Channel:</strong> output channels 0x04–0x07</li>
+<li><strong>Frequency:</strong> log-scale LE uint16, raw 0–300. Hz = 19.70 × (20160/19.70)^(raw/300).
+  Verified: raw 128 = 379.1 Hz (user reported 378.9 Hz at ~50% fader).</li>
+<li><strong>Slope</strong> (byte): combined bypass + slope type. See slope table below.</li>
+<li><strong>Config storage:</strong> output block bytes 10–11 (freq), byte 14 (slope)</li>
+</ul>
+<p><strong>Capture-verified:</strong> Out3 freq swept raw 0→300→0→300; bypass toggled; slope swept through all 10 types.</p>
+<h4 id="crossover-slope-encoding-byte-4-of-0x31-and-0x32">Crossover Slope Encoding (byte 4 of 0x31 and 0x32)<a class="headerlink" href="#crossover-slope-encoding-byte-4-of-0x31-and-0x32" title="Permanent link">&para;</a></h4>
+<p>Both commands use the same encoding for the slope byte:</p>
+<table>
+<thead>
+<tr>
+<th>Raw</th>
+<th>Slope</th>
+<th>Filter type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x00</td>
+<td><strong>Bypassed</strong></td>
+<td>Filter disabled</td>
+</tr>
+<tr>
+<td>0x01</td>
+<td>BW-6</td>
+<td>Butterworth 6 dB/oct</td>
+</tr>
+<tr>
+<td>0x02</td>
+<td>BL-6</td>
+<td>Bessel 6 dB/oct</td>
+</tr>
+<tr>
+<td>0x03</td>
+<td>BW-12</td>
+<td>Butterworth 12 dB/oct</td>
+</tr>
+<tr>
+<td>0x04</td>
+<td>BL-12</td>
+<td>Bessel 12 dB/oct</td>
+</tr>
+<tr>
+<td>0x05</td>
+<td>LR-12</td>
+<td>Linkwitz-Riley 12 dB/oct</td>
+</tr>
+<tr>
+<td>0x06</td>
+<td>BW-18</td>
+<td>Butterworth 18 dB/oct</td>
+</tr>
+<tr>
+<td>0x07</td>
+<td>BL-18</td>
+<td>Bessel 18 dB/oct</td>
+</tr>
+<tr>
+<td>0x08</td>
+<td>BW-24</td>
+<td>Butterworth 24 dB/oct</td>
+</tr>
+<tr>
+<td>0x09</td>
+<td>BL-24</td>
+<td>Bessel 24 dB/oct</td>
+</tr>
+<tr>
+<td>0x0a</td>
+<td>LR-24</td>
+<td>Linkwitz-Riley 24 dB/oct (<strong>device default</strong>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Bypass behavior:</strong> When slope=0x00, the filter is bypassed. The device does not retain
+the previously selected slope — on bypass, the slope value is overwritten with 0x00 in
+config storage. The PC application must track the last-active slope and re-send it when
+un-bypassing. After an application restart with a bypassed filter, the slope resets to
+LR-24 (0x0a, the default).</p>
+<p>Pattern: grouped by filter order (6→12→18→24 dB/oct), within each order: BW, BL, then
+LR (LR only at even orders 12/24, which is physically correct for Linkwitz-Riley filters).</p>
+<h3 id="0x3a-matrix-routing">0x3a — Matrix Routing<a class="headerlink" href="#0x3a-matrix-routing" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>Payload (3 bytes): 3a [output_ch] [input_bitmask]
+</code></pre></div>
+<ul>
+<li><strong>Output channel:</strong> Out1=0x04, Out2=0x05, Out3=0x06, Out4=0x07</li>
+<li><strong>Input bitmask:</strong> InA=0x01, InB=0x02, InC=0x04, InD=0x08 (combinable; 0x00 = no input / silence)</li>
+<li><strong>Behavior:</strong> Full bitmask sent each time — not incremental add/remove. Device ACKs with <code>0x01</code>.</li>
+<li><strong>Config byte:</strong> Output block byte 8 stores the bitmask for each output (default diagonal: Out1=0x01, Out2=0x02, Out3=0x04, Out4=0x08).</li>
+</ul>
+<p><strong>Verified from captures:</strong>
+- <code>capture_20260407_191659_matrix_Out1_from_InA_and_InB.pcapng</code> — Out1 mask 0x03 (InA|InB)
+- <code>capture_20260407_191838_matrix_Out1_from_InA_InB_InC_InD.pcapng</code> — Out1 mask incremented to 0x07, then 0x0f
+- <code>capture_20260407_192739_matrix_remove_source_of_Out1.pcapng</code> — Out1 mask 0x00 (no input)</p>
+<h3 id="0x3b-channel-link">0x3b — Channel Link<a class="headerlink" href="#0x3b-channel-link" title="Permanent link">&para;</a></h3>
+<p>Discovered from input link/unlink captures and output link/unlink captures.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>Payload (3 bytes): 3b [channel] [link_flags]
+</code></pre></div>
+<p>Sets the link/pairing state for any channel (input or output). When linking,
+both channels in the pair must be updated. After changing link state, the
+software sends <code>0x12</code> (activate) and performs a full config re-read.</p>
+<p><strong>Channel byte:</strong> unified numbering — inputs 0x00–0x03, outputs 0x04–0x07.</p>
+<p><strong>Link flags are a bitmask</strong> within each 4-channel group (inputs or outputs):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>Inputs:                     Outputs:
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>  Bit 0 (0x01) = InA          Bit 0 (0x01) = Out1
+<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>  Bit 1 (0x02) = InB          Bit 1 (0x02) = Out2
+<a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a>  Bit 2 (0x04) = InC          Bit 2 (0x04) = Out3
+<a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a>  Bit 3 (0x08) = InD          Bit 3 (0x08) = Out4
+</code></pre></div>
+<p>When linked, the master gets the OR of all linked channel bits; slaves get <code>0x00</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Channel</th>
+<th>Standalone</th>
+<th>Master (2-ch)</th>
+<th>Master (all 4)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>InA (0x00)</td>
+<td><code>0x01</code></td>
+<td><code>0x03</code> = InA+InB</td>
+<td><code>0x0F</code> = all four</td>
+</tr>
+<tr>
+<td>InB (0x01)</td>
+<td><code>0x02</code></td>
+<td>slave = <code>0x00</code></td>
+<td>slave = <code>0x00</code></td>
+</tr>
+<tr>
+<td>InC (0x02)</td>
+<td><code>0x04</code></td>
+<td><code>0x0C</code> = InC+InD (predicted)</td>
+<td>slave = <code>0x00</code></td>
+</tr>
+<tr>
+<td>InD (0x03)</td>
+<td><code>0x08</code></td>
+<td>slave = <code>0x00</code></td>
+<td>slave = <code>0x00</code></td>
+</tr>
+<tr>
+<td>Out1 (0x04)</td>
+<td><code>0x01</code></td>
+<td><code>0x03</code> = Out1+Out2</td>
+<td><code>0x0F</code> = all four</td>
+</tr>
+<tr>
+<td>Out2 (0x05)</td>
+<td><code>0x02</code></td>
+<td><code>0x06</code> = Out2+Out3</td>
+<td>slave = <code>0x00</code></td>
+</tr>
+<tr>
+<td>Out3 (0x06)</td>
+<td><code>0x04</code></td>
+<td><code>0x0C</code> = Out3+Out4</td>
+<td>slave = <code>0x00</code></td>
+</tr>
+<tr>
+<td>Out4 (0x07)</td>
+<td><code>0x08</code></td>
+<td>slave = <code>0x00</code></td>
+<td>slave = <code>0x00</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Examples (all capture-verified):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Commands</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Link InA+InB</td>
+<td><code>2a 00 01</code> + <code>3b 00 03</code> + <code>3b 01 00</code> + <code>12</code></td>
+</tr>
+<tr>
+<td>Link InA+InB+InC</td>
+<td><code>2a 00 01</code> + <code>2a 00 02</code> + <code>3b 00 07</code> + <code>3b 01 00</code> + <code>3b 02 00</code> + <code>12</code></td>
+</tr>
+<tr>
+<td>Unlink InA+InB</td>
+<td><code>3b 00 01</code> + <code>3b 01 02</code> + <code>12</code></td>
+</tr>
+<tr>
+<td>Link Out1+Out2</td>
+<td><code>2a 04 05</code> + <code>3b 04 03</code> + <code>3b 05 00</code> + <code>12</code></td>
+</tr>
+<tr>
+<td>Unlink Out1+Out2</td>
+<td><code>3b 04 01</code> + <code>3b 05 02</code> + <code>12</code></td>
+</tr>
+<tr>
+<td>Link Out2+Out3</td>
+<td><code>2a 05 06</code> + <code>3b 05 06</code> + <code>3b 06 00</code> + <code>12</code></td>
+</tr>
+<tr>
+<td>Unlink Out2+Out3</td>
+<td><code>3b 05 02</code> + <code>3b 06 04</code> + <code>12</code></td>
+</tr>
+<tr>
+<td>Link Out3+Out4</td>
+<td><code>2a 06 07</code> + <code>3b 06 0C</code> + <code>3b 07 00</code> + <code>12</code></td>
+</tr>
+<tr>
+<td>Unlink Out3+Out4</td>
+<td><code>3b 06 04</code> + <code>3b 07 08</code> + <code>12</code></td>
+</tr>
+<tr>
+<td>Link Out1+2+3+4</td>
+<td><code>2a 04 05</code> + <code>2a 04 06</code> + <code>2a 04 07</code> + <code>3b 04 0F</code> + <code>3b 05 00</code> + <code>3b 06 00</code> + <code>3b 07 00</code> + <code>12</code></td>
+</tr>
+<tr>
+<td>Unlink Out1+2+3+4</td>
+<td><code>3b 04 01</code> + <code>3b 05 02</code> + <code>3b 06 04</code> + <code>3b 07 08</code> + <code>12</code></td>
+</tr>
+</tbody>
+</table>
+<p>The link flags byte corresponds to offset 22 in input blocks and offset 72
+in output blocks of the <code>.unt</code> config / <code>0x24</code> config page response.</p>
+<h3 id="0x2a-prepare-link">0x2a — Prepare Link<a class="headerlink" href="#0x2a-prepare-link" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>Payload (3 bytes): 2a [master_channel] [slave_channel]
+</code></pre></div>
+<p>Sent <strong>only when linking</strong> (not when unlinking), immediately before the <code>0x3b</code>
+commands. One <code>0x2a</code> is sent per master↔slave pair. For multi-channel links
+(e.g. all four outputs), the master sends one <code>0x2a</code> for each slave.</p>
+<table>
+<thead>
+<tr>
+<th>Link action</th>
+<th>0x2a commands</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Link InA+InB</td>
+<td><code>2a 00 01</code></td>
+</tr>
+<tr>
+<td>Link InA+InB+InC</td>
+<td><code>2a 00 01</code> + <code>2a 00 02</code></td>
+</tr>
+<tr>
+<td>Link Out1+Out2</td>
+<td><code>2a 04 05</code></td>
+</tr>
+<tr>
+<td>Link Out2+Out3</td>
+<td><code>2a 05 06</code></td>
+</tr>
+<tr>
+<td>Link Out3+Out4</td>
+<td><code>2a 06 07</code></td>
+</tr>
+<tr>
+<td>Link Out1+2+3+4</td>
+<td><code>2a 04 05</code> + <code>2a 04 06</code> + <code>2a 04 07</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="0x3d-set-channel-name">0x3d — Set Channel Name<a class="headerlink" href="#0x3d-set-channel-name" title="Permanent link">&para;</a></h3>
+<p>Discovered from <code>capture_20260407_233926_change_name_of_out_3.pcapng</code> — renaming Out3 from "Out3" to "AUSGANG3".</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>Payload (10 bytes): 3d [channel] [name_byte_0] … [name_byte_7]
+<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>
+<a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a>Captured: 3d 06 41 55 53 47 41 4e 47 33
+<a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a>           op ch  A  U  S  G  A  N  G  3
+</code></pre></div>
+<p><strong>Channel byte:</strong> unified numbering — inputs 0x00–0x03, outputs 0x04–0x07 (Out3 = 0x06).</p>
+<p><strong>Name field:</strong> 8-byte ASCII, zero-padded. Up to 8 characters. The same 8 bytes are stored at output block bytes 0–7 and input block bytes 0–7 in the <code>.unt</code> config. Default input names ("InA"–"InD") are 3 chars zero-padded to 8 bytes, but the full 8 bytes are writable.</p>
+<p><strong>Verified captures:</strong>
+- <code>capture_20260407_233926_change_name_of_out_3.pcapng</code> — Out3 (ch 0x06): <code>3d 06 41 55 53 47 41 4e 47 33</code> ("Out3"→"AUSGANG3")
+- <code>capture_20260407_234815_change_name_of_in_c.pcapng</code> — InC (ch 0x02): <code>3d 02 45 49 4e 47 41 4e 47 43</code> ("InC"→"EINGANGC")</p>
+<p>Device responds with <code>0x01</code> ACK.</p>
+<h3 id="0x20-load-preset">0x20 — Load Preset<a class="headerlink" href="#0x20-load-preset" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>Payload (2 bytes): 20 [slot]
+</code></pre></div>
+<p>Uses a <strong>direct slot index</strong>: 0=F00, 1=U01, 2=U02, …, 30=U30.
+Previous documentation (from DSP 408 cross-reference) incorrectly stated 1-based — our
+captures confirm it is zero-based with F00 at index 0.</p>
+<blockquote>
+<p><strong>WARNING — F00 is the factory default preset (read-only).</strong> Never send <code>0x21</code> (store)
+with slot=0. Overwriting F00 could corrupt the device's default state and may be
+irreversible without a full firmware reflash.</p>
+</blockquote>
+<p><strong>Verified slot values:</strong>
+| Preset | <code>0x20</code> payload |
+|---|---|
+| F00 (factory) | <code>20 00</code> |
+| U01 | <code>20 01</code> |
+| U02 | <code>20 02</code> |
+| U30 | <code>20 1e</code> |</p>
+<p><strong>Load sequence (capture-verified):</strong>
+1. <code>0x20 [slot]</code> → ACK
+2. <code>0x27 00</code> … <code>0x27 08</code> → 9× <code>0x24</code> config page responses
+3. <code>0x12</code> activate → ACK</p>
+<p>Mid-session preset change requires no re-init — just step 1→3 above.</p>
+<p><strong>Timing note:</strong> The device does not ACK the <code>0x20</code> load command immediately — it
+applies the preset internally before responding. With the default 500 ms timeout
+the host may time out and treat the load as failed. A <strong>2-second timeout</strong> on the
+<code>0x20</code> response is recommended. Similarly, after the final <code>0x12</code> activate, the
+device may need a brief settling period before it is ready to respond to poll
+(<code>0x40</code>) commands. If the host re-enters the poll loop too quickly after activate,
+consecutive poll timeouts can trigger a false disconnect. Checking the activate
+ACK (not just the presence of a response) and allowing a short grace period
+prevents this.</p>
+<p><strong>Config page 0 marker bytes (bytes 0–1 of the 450-byte config blob):</strong>
+- <code>ff ff</code> — user preset with customised content (U01, U02)
+- <code>ff 00</code> — factory/default state (F00, or an empty user slot that was never modified)</p>
+<h3 id="0x21-store-preset">0x21 — Store Preset<a class="headerlink" href="#0x21-store-preset" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>Payload (2 bytes): 21 [slot]
+</code></pre></div>
+<p>Stores the current active config to the specified slot. Same direct slot index as <code>0x20</code>
+(1=U01 … 30=U30).</p>
+<blockquote>
+<p><strong>WARNING — Never store to slot 0 (F00).</strong> F00 is the factory default preset and must
+remain read-only. Overwriting it may permanently corrupt the device baseline.</p>
+</blockquote>
+<p>Device ACK is delayed ~2 seconds (device writes to non-volatile flash). The host must
+wait for ACK before proceeding.</p>
+<p><strong>Store sequence (capture-verified):</strong>
+1. <code>0x26 [name]</code> → ACK  (set the name first)
+2. <code>0x21 [slot]</code> → ACK  (~2 s delay while device writes flash)
+3. <code>0x12</code> activate → ACK</p>
+<h3 id="0x26-store-preset-name">0x26 — Store Preset Name<a class="headerlink" href="#0x26-store-preset-name" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>Payload (15 bytes): 26 [14 chars ASCII, space-padded]
+</code></pre></div>
+<p>Sets the name for the currently active preset slot. Must be sent <strong>before</strong> <code>0x21</code>.
+Maximum name length is <strong>14 characters</strong> — space-pad shorter names to fill 14 bytes.</p>
+<blockquote>
+<p><strong>WARNING — Do not exceed 14 characters.</strong> Sending a longer name is known to crash
+the DSP firmware and may require a power cycle to recover.</p>
+</blockquote>
+<h3 id="0x38-output-delay">0x38 — Output Delay<a class="headerlink" href="#0x38-output-delay" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a>Payload (4 bytes): 38 [ch] [samples_lo] [samples_hi]
+</code></pre></div>
+<p>Sets the per-output delay in samples at the 48 kHz sample rate.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Bytes</th>
+<th>Type</th>
+<th>Range</th>
+<th>Formula</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Channel</td>
+<td>1</td>
+<td>uint8</td>
+<td>0x04–0x07</td>
+<td>Outputs only (Out1–Out4)</td>
+</tr>
+<tr>
+<td>Samples</td>
+<td>2–3</td>
+<td>uint16 LE</td>
+<td>0–32640</td>
+<td>ms = raw / 48</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Max delay:</strong> 32640 samples = 680.000 ms (exactly 680 × 48).</p>
+<p><strong>Config storage:</strong> output block bytes 70–71 (uint16 LE, same value as command).</p>
+<p><strong>Capture-verified:</strong> Out4 swept 0→32640→0→32640, config diff confirmed
+offset 70–71 changed to 0x80,0x7f = 32640.</p>
+<p><strong>Note:</strong> This opcode was not previously known even in the <code>dsp-408-ui</code> project.</p>
+<h3 id="0x3e-noise-gate-input-channels">0x3E — Noise Gate (Input Channels)<a class="headerlink" href="#0x3e-noise-gate-input-channels" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a>Payload (10 bytes): 3e [ch] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [hold_lo] [hold_hi] [thr_lo] [thr_hi]
+</code></pre></div>
+<p>Sets all 4 noise gate parameters for an input channel in a single command.
+All parameters are uint16 LE.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Bytes</th>
+<th>Raw Range</th>
+<th>UI Range</th>
+<th>Formula</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Attack</td>
+<td>2–3</td>
+<td>0–998</td>
+<td>1–999 ms</td>
+<td>ms = raw + 1</td>
+</tr>
+<tr>
+<td>Release</td>
+<td>4–5</td>
+<td>0–2999</td>
+<td>1–3000 ms</td>
+<td>ms = raw + 1</td>
+</tr>
+<tr>
+<td>Hold</td>
+<td>6–7</td>
+<td>9–998</td>
+<td>10–999 ms</td>
+<td>ms = raw + 1 (confirmed: raw 9 → 10 ms)</td>
+</tr>
+<tr>
+<td>Threshold</td>
+<td>8–9</td>
+<td>0–180</td>
+<td>−90.0 to 0.0 dB</td>
+<td>dB = raw × 0.5 − 90.0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note:</strong> The <code>ms = raw + 1</code> encoding is identical to the compressor attack/release.
+The raw minimum for attack was previously noted as 34 from captured sweeps; the
+true minimum is 0 (= 1 ms). Hold confirms the formula exactly: raw 9 → 10 ms.</p>
+<p><strong>Channel byte:</strong> input channels only (0x00–0x03).</p>
+<p><strong>Config storage:</strong> input block bytes 10–17 (4 × uint16 LE in the same order as the command).</p>
+<p><strong>Capture-verified:</strong> 6 captures on InC sweeping each parameter independently.
+Confirmed by diff-config comparing config page reads before/after:
+- Attack → config bytes 10–11 (e.g. max 998 = 0xe6,0x03)
+- Release → config bytes 12–13 (e.g. max 2999 = 0xb7,0x0b)
+- Hold → config bytes 14–15 (e.g. max 998 = 0xe6,0x03)
+- Threshold → config bytes 16–17 (e.g. max 180 = 0xb4,0x00)</p>
+<h3 id="0x39-test-tone-generator">0x39 — Test Tone Generator<a class="headerlink" href="#0x39-test-tone-generator" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a>Payload (3 bytes): 39 [mode] [freq_idx]
+</code></pre></div>
+<p>Enables or disables the internal test signal generator. The device ACKs with <code>0x01</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Byte</th>
+<th>Type</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mode</td>
+<td>1</td>
+<td>uint8</td>
+<td>0x00=off (analog input), 0x01=pink noise, 0x02=white noise, 0x03=sine wave</td>
+</tr>
+<tr>
+<td>Freq index</td>
+<td>2</td>
+<td>uint8</td>
+<td>Sine frequency index (0x00–0x1E); 0x00 for noise modes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sine wave frequency table</strong> (ISO 1/3-octave, 31 steps, index 0x00–0x1E):</p>
+<table>
+<thead>
+<tr>
+<th>Idx</th>
+<th>Hz</th>
+<th>Idx</th>
+<th>Hz</th>
+<th>Idx</th>
+<th>Hz</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x00</td>
+<td>20</td>
+<td>0x0B</td>
+<td>250</td>
+<td>0x16</td>
+<td>3150</td>
+</tr>
+<tr>
+<td>0x01</td>
+<td>25</td>
+<td>0x0C</td>
+<td>315</td>
+<td>0x17</td>
+<td>4000</td>
+</tr>
+<tr>
+<td>0x02</td>
+<td>31.5</td>
+<td>0x0D</td>
+<td>400</td>
+<td>0x18</td>
+<td>5000</td>
+</tr>
+<tr>
+<td>0x03</td>
+<td>40</td>
+<td>0x0E</td>
+<td>500</td>
+<td>0x19</td>
+<td>6300</td>
+</tr>
+<tr>
+<td>0x04</td>
+<td>50</td>
+<td>0x0F</td>
+<td>630</td>
+<td>0x1A</td>
+<td>8000</td>
+</tr>
+<tr>
+<td>0x05</td>
+<td>63</td>
+<td>0x10</td>
+<td>800</td>
+<td>0x1B</td>
+<td>10000</td>
+</tr>
+<tr>
+<td>0x06</td>
+<td>80</td>
+<td>0x11</td>
+<td>1000</td>
+<td>0x1C</td>
+<td>12500</td>
+</tr>
+<tr>
+<td>0x07</td>
+<td>100</td>
+<td>0x12</td>
+<td>1250</td>
+<td>0x1D</td>
+<td>16000</td>
+</tr>
+<tr>
+<td>0x08</td>
+<td>125</td>
+<td>0x13</td>
+<td>1600</td>
+<td>0x1E</td>
+<td>20000</td>
+</tr>
+<tr>
+<td>0x09</td>
+<td>160</td>
+<td>0x14</td>
+<td>2000</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>0x0A</td>
+<td>200</td>
+<td>0x15</td>
+<td>2500</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Behavior notes:</strong>
+- For noise modes (pink/white), <code>freq_idx</code> is always <code>0x00</code>.
+- When disabling (mode=<code>0x00</code>), the software sends the <strong>last-used sine freq index</strong> as <code>freq_idx</code>
+  (carried state — device ignores it in off mode, but the config byte retains it).
+- The sine frequency index <strong>persists</strong> in the config even when switching to noise or off mode.</p>
+<p><strong>Config storage</strong> (confirmed from diff-config on all 4 captures):
+- Config offset <strong>420</strong> (page 8, byte 20): test tone mode — changes immediately on <code>0x39</code>
+- Config offset <strong>421</strong>: always <code>0x00</code>
+- Config offset <strong>422</strong> (page 8, byte 22): last sine frequency index — set by sine selection, retained when mode changes</p>
+<p><strong>Persistence:</strong> The device stores the test tone state in its live config. The state survives application
+restarts (the app reads it back via <code>0x27</code>). All preset slots in <code>.unt</code> files store <code>0x00</code> (off) at
+offset 420 when the test tone was off at export time.</p>
+<p><strong>Capture-verified:</strong> 4 captures (white noise, pink noise, sine wave frequency sweep 20Hz→20kHz→20Hz→25Hz,
+analog input disable). Sine wave sweep confirmed all 31 frequency indices 0x00–0x1E in sequence.</p>
+<hr />
+<h2 id="unknowns-to-investigate">Unknowns / To Investigate<a class="headerlink" href="#unknowns-to-investigate" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[x] <strong>Channel selector:</strong> Inputs 0x00–0x03, outputs 0x04–0x07 (from <code>dsp-408-ui</code>).
+      Gain/mute commands use the same unified channel numbering.</li>
+<li>[x] <strong>Gain-to-dB mapping:</strong> Dual resolution confirmed via <code>dsp-408-ui</code>:
+      coarse 0.5 dB/step below −20 dB, fine 0.1 dB/step above.</li>
+<li>[x] <strong>Device descriptor:</strong> VID=<code>0x0168</code> PID=<code>0x0821</code>, Manufacturer="Musicrown",
+      Product="Dsp Process" (from <code>miniDSP USBTree output.txt</code>).</li>
+<li>[x] <strong>Channel 4 levels:</strong> Confirmed as regular channel 4 level (same scale as
+      ch1–3). Higher values were from a mic on ch4 picking up keyboard noise.</li>
+<li>[ ] <strong>Status flags (offsets 10, 22):</strong> Not clip indicators (disproven). Only appear
+      during init phase. Exact meaning unknown — startup artifact?</li>
+<li>[ ] <strong>Firmware version:</strong> Is the footer <code>0x000abc8d</code> a version number?</li>
+<li>[x] <strong>Delay command:</strong> Opcode <code>0x38</code> — <code>38 [ch] [samples_lo] [samples_hi]</code>, uint16 LE samples at 48 kHz.
+      Config stored at output block bytes 70–71. First known implementation (not in dsp-408-ui).</li>
+<li>[x] <strong>Compressor/Limiter:</strong> Opcode <code>0x30</code> — 10-byte payload, all 5 params sent in one frame.
+      <code>30 [ch] [ratio] [knee] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [thr_lo] [thr_hi]</code>
+      Threshold (bytes 8–9): uint16 LE, <code>dB = raw/2 − 90</code>, range 0–220 (−90 to +20 dB, 0.5 dB/step).
+      Attack (bytes 4–5): uint16 LE, <code>ms = raw + 1</code>, range 0–998 (1–999 ms).
+      Release (bytes 6–7): uint16 LE, <code>ms = raw + 1</code>, range 9–2999 (10–3000 ms).
+      Ratio (byte 2): uint8 enum 0–15 (0=1:1.0 … 14=1:20.0, 15=Limit).
+      Knee (byte 3): uint8 direct dB, 0–12.
+      Config storage: output block bytes 58–65 (same field order as command payload).</li>
+<li>[x] <strong>Phase invert:</strong> Opcode <code>0x36</code> — <code>36 [ch] [state]</code>, 0x00=normal, 0x01=inverted.
+      Also stored in config at input block offset 20 (byte within 24-byte block).
+      Captured: InC toggled normal↔inverted. InA+InB were already inverted.</li>
+<li>[x] <strong>Noise gate:</strong> Opcode <code>0x3E</code> — 10-byte payload with attack/release/hold/threshold.
+      Config stored at input block bytes 10–17 (4 × uint16 LE). 6 captures verified.</li>
+<li>[x] <strong>Crossover filters:</strong> Opcodes <code>0x31</code>/<code>0x32</code> capture-verified on 4x4 Mini.
+      Raw 0–300 maps to 19.7–20160 Hz via Hz = 19.70 × (20160/19.70)^(raw/300).
+      DSP 408 uses 0–1000; same range, different step count.</li>
+<li>[x] <strong>Routing matrix verified on 4x4 Mini:</strong> Opcode <code>0x3a</code> capture-confirmed. Config byte 8 of each output block stores the input bitmask.</li>
+<li>[x] <strong>Output PEQ verified on 4x4 Mini:</strong> Opcode <code>0x33</code> — 10-byte payload. 7 bands per output channel. Gain ±12dB (raw 0–240, 0.1dB step), freq raw 0–300 (same scale as crossover), Q raw 0–100 (log Q=0.4×320^(raw/100)), 7 filter types (Peak/Low Shelf/High Shelf/Low Pass/High Pass/Allpass 1st/Allpass 2nd). Band bypass in footer bitmask. Channel bypass via <code>0x3c</code> command. Confirmed from 7 captures.</li>
+<li>[x] <strong>Footer bytes 416–427:</strong> Bytes 416–423 and 425–427 are always zero (padding). Byte 424 = delay display unit (0x00=ms default, 0x01=m, 0x02=ft), set by opcode <code>0x15</code>, verified from <code>capture_20260409_220822_output_delay_unit.pcapng</code> diff-config. Note: all 5 previously analyzed presets had byte 424=0x00 (ms was selected), explaining why it appeared to be all-zero.</li>
+</ul>
+<hr />
+<h2 id="configuration-file-format-unt">Configuration File Format (<code>.unt</code>)<a class="headerlink" href="#configuration-file-format-unt" title="Permanent link">&para;</a></h2>
+<p>Reverse-engineered from <code>miniDSP current settings.unt</code> and <code>miniDSP current settings 260409.unt</code>.
+Both files are exactly <strong>13010 bytes</strong>.</p>
+<h3 id="file-structure-overview">File Structure Overview<a class="headerlink" href="#file-structure-overview" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a>Offset    Size   Content
+<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a>────────  ─────  ─────────────────────────────────────────────
+<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a>0x000       50   File header
+<a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a>0x032      432   Slot 0 = U01 (prefix byte + 429 config bytes + CRLF)
+<a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a>0x1E2      432   Slot 1 = U02
+<a id="__codelineno-43-6" name="__codelineno-43-6" href="#__codelineno-43-6"></a>  ...
+<a id="__codelineno-43-7" name="__codelineno-43-7" href="#__codelineno-43-7"></a>0x3112     432   Slot 29 = U30
+</code></pre></div>
+<p>The file stores <strong>30 user preset slots</strong> (U01–U30). The factory preset F00 is read-only in device firmware and is NOT stored in the .unt file.</p>
+<p><strong>Slot structure (432 bytes each):</strong>
+- Byte 0: <strong>slot number</strong> (1-indexed, 1=U01, 2=U02, ..., 30=U30)
+- Bytes 1–429: config blob (429 bytes — see Preset Structure below)
+- Bytes 430–431: <code>0x0D 0x0A</code> (CRLF — Windows text-mode record terminator)</p>
+<p>Empty/unused slots are filled with <code>0x64</code> (<code>'d'</code>) repeated for all 432 bytes.</p>
+<h3 id="file-header-50-bytes-offset-0x000x31">File Header (50 bytes, offset 0x00–0x31)<a class="headerlink" href="#file-header-50-bytes-offset-0x000x31" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a>Offset  Size  Field
+<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a>──────  ────  ─────────────────────────────────────────────────────────────
+<a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a>0x00    16    Magic: &quot;***4x4MINIV010**&quot;
+<a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a>0x10     1    Device address (always 0x01)
+<a id="__codelineno-44-5" name="__codelineno-44-5" href="#__codelineno-44-5"></a>0x11     1    Active preset slot (1=U01, 2=U02, ..., 30=U30)
+<a id="__codelineno-44-6" name="__codelineno-44-6" href="#__codelineno-44-6"></a>0x12     1    Max user presets (always 0x1E = 30)
+<a id="__codelineno-44-7" name="__codelineno-44-7" href="#__codelineno-44-7"></a>0x13     4    ASCII &quot;0000&quot; — purpose unknown
+<a id="__codelineno-44-8" name="__codelineno-44-8" href="#__codelineno-44-8"></a>0x17     2    Always 0x00 0x00
+<a id="__codelineno-44-9" name="__codelineno-44-9" href="#__codelineno-44-9"></a>0x19     2    Device counter: 0x270F (same value as 0x2C USB response bytes 2–3)
+<a id="__codelineno-44-10" name="__codelineno-44-10" href="#__codelineno-44-10"></a>0x1B     2    Always 0x00 0x00
+<a id="__codelineno-44-11" name="__codelineno-44-11" href="#__codelineno-44-11"></a>0x1D     4    Device lock PIN (4 ASCII digits, e.g. &quot;7654&quot; = 37 36 35 34; &quot;0000&quot; = default/no-PIN)
+<a id="__codelineno-44-12" name="__codelineno-44-12" href="#__codelineno-44-12"></a>0x21     1    Always 0x00
+<a id="__codelineno-44-13" name="__codelineno-44-13" href="#__codelineno-44-13"></a>0x22     1    Firmware version? (0x0A = 10, matches &quot;V010&quot; from 0x13 USB response)
+<a id="__codelineno-44-14" name="__codelineno-44-14" href="#__codelineno-44-14"></a>0x23     1    Always 0x00
+<a id="__codelineno-44-15" name="__codelineno-44-15" href="#__codelineno-44-15"></a>0x24    14    Product name: &quot;4x4D Amplifier&quot;
+</code></pre></div>
+<p><strong>Key header discoveries (verified from 2 files):</strong>
+- <code>0x11</code> changes between files: old file=0x02 (U02 was active), new file=0x1E=30 (U30 was active)
+- <code>0x1D–0x20</code> holds the PIN: old file="1234", new file="7654" (matches our device lock captures)
+- <code>0x19–0x1A</code> = 0x270F matches the constant in the <code>0x2C</code> device-info USB response</p>
+<h3 id="preset-structure-stored-config-blob-429-bytes">Preset Structure (stored config blob, 429 bytes)<a class="headerlink" href="#preset-structure-stored-config-blob-429-bytes" title="Permanent link">&para;</a></h3>
+<p>The 429-byte config blob stored per slot is a partial view of the 450-byte USB config.
+The last 21 bytes (USB config offsets 429–449) are <strong>not stored</strong> in the .unt file —
+they are consistently zero and include the CRLF record separator at the slot boundary.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>Offset  Size  Field
+<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a>──────  ────  ─────────────────────────────────────
+<a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a>  0      2    Marker: 0xFF 0xFF
+<a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a>  2     14    Preset name (ASCII, space-padded to 14 chars)
+<a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a> 16    4×24   Input channel blocks (InA, InB, InC, InD)
+<a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a>112   4×74    Output channel blocks (Out1, Out2, Out3, Out4)
+<a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a>408      2    Input mute bitmask, LE uint16 (bit 0=In1 .. bit 3=In4)
+<a id="__codelineno-45-8" name="__codelineno-45-8" href="#__codelineno-45-8"></a>410      2    Output mute bitmask, LE uint16 (bit 0=Out1 .. bit 3=Out4)
+<a id="__codelineno-45-9" name="__codelineno-45-9" href="#__codelineno-45-9"></a>412      1    Out1 PEQ band bypass bitmask (bit 0=band1 .. bit 6=band7; 0x00=all active)
+<a id="__codelineno-45-10" name="__codelineno-45-10" href="#__codelineno-45-10"></a>413      1    Out2 PEQ band bypass bitmask
+<a id="__codelineno-45-11" name="__codelineno-45-11" href="#__codelineno-45-11"></a>414      1    Out3 PEQ band bypass bitmask
+<a id="__codelineno-45-12" name="__codelineno-45-12" href="#__codelineno-45-12"></a>415      1    Out4 PEQ band bypass bitmask
+<a id="__codelineno-45-13" name="__codelineno-45-13" href="#__codelineno-45-13"></a>416      4    Always 0x00 — reserved (padding)
+<a id="__codelineno-45-14" name="__codelineno-45-14" href="#__codelineno-45-14"></a>420      1    **Test tone mode**: 0x00=off, 0x01=pink noise, 0x02=white noise, 0x03=sine wave (set by `0x39` command)
+<a id="__codelineno-45-15" name="__codelineno-45-15" href="#__codelineno-45-15"></a>421      1    Always 0x00 — reserved
+<a id="__codelineno-45-16" name="__codelineno-45-16" href="#__codelineno-45-16"></a>422      1    **Sine wave frequency index**: last used sine freq (0x00=20Hz … 0x1E=20kHz); persists across mode changes
+<a id="__codelineno-45-17" name="__codelineno-45-17" href="#__codelineno-45-17"></a>423      1    Always 0x00 — reserved (padding)
+<a id="__codelineno-45-18" name="__codelineno-45-18" href="#__codelineno-45-18"></a>424      1    **Delay display unit**: 0x00=ms, 0x01=m, 0x02=ft (set by `0x15` command)
+<a id="__codelineno-45-19" name="__codelineno-45-19" href="#__codelineno-45-19"></a>425      3    Always 0x00 — reserved (padding)
+<a id="__codelineno-45-20" name="__codelineno-45-20" href="#__codelineno-45-20"></a>428      1    Out1 PEQ channel bypass (0x00=active, 0x01=all bands bypassed)
+<a id="__codelineno-45-21" name="__codelineno-45-21" href="#__codelineno-45-21"></a>[429–449 NOT stored — slot ends with CRLF at absolute position 430–431]
+</code></pre></div>
+<p>Preset names found across both .unt files: <code>"DIY Mon"</code>, <code>"DIY Mon offset"</code>, <code>"test preset"</code>.</p>
+<h3 id="input-channel-block-24-bytes">Input Channel Block (24 bytes)<a class="headerlink" href="#input-channel-block-24-bytes" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>Offset  Size  Field
+<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a>──────  ────  ─────────────────────────────────────
+<a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a> 0–7     8    Channel name (ASCII, zero-padded; default 3-char &quot;InA&quot;/&quot;InB&quot;/&quot;InC&quot;/&quot;InD&quot;, up to 8 chars e.g. &quot;EINGANGC&quot;)
+<a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a>10–11    2    **Gate attack**, LE uint16, raw 0–998 (ms = raw + 1 → 1–999 ms)
+<a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a>12–13    2    **Gate release**, LE uint16, raw 0–2999 (ms = raw + 1 → 1–3000 ms)
+<a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a>14–15    2    **Gate hold**, LE uint16, raw 9–998 (ms = raw + 1 → 10–999 ms)
+<a id="__codelineno-46-7" name="__codelineno-46-7" href="#__codelineno-46-7"></a>16–17    2    **Gate threshold**, LE uint16, raw 0–180 (−90.0 to 0.0 dB, 0.5 dB/step)
+<a id="__codelineno-46-8" name="__codelineno-46-8" href="#__codelineno-46-8"></a>18–19    2    **Input gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
+<a id="__codelineno-46-9" name="__codelineno-46-9" href="#__codelineno-46-9"></a>20       1    **Phase invert**: 0x00=normal, 0x01=inverted (same as 0x36 command)
+<a id="__codelineno-46-10" name="__codelineno-46-10" href="#__codelineno-46-10"></a>21       1    Always 0x00 (mute state is NOT here — see footer bitmasks)
+<a id="__codelineno-46-11" name="__codelineno-46-11" href="#__codelineno-46-11"></a>22       1    Routing/link flags (see below)
+<a id="__codelineno-46-12" name="__codelineno-46-12" href="#__codelineno-46-12"></a>23       1    Always 0x00
+</code></pre></div>
+<p><strong>Routing flags (byte 22):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Channel</th>
+<th>Value</th>
+<th>Binary</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>InA</td>
+<td><code>0x03</code></td>
+<td><code>00000011</code></td>
+<td>Linked to pair (bits 0+1)</td>
+</tr>
+<tr>
+<td>InB</td>
+<td><code>0x00</code></td>
+<td><code>00000000</code></td>
+<td>Not linked / follows InA</td>
+</tr>
+<tr>
+<td>InC</td>
+<td><code>0x04</code></td>
+<td><code>00000100</code></td>
+<td>Linked to pair (bit 2)</td>
+</tr>
+<tr>
+<td>InD</td>
+<td><code>0x08</code></td>
+<td><code>00001000</code></td>
+<td>Linked to pair (bit 3)</td>
+</tr>
+</tbody>
+</table>
+<p>InA=0x03 and InB=0x00 is consistent with InA+InB being a linked stereo pair
+(the user confirmed channels 1+2 are linked in the software).</p>
+<p><strong>Preset differences (InD only):</strong>
+Preset 2's InD has different values at bytes 10, 12–14, and 15–16 compared to preset 1,
+suggesting these bytes contain per-channel gain/EQ parameters that were adjusted for the
+"DIY Mon offset" preset.</p>
+<h3 id="output-channel-block-74-bytes">Output Channel Block (74 bytes)<a class="headerlink" href="#output-channel-block-74-bytes" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a>Offset  Size  Field
+<a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a>──────  ────  ─────────────────────────────────────
+<a id="__codelineno-47-3" name="__codelineno-47-3" href="#__codelineno-47-3"></a> 0–7     8    Channel name (8-byte ASCII, zero-padded: &quot;Out1&quot;–&quot;Out4&quot;; up to 8 chars e.g. &quot;AUSGANG3&quot;)
+<a id="__codelineno-47-4" name="__codelineno-47-4" href="#__codelineno-47-4"></a> 8       1    **Input routing mask** — bitmask of sources feeding this output (InA=0x01, InB=0x02, InC=0x04, InD=0x08). Default diagonal routing makes this look like a channel ID, but it&#39;s the `0x3a` input bitmask.
+<a id="__codelineno-47-5" name="__codelineno-47-5" href="#__codelineno-47-5"></a> 9       1    Always 0x00
+<a id="__codelineno-47-6" name="__codelineno-47-6" href="#__codelineno-47-6"></a>10–11    2    **Crossover hi-pass freq**, LE uint16, raw 0–300 (same as 0x32 command)
+<a id="__codelineno-47-7" name="__codelineno-47-7" href="#__codelineno-47-7"></a>12–13    2    **Crossover lo-pass freq**, LE uint16, raw 0–300 (same as 0x31 command, default 300 = 20.16 kHz)
+<a id="__codelineno-47-8" name="__codelineno-47-8" href="#__codelineno-47-8"></a>14       1    **Crossover hi-pass slope**, 0x00=bypassed, 0x01–0x0a=active slope type (see slope table)
+<a id="__codelineno-47-9" name="__codelineno-47-9" href="#__codelineno-47-9"></a>15       1    **Crossover lo-pass slope**, 0x00=bypassed, 0x01–0x0a=active slope type (see slope table)
+<a id="__codelineno-47-10" name="__codelineno-47-10" href="#__codelineno-47-10"></a>16–57   42    **PEQ band data** — 7 bands × 6 bytes each (verified)
+<a id="__codelineno-47-11" name="__codelineno-47-11" href="#__codelineno-47-11"></a>58       1    **Compressor ratio**, uint8 enum 0–15 (see COMP_RATIO_* constants; 0=1:1.0, 15=Limit)
+<a id="__codelineno-47-12" name="__codelineno-47-12" href="#__codelineno-47-12"></a>59       1    **Compressor knee**, uint8 0–12 (direct dB, 0=hard knee, 12=softest)
+<a id="__codelineno-47-13" name="__codelineno-47-13" href="#__codelineno-47-13"></a>60–61    2    **Compressor attack**, LE uint16, raw 0–998 (ms = raw + 1, range 1–999 ms)
+<a id="__codelineno-47-14" name="__codelineno-47-14" href="#__codelineno-47-14"></a>62–63    2    **Compressor release**, LE uint16, raw 9–2999 (ms = raw + 1, range 10–3000 ms)
+<a id="__codelineno-47-15" name="__codelineno-47-15" href="#__codelineno-47-15"></a>64–65    2    **Compressor threshold**, LE uint16, raw 0–220 (dB = raw/2 − 90, range −90 to +20 dB)
+<a id="__codelineno-47-16" name="__codelineno-47-16" href="#__codelineno-47-16"></a>66–67    2    **Output gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
+<a id="__codelineno-47-17" name="__codelineno-47-17" href="#__codelineno-47-17"></a>68       1    **Phase invert**: 0x00=normal, 0x01=inverted (same as 0x36 command)
+<a id="__codelineno-47-18" name="__codelineno-47-18" href="#__codelineno-47-18"></a>69       1    Always 0x00 (mute state is NOT here — see footer bitmasks)
+<a id="__codelineno-47-19" name="__codelineno-47-19" href="#__codelineno-47-19"></a>70–71    2    **Output delay**, LE uint16, samples at 48 kHz (0–32640 = 0–680 ms, same as 0x38 command)
+<a id="__codelineno-47-20" name="__codelineno-47-20" href="#__codelineno-47-20"></a>72       1    Routing/link flags (same scheme as input)
+<a id="__codelineno-47-21" name="__codelineno-47-21" href="#__codelineno-47-21"></a>73       1    Always 0x00
+</code></pre></div>
+<p><strong>PEQ band data (bytes 16–57, 42 bytes, verified):</strong></p>
+<p>7 bands × 6 bytes per band. Each band: <code>[gain_lo] [gain_hi] [freq_lo] [freq_hi] [Q] [type]</code>
+- gain: LE uint16, raw 0–240, 0dB=120
+- freq: LE uint16, raw 0–300 (same formula as crossover)
+- Q: uint8, raw 0–100
+- type: uint8 (0=Peak, 1=Low Shelf, 2=High Shelf, 3=Low Pass, 4=High Pass, 5=Allpass 1st, 6=Allpass 2nd)</p>
+<p>Band bypass state is NOT stored per-band — it is stored as a bitmask per channel in the config footer (offset 412–415).</p>
+<p>In the default config, observed constant values across bands suggest frequency and Q are pre-set,
+with per-band gain values varying (71, 118, 161, 200, 240, 270 — EQ center frequencies in raw scale).</p>
+<p><strong>Compressor parameters (bytes 58–65):</strong></p>
+<p>Verified by 5 diff-config captures (one per parameter), each showing exactly one field change:
+- threshold default: raw 220 (+20.0 dB) — <code>capture_20260407_184757</code>
+- attack default: raw 49 (50 ms) — <code>capture_20260407_184842</code>
+- release default: raw 499 (500 ms) — <code>capture_20260407_185003</code>
+- ratio/knee: both 0 (no compression, hard knee) — <code>capture_20260407_185056/185154</code></p>
+<h3 id="empty-slot-filler">Empty Slot Filler<a class="headerlink" href="#empty-slot-filler" title="Permanent link">&para;</a></h3>
+<p>Unused preset slots are filled with <code>0x64</code> (<code>'d'</code>) repeated for all 432 bytes.
+The fixed file size of 13010 bytes (50 + 30 × 432) is a software requirement.</p>
+<h3 id="unt-format-unknowns">.unt Format Unknowns<a class="headerlink" href="#unt-format-unknowns" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[x] ~~Input/output gain location~~ → Input block bytes 18–19, output block bytes 66–67 (uint16 LE, raw 0–400)</li>
+<li>[x] ~~Mute state location~~ → Footer bitmasks at preset offsets 408–409 (input) and 410–411 (output), NOT in per-channel blocks. Verified by comparing startup captures with In4+Out4 muted vs unmuted.</li>
+<li>[x] ~~Input block bytes 10–17~~ → Noise gate parameters: attack (10–11), release (12–13), hold (14–15), threshold (16–17), all LE uint16</li>
+<li>[x] ~~Output EQ band count and parameter mapping~~ → 7 bands × 6 bytes: [gain_lo,gain_hi,freq_lo,freq_hi,Q,type]. Verified from PEQ captures.</li>
+<li>[x] ~~Output block bytes 12–13 (always 300)~~ → Lo-pass crossover frequency (raw 300 = 20.16 kHz = default/max)</li>
+<li>[x] ~~Whether the file can hold more than 2 presets~~ → Yes. File holds 30 slots (U01–U30). Verified: <code>miniDSP current settings 260409.unt</code> has U01 + U30 both filled.</li>
+<li>[x] ~~Header byte 0x11 meaning~~ → Active preset slot (1-indexed: 1=U01, 2=U02, ..., 30=U30). Verified: old file has 0x02 (U02 active), new file has 0x1E (U30 active).</li>
+<li>[x] ~~Header bytes 0x1D–0x20~~ → Device lock PIN (4 ASCII digits). Old file has "1234", new file has "7654" matching our device-lock capture.</li>
+<li>[x] ~~Input block unknown bytes (8–9, 21, 23)~~ → Always zero (pure padding). Verified across 5 presets.</li>
+<li>[x] ~~Output block unknown bytes (9, 69, 73)~~ → Always zero (pure padding). Verified across 5 presets.</li>
+<li>[x] ~~Footer bytes 416–427~~ → Bytes 416–419 and 423 and 425–427 are padding (always zero). Byte 420 = test tone mode (0x00=off, 0x01=pink, 0x02=white, 0x03=sine). Byte 421 = always 0x00. Byte 422 = last sine frequency index (0x00–0x1E). Byte 424 = delay display unit (0x00=ms, 0x01=m, 0x02=ft). All presets analyzed had ms selected (0x00), which appeared as all-zero until the delay unit capture revealed byte 424.</li>
+<li>[x] ~~Crossover type/slope~~ → bytes 10–11 = hi-pass freq, 12–13 = lo-pass freq, byte 14 = hi-pass slope, byte 15 = lo-pass slope. All stored in config; slope 0x00 = bypassed, 0x01–0x0a = active slope type.</li>
+<li>[x] ~~Output block compressor location~~ → bytes 58–65: ratio(1B), knee(1B), attack(2B LE), release(2B LE), threshold(2B LE). Verified by 5 diff-config captures.</li>
+<li>[x] ~~Output block bytes 6–7~~ → bytes 0–7 are the full 8-byte channel name field (verified: "Out3" → "AUSGANG3" changes all 8 bytes)</li>
+<li>[x] ~~Output block bytes 70–71~~ → Output delay in samples at 48 kHz (uint16 LE, 0–32640 = 0–680 ms)</li>
+<li>[ ] Header bytes 0x13–0x16: ASCII "0000" — purpose unknown (device address in padded ASCII? version field?)</li>
+<li>[ ] Purpose of the "4x4D Amplifier" product string (header 0x24) vs "Dsp Process" USB descriptor string</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "toc.follow", "content.code.copy", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

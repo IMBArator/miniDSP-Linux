@@ -1,0 +1,2325 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="USB HID control and protocol analysis for the t.racks DSP 4x4 Mini">
+      
+      
+      
+        <link rel="canonical" href="https://imbarator.github.io/miniDSP-Linux/feature-list/">
+      
+      
+        <link rel="prev" href="../protocol/">
+      
+      
+        <link rel="next" href="../usage/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Feature List - miniDSP-Linux</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#preliminary-feature-list-the-tracks-dsp-4x4-mini" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="miniDSP-Linux" class="md-header__button md-logo" aria-label="miniDSP-Linux" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            miniDSP-Linux
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Feature List
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/IMBArator/miniDSP-Linux" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    IMBArator/miniDSP-Linux
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../protocol/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Protocol
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Feature List
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../usage/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  CLI Usage
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../development/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Development Notes
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../api/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API Reference
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="miniDSP-Linux" class="md-nav__button md-logo" aria-label="miniDSP-Linux" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    miniDSP-Linux
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/IMBArator/miniDSP-Linux" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    IMBArator/miniDSP-Linux
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature List
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature List
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dsp-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DSP Features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DSP Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-input-channels-x4-ina-inb-inc-ind" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Input Channels (x4: InA, InB, InC, InD)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-output-channels-x4-out1-out2-out3-out4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Output Channels (x4: Out1, Out2, Out3, Out4)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-parametric-eq-output-channels-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Parametric EQ (Output channels only)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-crossover-filters-per-output-channel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Crossover Filters (per output channel)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-routing-matrix-4x4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Routing Matrix (4x4)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-channel-linking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Channel Linking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-preset-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Preset Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-test-tone-generator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Test Tone Generator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-system-utility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. System / Utility
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-status-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation Status Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation Status Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#captured-implemented-in-our-python-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Captured &amp; implemented in our Python tool:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protocol-likely-known-but-not-yet-or-not-fully-captured-on-our-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protocol likely known but NOT yet or not fully captured on our device:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#completely-unknown-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Completely unknown protocol:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api/dspanalyze/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dspanalyze
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Dspanalyze
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/calibrate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.calibrate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/capture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.capture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/check/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.check
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.cli
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/decode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.decode
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/diff_config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.diff_config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/extract_defaults/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.extract_defaults
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/metadata/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.metadata
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_10" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api/dspanalyze/output/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6_1_10" id="__nav_6_1_10_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Output
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/output/claude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.output.claude
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/output/human/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.output.human
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/output/raw/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.output.raw
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_11" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api/dspanalyze/readers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Readers
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6_1_11" id="__nav_6_1_11_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Readers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/readers/pcapng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.readers.pcapng
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/dspanalyze/readers/wireshark_text/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dspanalyze.readers.wireshark_text
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api/minidsp/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Minidsp
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6_2" id="__nav_6_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Minidsp
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/minidsp/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    minidsp.cli
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/minidsp/defaults/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    minidsp.defaults
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/minidsp/device/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    minidsp.device
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/minidsp/protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    minidsp.protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dsp-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DSP Features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DSP Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-input-channels-x4-ina-inb-inc-ind" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Input Channels (x4: InA, InB, InC, InD)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-output-channels-x4-out1-out2-out3-out4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Output Channels (x4: Out1, Out2, Out3, Out4)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-parametric-eq-output-channels-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Parametric EQ (Output channels only)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-crossover-filters-per-output-channel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Crossover Filters (per output channel)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-routing-matrix-4x4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Routing Matrix (4x4)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-channel-linking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Channel Linking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-preset-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Preset Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-test-tone-generator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Test Tone Generator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-system-utility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. System / Utility
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-status-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation Status Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation Status Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#captured-implemented-in-our-python-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Captured &amp; implemented in our Python tool:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protocol-likely-known-but-not-yet-or-not-fully-captured-on-our-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protocol likely known but NOT yet or not fully captured on our device:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#completely-unknown-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Completely unknown protocol:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="preliminary-feature-list-the-tracks-dsp-4x4-mini">Preliminary Feature List: the t.racks DSP 4x4 Mini<a class="headerlink" href="#preliminary-feature-list-the-tracks-dsp-4x4-mini" title="Permanent link">&para;</a></h1>
+<p>Compiled from: manufacturer tool screenshots (<code>analysis/resources/</code>), PDF user manual, and our protocol reverse-engineering (<code>analysis/protocol.md</code>).</p>
+<blockquote>
+<p><strong>Note on cross-references:</strong> The DSP 408 (Aeternitaas/dsp-408-ui) uses the same Musicrown protocol framing and some shared opcodes, but it is a larger device (8 outputs, Ethernet, GEQ, more PEQ bands). Features and parameter counts from that project should NOT be assumed to apply here. Only protocol-level encoding formulas (gain, frequency, Q) are likely shared.</p>
+</blockquote>
+<hr />
+<h2 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>4 inputs</strong> (InA-InD): balanced 6.3mm TRS, +12 dBu, 20k ohm</li>
+<li><strong>4 outputs</strong> (Out1-Out4): balanced 6.3mm TRS, +12 dBu, &lt;500 ohm</li>
+<li><strong>USB-B</strong> for PC control (USB 1.1 Full-Speed, HID class)</li>
+<li><strong>32-bit DSP</strong>, 24-bit AD/DA, 48 kHz sampling rate</li>
+<li><strong>12V DC</strong> external power, 160x150x40mm, 0.6 kg</li>
+<li>Front: 4 signal-present LEDs, USB port</li>
+<li>Back: 4x input jacks, 4x output jacks, DC power, power LED</li>
+</ul>
+<hr />
+<h2 id="dsp-features">DSP Features<a class="headerlink" href="#dsp-features" title="Permanent link">&para;</a></h2>
+<h3 id="1-input-channels-x4-ina-inb-inc-ind">1. Input Channels (x4: InA, InB, InC, InD)<a class="headerlink" href="#1-input-channels-x4-ina-inb-inc-ind" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Details</th>
+<th>Protocol Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gain</strong></td>
+<td>-60.0 to +12.0 dB, dual resolution (0.5 dB/step below -20 dB, 0.1 dB/step above)</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x34</code>)</td>
+</tr>
+<tr>
+<td><strong>Mute</strong></td>
+<td>Per-channel on/off</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x35</code>)</td>
+</tr>
+<tr>
+<td><strong>Phase Invert</strong></td>
+<td>180 degree polarity flip ("Normal" / "Inverse" button)</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x36</code>)</td>
+</tr>
+<tr>
+<td><strong>Noise Gate</strong></td>
+<td>Per-input: Threshold, Attack, Hold, Release</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x3E</code>)</td>
+</tr>
+<tr>
+<td><strong>Level Meter</strong></td>
+<td>Real-time level with clip indicator</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x40</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Gate parameters:</strong>
+- Threshold: -90.0 to 0.0 dB
+- Attack: 1 to 999 ms
+- Hold: 10 to 999 ms (raw 9–998)
+- Release: 0 to 3000 ms (raw 0–2999)</p>
+<p><strong>Signal chain (from Matrix tab):</strong> GAIN -&gt; GATE -&gt; PHASE -&gt; MUTE -&gt; routing matrix</p>
+<h3 id="2-output-channels-x4-out1-out2-out3-out4">2. Output Channels (x4: Out1, Out2, Out3, Out4)<a class="headerlink" href="#2-output-channels-x4-out1-out2-out3-out4" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Details</th>
+<th>Protocol Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gain</strong></td>
+<td>-60.0 to +12.0 dB (same encoding as input)</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x34</code>)</td>
+</tr>
+<tr>
+<td><strong>Mute</strong></td>
+<td>Per-channel on/off</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x35</code>)</td>
+</tr>
+<tr>
+<td><strong>Phase Invert</strong></td>
+<td>180 degree polarity flip</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x36</code>)</td>
+</tr>
+<tr>
+<td><strong>Compressor</strong></td>
+<td>Per-output: Threshold, Attack, Ratio, Release, Knee</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x30</code>, all 5 params in one frame)</td>
+</tr>
+<tr>
+<td><strong>Output Delay</strong></td>
+<td>Per-output, 0–680 ms in sample steps</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x38</code>; unit selector <code>0x15</code>)</td>
+</tr>
+<tr>
+<td><strong>Level Meter</strong></td>
+<td>Real-time level with clip + limiter active indicators</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x40</code>, limiter bitmask at byte 25)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Compressor parameters (all sent together in one <code>0x30</code> frame):</strong>
+- Threshold (bytes 8–9): −90.0 to +20.0 dB — <code>raw = 2 × (dB + 90)</code>, uint16 LE, range 0–220, 0.5 dB/step
+- Attack (bytes 4–5): 1 to 999 ms — <code>raw = ms − 1</code>, uint16 LE, range 0–998
+- Release (bytes 6–7): 10 to 3000 ms — <code>raw = ms − 1</code>, uint16 LE, range 9–2999
+- Ratio (byte 2): 16-value enum, 0=1:1.0, 1=1:1.1, 2=1:1.3, 3=1:1.5, 4=1:1.7, 5=1:2.0, 6=1:2.5, 7=1:3.0, 8=1:3.5, 9=1:4.0, 10=1:5.0, 11=1:6.0, 12=1:8.0, 13=1:10.0, 14=1:20.0, 15=Limit
+- Knee (byte 3): 0 to 12 dB — direct uint8 value, 1 dB steps</p>
+<p><strong>Delay:</strong>
+- Range: 0.000 ms to 680.000 ms per output (raw 0–32640 samples at 48 kHz, ~0.02083 ms/step)
+- Unit selector: ms, m (meters), ft (feet) — <code>0x15 [0x00/0x01/0x02]</code>; display-only, protocol always uses samples; persisted at config offset 424</p>
+<p><strong>Signal chain (from Matrix tab):</strong> XOVER -&gt; PEQ -&gt; GAIN -&gt; COMP -&gt; PHASE -&gt; DELAY -&gt; MUTE -&gt; output</p>
+<h3 id="3-parametric-eq-output-channels-only">3. Parametric EQ (Output channels only)<a class="headerlink" href="#3-parametric-eq-output-channels-only" title="Permanent link">&para;</a></h3>
+<p>The 4x4 Mini has PEQ on output channels only (no GEQ, no input EQ).</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Details</th>
+<th>Protocol Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PEQ Bands</strong></td>
+<td>7 bands per output channel</td>
+<td><strong>Captured &amp; implemented</strong> — opcode <code>0x33</code>, 10 bytes, 7 captures; config parsing in <code>parse_preset_params</code></td>
+</tr>
+<tr>
+<td><strong>Frequency</strong></td>
+<td>19.7 Hz to 20.16 kHz</td>
+<td><strong>Verified</strong> — LE uint16 raw 0–300, <code>Hz = 19.70×(20160/19.70)^(raw/300)</code></td>
+</tr>
+<tr>
+<td><strong>Gain</strong></td>
+<td>−12.0 to +12.0 dB, 0.1 dB resolution</td>
+<td><strong>Verified</strong> — LE uint16 raw 0–240, <code>dB = (raw−120)/10</code></td>
+</tr>
+<tr>
+<td><strong>Q Factor</strong></td>
+<td>0.4–128 (Peak); 0.4–3.0 (Shelf/Pass)</td>
+<td><strong>Verified</strong> — uint8 raw 0–100, <code>Q = 0.4×320^(raw/100)</code></td>
+</tr>
+<tr>
+<td><strong>Per-band Bypass</strong></td>
+<td>Individual band bypass toggle</td>
+<td><strong>Verified</strong> — bit per band in config footer (offset 412–415)</td>
+</tr>
+<tr>
+<td><strong>EQ Bypass</strong></td>
+<td>Bypasses all bands for a channel</td>
+<td><strong>Verified</strong> — opcode <code>0x3c</code>, 3 bytes; config footer offset 428–431</td>
+</tr>
+<tr>
+<td><strong>EQ Reset</strong></td>
+<td>Reset all bands to flat (0dB, Peak, Q≈1.7, preset freqs 40–10kHz)</td>
+<td><strong>Verified</strong> — sends <code>0x33</code> for each of 7 bands (no dedicated opcode)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Filter types (from screenshots, 7 types):</strong>
+- Peak
+- Low Shelf
+- High Shelf
+- Low Pass
+- High Pass
+- Allpass 1
+- Allpass 2</p>
+<p><strong>Display features:</strong>
+- Mag / Phase view toggle (level-vs-frequency or phase-vs-frequency)
+- "SHOW ALL EQ" button to overlay all output channels' curves
+- Interactive: drag corner points on the frequency response graph</p>
+<h3 id="4-crossover-filters-per-output-channel">4. Crossover Filters (per output channel)<a class="headerlink" href="#4-crossover-filters-per-output-channel" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Details</th>
+<th>Protocol Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>High-Pass</strong></td>
+<td>19.7 Hz to 20.16 kHz, Per-output, with bypass</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x32</code>, raw 0–300)</td>
+</tr>
+<tr>
+<td><strong>Low-Pass</strong></td>
+<td>19.7 Hz to 20.16 kHz, Per-output, with bypass</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x31</code>, raw 0–300)</td>
+</tr>
+<tr>
+<td><strong>Slope selection</strong></td>
+<td>10 slope types per filter (BW/BL/LR)</td>
+<td><strong>Captured &amp; implemented</strong> (byte 4 of 0x31/0x32, verified all 10 types)</td>
+</tr>
+<tr>
+<td><strong>Bypass</strong></td>
+<td>Per-filter bypass toggle</td>
+<td><strong>Captured &amp; implemented</strong> (slope=0x00=bypass; app must remember slope on un-bypass)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slope types (verified from capture, 10 options):</strong>
+| Raw | Slope | Types |
+|---|---|---|
+| 0x01–0x02 | -6 dB/oct | BW (Butterworth), BL (Bessel) |
+| 0x03–0x05 | -12 dB/oct | BW, BL, LR (Linkwitz-Riley) |
+| 0x06–0x07 | -18 dB/oct | BW, BL |
+| 0x08–0x0a | -24 dB/oct | BW, BL, LR (<strong>LR-24 = 0x0a = device default</strong>) |</p>
+<p>Note: The DSP 408 has 20 slope types (up to -48 dB/oct). The 4x4 Mini has only 10.
+Bypass behavior: slope=0x00 disables the filter. The device does not retain the previous slope — the app must track and re-send it. After app restart with a bypassed filter, slope resets to LR-24.</p>
+<h3 id="5-routing-matrix-4x4">5. Routing Matrix (4x4)<a class="headerlink" href="#5-routing-matrix-4x4" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Details</th>
+<th>Protocol Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>4x4 Matrix</strong></td>
+<td>Any combination of inputs routable to any output</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x3a</code>)</td>
+</tr>
+<tr>
+<td><strong>Multi-input mixing</strong></td>
+<td>Multiple inputs can feed one output</td>
+<td>Bitmask: InA=0x01, InB=0x02, InC=0x04, InD=0x08</td>
+</tr>
+</tbody>
+</table>
+<p>From the screenshots: columns are outputs, rows are inputs. Green = routed.</p>
+<h3 id="6-channel-linking">6. Channel Linking<a class="headerlink" href="#6-channel-linking" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Details</th>
+<th>Protocol Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Input linking</strong></td>
+<td>Link settings of input channels together</td>
+<td><strong>Captured &amp; documented</strong> (<code>0x3b</code> + <code>0x2a</code>)</td>
+</tr>
+<tr>
+<td><strong>Output linking</strong></td>
+<td>Link settings of output channels together</td>
+<td><strong>Captured &amp; documented</strong> (<code>0x3b</code> + <code>0x2a</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key behaviors (from screenshots.md notes):</strong>
+- Links <strong>settings only</strong>, not audio streams
+- Syncing done by DSP firmware, not the config tool
+- When linking, first channel is master (settings copied to slaves)
+- Client must re-read DSP config after linking to update UI</p>
+<h3 id="7-preset-management">7. Preset Management<a class="headerlink" href="#7-preset-management" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Details</th>
+<th>Protocol Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>User presets</strong></td>
+<td>U01-U30 (30 slots)</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x20</code> load, <code>0x21</code> store, <code>0x26</code> name)</td>
+</tr>
+<tr>
+<td><strong>Factory preset</strong></td>
+<td>F00 (read-only, slot 0)</td>
+<td><strong>⚠ NEVER write to slot 0.</strong> Overwriting F00 may permanently corrupt the device.</td>
+</tr>
+<tr>
+<td><strong>Preset names</strong></td>
+<td>Max <strong>14 characters</strong>, space-padded. <strong>Sending &gt;14 chars crashes the DSP!</strong></td>
+<td>Capture-verified: <code>0x26</code> payload is 15 bytes (1 opcode + 14 name chars)</td>
+</tr>
+<tr>
+<td><strong>Quick access</strong></td>
+<td>Address, Preset, Store, Recall buttons in status bar</td>
+<td>Visible in screenshots</td>
+</tr>
+<tr>
+<td><strong>File load/save</strong></td>
+<td>.unt preset files on PC</td>
+<td>.unt format partially reverse-engineered</td>
+</tr>
+</tbody>
+</table>
+<h3 id="8-test-tone-generator">8. Test Tone Generator<a class="headerlink" href="#8-test-tone-generator" title="Permanent link">&para;</a></h3>
+<p>Single command <code>0x39</code> with mode byte and frequency index byte. Device ACKs with <code>0x01</code>.
+State persisted in device config at offset 420 (mode) and 422 (last sine freq index).</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Details</th>
+<th>Protocol Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Analog Input (off)</strong></td>
+<td>Normal pass-through, no internal signal</td>
+<td><strong>Captured &amp; documented</strong> (<code>0x39 0x00 [last_freq]</code>)</td>
+</tr>
+<tr>
+<td><strong>Pink Noise</strong></td>
+<td>Internal pink noise generator</td>
+<td><strong>Captured &amp; documented</strong> (<code>0x39 0x01 0x00</code>)</td>
+</tr>
+<tr>
+<td><strong>White Noise</strong></td>
+<td>Internal white noise generator</td>
+<td><strong>Captured &amp; documented</strong> (<code>0x39 0x02 0x00</code>)</td>
+</tr>
+<tr>
+<td><strong>Sine Wave</strong></td>
+<td>31 selectable frequencies (ISO 1/3-octave, 20 Hz–20 kHz)</td>
+<td><strong>Captured &amp; documented</strong> (<code>0x39 0x03 [freq_idx]</code>; 0x00=20Hz … 0x1E=20kHz)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="9-system-utility">9. System / Utility<a class="headerlink" href="#9-system-utility" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Details</th>
+<th>Protocol Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Channel names</strong></td>
+<td>User-defined names per channel (up to 8 ASCII chars)</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x3d</code> — verified: "Out3"→"AUSGANG3")</td>
+</tr>
+<tr>
+<td><strong>Device Lock</strong></td>
+<td>4-digit PIN protection; locks device on set, disconnects app</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x2f</code> set PIN, <code>0x2d</code> submit PIN — verified from 3 captures)</td>
+</tr>
+<tr>
+<td><strong>Copy settings</strong></td>
+<td>Copy channel parameters between channels</td>
+<td>Menu item visible</td>
+</tr>
+<tr>
+<td><strong>Device Address/ID</strong></td>
+<td>Identification (ID: 1 in screenshots)</td>
+<td>Visible in status bar</td>
+</tr>
+<tr>
+<td><strong>Online/Offline</strong></td>
+<td>Connection status</td>
+<td><strong>Implemented</strong></td>
+</tr>
+<tr>
+<td><strong>Language</strong></td>
+<td>English / German</td>
+<td>Software-only</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="implementation-status-summary">Implementation Status Summary<a class="headerlink" href="#implementation-status-summary" title="Permanent link">&para;</a></h2>
+<h3 id="captured-implemented-in-our-python-tool">Captured &amp; implemented in our Python tool:<a class="headerlink" href="#captured-implemented-in-our-python-tool" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Gain (input + output)</li>
+<li>Mute (input + output)</li>
+<li>Phase invert (input + output)</li>
+<li>Noise gate (input: attack, release, hold, threshold)</li>
+<li>Output delay (0–680 ms, sample-based)</li>
+<li>Crossover hi/lo pass (raw 0–300, 19.7 Hz–20.16 kHz, 10 slope types, bypass)</li>
+<li>Level metering (8 channels + limiter indicators)</li>
+<li>Config read (9 pages)</li>
+<li>Preset name reading (30 slots)</li>
+<li>Preset load (<code>0x20</code>, direct slot index 0=F00/1–30=U01–U30)</li>
+<li>Preset store (<code>0x21</code>, user slots 1–30 only — <strong>never write slot 0/F00</strong>)</li>
+<li>Preset name store (<code>0x26</code>, 14 chars max, space-padded, sent before <code>0x21</code>)</li>
+<li>Channel name set (<code>0x3d</code>, 8 chars max, zero-padded)</li>
+<li>Device lock: submit PIN (<code>0x2d</code>, 4 ASCII digits, response byte signals correct/wrong), set lock PIN (<code>0x2f</code>, locks immediately on receipt)</li>
+<li>Output PEQ (<code>0x33</code>, 7 bands per output: gain/freq/Q/type/bypass; <code>0x3c</code> channel bypass; config parsing from footer bitmasks at offsets 412–415 and 428–431)</li>
+<li>Test tone generator (<code>0x39</code>, mode byte: 0=off, 1=pink noise, 2=white noise, 3=sine wave; freq index 0x00–0x1E for sine, 31 ISO 1/3-octave steps 20Hz–20kHz)</li>
+<li>Initialization sequence</li>
+</ul>
+<h3 id="protocol-likely-known-but-not-yet-or-not-fully-captured-on-our-device">Protocol likely known but NOT yet or not fully captured on our device:<a class="headerlink" href="#protocol-likely-known-but-not-yet-or-not-fully-captured-on-our-device" title="Permanent link">&para;</a></h3>
+<ul>
+<li>None remaining</li>
+</ul>
+<h3 id="completely-unknown-protocol">Completely unknown protocol:<a class="headerlink" href="#completely-unknown-protocol" title="Permanent link">&para;</a></h3>
+<ul>
+<li>None remaining</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes", "toc.follow", "content.code.copy", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
