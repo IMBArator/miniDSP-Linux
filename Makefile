@@ -5,7 +5,8 @@ CAPTURES := analysis/usb_captures
 
 .PHONY: sync install test analyze analyze-raw analyze-no-poll analyze-human \
         analyze-summary analyze-all diff-config check-all \
-        capture-enable capture-disable build version help
+        capture-enable capture-disable build version help \
+        docs docs-serve docs-clean
 
 help:
 	@echo "Usage: make [target] [VAR=value]"
@@ -32,6 +33,11 @@ help:
 	@echo "USB Capture"
 	@echo "  capture-enable          Load usbmon and grant non-root capture access"
 	@echo "  capture-disable         Revoke capture access and unload usbmon"
+	@echo ""
+	@echo "Documentation"
+	@echo "  docs                    Build HTML docs into site/ (MkDocs Material)"
+	@echo "  docs-serve              Live-reload docs preview at http://127.0.0.1:8000"
+	@echo "  docs-clean              Remove generated site/ directory"
 
 sync:
 	$(UV) sync --extra dev
@@ -101,3 +107,19 @@ capture-disable:
 	sudo setcap -r /usr/sbin/dumpcap
 	sudo modprobe -r usbmon
 	@echo "USB capture disabled (dumpcap caps removed, usbmon unloaded)"
+
+# Build HTML documentation (MkDocs Material) into site/
+# Note: not --strict because README is transcluded with cross-context relative
+# links (e.g. analysis/protocol.md → /protocol/) that show as warnings only.
+docs:
+	$(UV) sync --extra docs --inexact
+	$(UV) run mkdocs build
+
+# Live-reload docs preview (http://127.0.0.1:8000)
+docs-serve:
+	$(UV) sync --extra docs --inexact
+	$(UV) run mkdocs serve
+
+# Remove generated docs output
+docs-clean:
+	rm -rf site
