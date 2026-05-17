@@ -103,6 +103,13 @@ if [[ -n "$LATEST_TAG" ]]; then
     fi
 fi
 
+# Refuse to add a second section for a version that's already in the
+# changelog (e.g. a hand-curated initial release). Without this guard,
+# git-cliff --prepend would create a duplicate `## [X.Y.Z]` heading.
+if [[ -f "$CHANGELOG" ]] && grep -qE "^## \[${VERSION//./\\.}\]" "$CHANGELOG"; then
+    die "$CHANGELOG already has a [${VERSION}] section — commit that and tag manually instead of running this script"
+fi
+
 # --- 3. prepare release ------------------------------------------------------
 
 c_grn "Preparing release $TAG"
@@ -111,8 +118,16 @@ c_grn "Preparing release $TAG"
 # Bump pyproject.toml — only the first `version = "..."` line at top of file.
 sed -i "0,/^version = \".*\"/{s/^version = \".*\"/version = \"$VERSION\"/}" "$PYPROJECT"
 
-# Regenerate the changelog for the new tag.
-uvx --quiet git-cliff --tag "$TAG" -o "$CHANGELOG"
+# Update the changelog. When CHANGELOG.md already exists (the usual case
+# after the first release), prepend the unreleased commits as a new
+# section under the existing entries — this preserves any hand-curated
+# initial-release content. Only the very first invocation, with no
+# CHANGELOG.md present, regenerates the whole file.
+if [[ -f "$CHANGELOG" ]]; then
+    uvx --quiet git-cliff --tag "$TAG" --unreleased --prepend "$CHANGELOG"
+else
+    uvx --quiet git-cliff --tag "$TAG" -o "$CHANGELOG"
+fi
 
 # --- 4. preview --------------------------------------------------------------
 
