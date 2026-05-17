@@ -26,7 +26,33 @@ def format_claude(
     mask_noise: bool = True,
     filename: str = "",
 ) -> str:
-    """Format decoded commands for Claude consumption."""
+    """Render decoded commands as a compact, Claude-friendly Markdown block.
+
+    Output structure:
+
+    1. ``## Capture`` header with packet counts, duration, opcode
+       histogram, and prominent warnings for unknown opcodes, unverified
+       opcodes, and checksum failures.
+    2. Either the full ``### Sequence`` (with runs of 0x40 poll/level
+       cycles collapsed when ``summary`` is ``False``) or a per-opcode
+       ``### Summary`` table when ``summary`` is ``True``.
+    3. ``### Unknown Opcode Detail`` listing any unknown packets so they
+       are easy to spot.
+
+    Args:
+        commands: Decoded commands in capture order.
+        config: Protocol config, used by field-summary helpers.
+        summary: When ``True``, emit only the per-opcode summary table.
+        decode: When ``True``, include human-readable field values (and
+            per-opcode notes in the summary).
+        mask_noise: Reserved flag forwarded to :func:`_format_single` for
+            future suppression of noisy bytes; currently advisory only.
+        filename: Optional capture filename for the header line — only the
+            stem is used.
+
+    Returns:
+        Newline-joined Markdown string, no trailing newline.
+    """
     lines: list[str] = []
 
     # ── Header ──
@@ -85,7 +111,14 @@ def format_claude(
 
 
 def _duration(commands: list[DecodedCommand]) -> float:
-    """Calculate capture duration from first to last packet timestamp."""
+    """Return the elapsed capture time in seconds (max − min timestamp).
+
+    Args:
+        commands: Decoded commands; order does not matter.
+
+    Returns:
+        Duration in seconds, or ``0.0`` for an empty list.
+    """
     if not commands:
         return 0.0
     times = [c.frame.raw.timestamp for c in commands]
@@ -138,7 +171,29 @@ def _format_single(
     decode: bool,
     mask_noise: bool,
 ) -> str:
-    """Format a single decoded command as one line."""
+    """Format a single decoded command as one compact line.
+
+    Each line carries the frame number, timestamp, direction, opcode (hex),
+    and opcode name. A trailing details segment is appended when:
+
+    - ``decode`` is ``True`` *and* the command has human-readable fields
+      (``", key=value, …"`` form), or
+    - the command is unknown (always include raw payload hex), or
+    - the command is known but unverified (include raw payload hex so a
+      human can inspect bytes).
+
+    Args:
+        cmd: Decoded command.
+        config: Protocol config (currently unused; reserved for future
+            field-formatting hooks).
+        decode: Whether to render human field values when available.
+        mask_noise: Reserved for future use — caller-facing flag that lets
+            this formatter elide noisy bytes (instant byte, padding). Not
+            consulted in the current implementation.
+
+    Returns:
+        Single-line string, no trailing newline.
+    """
     pkt = cmd.frame.raw
     direction = cmd.direction.upper()
 
@@ -170,7 +225,23 @@ def _format_summary(
     config: ProtocolConfig,
     decode: bool,
 ) -> list[str]:
-    """Format summary statistics only."""
+    """Render a per-opcode summary table for ``--summary`` mode.
+
+    Groups commands by opcode and emits one row per distinct opcode with
+    columns: opcode (hex), name, count, verified flag (``YES``/``no``/
+    ``UNKNOWN``), and a ``notes`` column populated by
+    :func:`_summarize_fields` when ``decode`` is ``True`` and the opcode is
+    known.
+
+    Args:
+        commands: All decoded commands.
+        config: Protocol config, forwarded to :func:`_summarize_fields`.
+        decode: When ``True``, append per-opcode field summaries to the
+            ``notes`` column.
+
+    Returns:
+        Header lines plus one row per opcode, sorted ascending by opcode.
+    """
     lines = ["### Summary"]
 
     # Group by opcode
@@ -199,7 +270,27 @@ def _format_summary(
 
 
 def _summarize_fields(cmds: list[DecodedCommand], config: ProtocolConfig) -> str:
-    """Generate a brief summary of field values across a group of commands."""
+    """Build a one-line per-opcode field summary for the summary table.
+
+    Opcode-specific summaries (all derived from the ``opcode_name`` of the
+    first command):
+
+    - ``gain``: lists touched channels and the dB range across all observed
+      raw values (uses :func:`minidsp.protocol.raw_to_db`).
+    - ``mute``: lists touched channels and observed states.
+    - ``read_name``: returns ``"N slots"``.
+    - ``read_config``: returns ``"pages MIN-MAX"`` across observed page
+      indices.
+
+    Args:
+        cmds: All decoded commands sharing the same opcode.
+        config: Protocol config (currently unused but reserved so summaries
+            can consult format converters in the future).
+
+    Returns:
+        Short summary string, or empty string if no summary rule matches
+        or ``cmds`` is empty / has no human fields.
+    """
     if not cmds or not cmds[0].human_fields:
         return ""
 

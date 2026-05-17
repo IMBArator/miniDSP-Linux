@@ -6,7 +6,24 @@ from dspanalyze.decode import DecodedCommand
 
 
 def format_raw(commands: list[DecodedCommand]) -> str:
-    """Format decoded commands as raw hex lines."""
+    """Render decoded commands as one line of raw hex per packet.
+
+    Each output line has fixed-width fields suitable for piping into ``less``
+    or ``grep``:
+
+    - Frame number, right-aligned to 5 characters.
+    - Timestamp in seconds, right-aligned to 8 characters with 3 decimals
+      (millisecond precision).
+    - Direction (``OUT`` or ``IN``), left-aligned to 3 characters.
+    - The full 64-byte HID report as lowercase hex, no separators.
+
+    Args:
+        commands: Decoded commands to render, in capture order.
+
+    Returns:
+        Newline-joined string with one line per command. Returns an empty
+        string when ``commands`` is empty. No trailing newline.
+    """
     lines: list[str] = []
     for cmd in commands:
         pkt = cmd.frame.raw

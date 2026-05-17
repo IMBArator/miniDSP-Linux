@@ -18,7 +18,16 @@ from minidsp.protocol import (
 
 @dataclass
 class FieldDef:
-    """Definition of a single field within an opcode payload."""
+    """Definition of a single field within an opcode payload.
+
+    Attributes:
+        name: Field identifier (e.g. ``"channel"``, ``"value"``).
+        offset: Byte offset within the payload (after the opcode byte).
+        size: Field width in bytes (1=uint8, 2=uint16 LE, >2=raw bytes/ASCII).
+        format: Value format name for :func:`convert_value` dispatch
+            (e.g. ``"uint8"``, ``"gain_raw"``, ``"freq_log"``, ``"ascii"``).
+        note: Optional human-readable annotation from the config TOML.
+    """
     name: str
     offset: int
     size: int
@@ -28,7 +37,19 @@ class FieldDef:
 
 @dataclass
 class OpcodeDef:
-    """Definition of a protocol opcode."""
+    """Definition of a protocol opcode loaded from ``protocol_config.toml``.
+
+    Attributes:
+        code: Opcode byte value (e.g. ``0x34`` for gain).
+        name: Short identifier string (e.g. ``"gain"``).
+        direction: Expected transfer direction — ``"out"`` (host→device),
+            ``"in"`` (device→host), or ``"both"``.
+        description: Human-readable summary of what the opcode does.
+        verified: ``True`` if the opcode has been confirmed against a real
+            device capture.
+        request_fields: Field definitions for host→device payloads.
+        response_fields: Field definitions for device→host payloads.
+    """
     code: int
     name: str
     direction: str
@@ -40,7 +61,16 @@ class OpcodeDef:
 
 @dataclass
 class ProtocolConfig:
-    """Parsed protocol configuration."""
+    """Parsed protocol configuration loaded from ``protocol_config.toml``.
+
+    Attributes:
+        device: Raw ``[device]`` TOML table (VID, PID, report size).
+        frame: Raw ``[frame]`` TOML table (STX/ETX bytes, structure).
+        noise: Raw ``[noise]`` TOML table (known noise opcode patterns).
+        opcodes: Map of opcode byte → :class:`OpcodeDef`.
+        formats: Raw ``[formats]`` TOML tables (enum/bitmask value maps
+            used by :func:`convert_value`).
+    """
     device: dict
     frame: dict
     noise: dict
@@ -49,7 +79,15 @@ class ProtocolConfig:
 
 
 def load_config(path: Path | None = None) -> ProtocolConfig:
-    """Load and parse the protocol config TOML file."""
+    """Load and parse the protocol config TOML file.
+
+    Args:
+        path: Path to ``protocol_config.toml``. Defaults to the file bundled
+            alongside this module (``dspanalyze/protocol_config.toml``).
+
+    Returns:
+        Populated :class:`ProtocolConfig` with all opcodes and formats parsed.
+    """
     if path is None:
         path = Path(__file__).parent / "protocol_config.toml"
 
@@ -86,7 +124,30 @@ def load_config(path: Path | None = None) -> ProtocolConfig:
 
 
 def _parse_fields(fields_dict: dict) -> list[FieldDef]:
-    """Parse a dict of field name -> {offset, size, format, ...} into FieldDef list."""
+    """Parse a TOML field dict into a sorted list of :class:`FieldDef` objects.
+
+    Used by :func:`load_protocol_config` when reading ``request_fields`` and
+    ``response_fields`` sub-tables in ``protocol_config.toml``. See that file
+    for the canonical schema.
+
+    Args:
+        fields_dict: Dict mapping field name → spec dict. Each spec must be a
+            ``dict`` with at least an ``offset`` key (``int``, byte offset
+            into the frame payload). Optional keys: ``size`` (default ``1``,
+            in bytes), ``format`` (default ``"hex"`` — name of a converter
+            from the ``[formats]`` table or a built-in like ``"uint16le"``,
+            ``"ascii"``), and ``note`` (default ``""``, free-text comment).
+
+    Returns:
+        :class:`FieldDef` list sorted ascending by ``offset``.
+
+    Note:
+        Entries whose spec is not a ``dict``, or whose dict lacks an
+        ``offset`` key, are silently skipped. This lets the TOML schema use
+        scalar values for documentation/section dividers without breaking the
+        parser, but it also means a typo'd ``offest:`` will be discarded —
+        verify field counts after editing the TOML.
+    """
     result = []
     for name, spec in fields_dict.items():
         if isinstance(spec, dict) and "offset" in spec:
@@ -105,7 +166,23 @@ def _parse_fields(fields_dict: dict) -> list[FieldDef]:
 
 
 def convert_value(raw_value: int, fmt: str, config: ProtocolConfig) -> str:
-    """Convert a raw integer value to human-readable string using a named format."""
+    """Convert a raw integer value to a human-readable string using a named format.
+
+    Format dispatch order: hard-coded formats first (``channel``,
+    ``gain_raw``, ``peq_gain``, ``freq_log``, ``q_log``, ``level_uint16``),
+    then TOML-defined enum/bitmask formats, then generic types
+    (``uint8``, ``uint16le``, ``ascii``, ``hex``).
+
+    Args:
+        raw_value: Raw integer (or bytes for ``hex``/``ascii`` formats).
+        fmt: Format name string from the :class:`FieldDef` or caller.
+        config: Loaded protocol config — provides the ``formats`` table for
+            enum and bitmask lookups.
+
+    Returns:
+        Human-readable string representation. Falls back to ``str(raw_value)``
+        for unrecognised format names.
+    """
     fmt_def = config.formats.get(fmt, {})
     fmt_type = fmt_def.get("type", "")
 

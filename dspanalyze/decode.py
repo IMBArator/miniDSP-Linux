@@ -15,7 +15,17 @@ from minidsp.protocol import parse_frame
 
 @dataclass
 class ParsedFrame:
-    """A validated miniDSP protocol frame extracted from a HID report."""
+    """A validated miniDSP protocol frame extracted from a HID report.
+
+    Attributes:
+        raw: The original raw packet from the capture reader.
+        src: Source address byte from the frame header.
+        dst: Destination address byte from the frame header.
+        length: Payload length byte from the frame header.
+        payload: Decoded payload bytes (opcode + parameters).
+        checksum_valid: ``True`` if the XOR checksum matches, ``False`` if the
+            frame was partially recovered from an invalid packet.
+    """
     raw: RawPacket
     src: int
     dst: int
@@ -26,13 +36,28 @@ class ParsedFrame:
 
 @dataclass
 class DecodedCommand:
-    """A fully decoded protocol command with field values."""
+    """A fully decoded protocol command with field values.
+
+    Attributes:
+        frame: The underlying parsed frame.
+        opcode: Opcode byte value (first byte of payload).
+        opcode_name: Human-readable opcode name from the protocol config.
+        direction: Transfer direction — ``"out"`` (host→device) or ``"in"``
+            (device→host).
+        verified: ``True`` if this opcode has been confirmed against a real
+            device capture.
+        is_known: ``True`` if the protocol config has a definition for this
+            opcode.
+        fields: Raw field values keyed by field name.
+        human_fields: Human-readable field values keyed by field name.
+        description: Opcode description from the protocol config.
+    """
     frame: ParsedFrame
     opcode: int
     opcode_name: str
-    direction: str          # "out" or "in"
-    verified: bool          # whether this opcode is capture-verified
-    is_known: bool          # whether config has a definition for this opcode
+    direction: str
+    verified: bool
+    is_known: bool
     fields: dict[str, int | str | bytes] = field(default_factory=dict)
     human_fields: dict[str, str] = field(default_factory=dict)
     description: str = ""
@@ -41,8 +66,16 @@ class DecodedCommand:
 def parse_raw_packet(pkt: RawPacket) -> ParsedFrame | None:
     """Parse a RawPacket into a validated ParsedFrame.
 
-    Uses minidsp.protocol.parse_frame for the actual frame validation,
-    but also handles the case where we want to inspect invalid frames.
+    Uses :func:`minidsp.protocol.parse_frame` for frame validation. If the
+    frame is invalid but has the correct STX bytes, a best-effort frame is
+    returned with ``checksum_valid=False`` so nothing is silently dropped.
+
+    Args:
+        pkt: Raw HID packet from the capture reader.
+
+    Returns:
+        A :class:`ParsedFrame` on success (valid or partially recovered),
+        or ``None`` if the packet cannot be interpreted at all.
     """
     data = pkt.hid_data
     result = parse_frame(data)
@@ -77,7 +110,27 @@ def parse_raw_packet(pkt: RawPacket) -> ParsedFrame | None:
 
 
 def _extract_field_value(payload: bytes, fdef: FieldDef) -> int | str | bytes:
-    """Extract a raw value from payload bytes according to field definition."""
+    """Extract a raw value from payload bytes according to a field definition.
+
+    The return type depends on ``fdef.format`` and ``fdef.size``:
+
+    - ``format == "ascii"``: decodes ``size`` bytes as ASCII and strips
+      trailing spaces/null padding. Returns ``str``.
+    - ``format == "hex"``: returns the raw ``bytes`` slice unchanged.
+    - Otherwise, ``size == 1`` returns a single ``int`` byte; ``size == 2``
+      returns a little-endian ``uint16`` ``int``; any other size returns the
+      raw ``bytes`` slice.
+
+    Args:
+        payload: Frame payload bytes (opcode included at offset 0).
+        fdef: Field definition (``offset``, ``size``, ``format``) describing
+            where and how to read the value.
+
+    Returns:
+        Extracted value (``int``, ``str``, or ``bytes`` per the rules above).
+        If ``offset + size`` exceeds the payload length, returns ``0`` — the
+        frame is truncated and the caller should treat this as a soft error.
+    """
     offset = fdef.offset
     size = fdef.size
 
@@ -101,7 +154,17 @@ def _extract_field_value(payload: bytes, fdef: FieldDef) -> int | str | bytes:
 
 
 def decode_frame(frame: ParsedFrame, config: ProtocolConfig) -> DecodedCommand:
-    """Decode a ParsedFrame into a DecodedCommand using protocol config."""
+    """Decode a ParsedFrame into a DecodedCommand using the protocol config.
+
+    Args:
+        frame: Validated frame to decode.
+        config: Loaded protocol configuration (opcodes and field definitions).
+
+    Returns:
+        A :class:`DecodedCommand` with opcode name, direction, field values,
+        and human-readable conversions. Unknown opcodes are returned with
+        ``is_known=False`` rather than raising an error.
+    """
     payload = frame.payload
     opcode = payload[0] if len(payload) > 0 else 0xFF
 
@@ -164,8 +227,16 @@ def decode_frame(frame: ParsedFrame, config: ProtocolConfig) -> DecodedCommand:
 def decode_packets(packets: list[RawPacket], config: ProtocolConfig) -> list[DecodedCommand]:
     """Decode a list of raw packets into decoded commands.
 
-    Packets that fail frame parsing are included as unknown commands
-    so nothing is silently dropped.
+    Packets that fail frame parsing are included as ``"unparseable"`` entries
+    so nothing is silently dropped from the output.
+
+    Args:
+        packets: Raw HID packets from :func:`~dspanalyze.readers.read_capture`.
+        config: Loaded protocol configuration.
+
+    Returns:
+        List of :class:`DecodedCommand` objects, one per input packet,
+        in the same order as the input.
     """
     commands: list[DecodedCommand] = []
 

@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 def _frame_hex(report: bytes) -> str:
     """Return the used portion of a HID report as a spaced hex string.
 
-    Strips the zero-padding beyond the frame so `-vv` output stays readable.
+    Strips the zero-padding beyond the frame so ``-vv`` output stays readable.
     Falls back to the full report if framing can't be decoded.
     """
     if len(report) >= 5 and report[0] == 0x10 and report[1] == 0x02:
@@ -94,7 +94,12 @@ from .protocol import (
 
 
 def find_hidraw_device() -> str | None:
-    """Find the /dev/hidrawN path for the DSPmini by checking sysfs for VID/PID."""
+    """Find the ``/dev/hidrawN`` path for the DSPmini by scanning sysfs for VID/PID.
+
+    Returns:
+        Path string such as ``"/dev/hidraw0"``, or ``None`` if the device is
+        not connected or not yet visible in sysfs.
+    """
     for path in sorted(glob.glob("/sys/class/hidraw/hidraw*/device")):
         uevent_path = os.path.join(path, "uevent")
         try:
@@ -112,7 +117,24 @@ def find_hidraw_device() -> str | None:
 
 
 class DSPmini:
-    """Interface to a the t.racks DSP 4x4 Mini over USB HID."""
+    """Interface to the t.racks DSP 4x4 Mini over USB HID.
+
+    Acquires an **exclusive advisory lock** (``fcntl.flock(LOCK_EX|LOCK_NB)``)
+    on the hidraw file descriptor in :meth:`open`. This prevents a second
+    process (or a second :class:`DSPmini` instance in the same process) from
+    opening the device concurrently. The lock is released automatically when
+    :meth:`close` calls ``os.close()``.
+
+    Use as a context manager to guarantee release even on exceptions::
+
+        with DSPmini() as dsp:
+            cfg = dsp.read_config()
+
+    Note:
+        ``fcntl`` locks are advisory — they protect against other cooperative
+        Python processes but do not prevent a raw ``open()`` by uncooperative
+        programs (e.g. the manufacturer Windows app under Wine).
+    """
 
     def __init__(self) -> None:
         self._fd: int | None = None
@@ -120,9 +142,25 @@ class DSPmini:
     # --- Connection ---
 
     def open(self, device_path: str | None = None) -> None:
-        """Open the HID device and perform init handshake.
+        """Open the HID device, acquire an exclusive lock, and perform init.
 
-        If device_path is None, auto-detects via sysfs VID/PID matching.
+        Opens the hidraw node with ``O_RDWR`` then immediately calls
+        ``fcntl.flock(LOCK_EX|LOCK_NB)`` so that no other process can open
+        the same device concurrently. If the lock cannot be acquired the fd
+        is closed and an ``OSError`` is raised — the caller does not need to
+        call :meth:`close` in that case.
+
+        After locking, sends the init handshake (0x10) with up to 5 retries
+        (0.5 s apart). If the device still does not respond, closes and raises.
+
+        Args:
+            device_path: Path to the hidraw device (e.g. ``"/dev/hidraw0"``).
+                If ``None``, auto-detects via sysfs VID/PID matching.
+
+        Raises:
+            OSError: If the device is not found, the exclusive lock cannot be
+                acquired (already held by another process), or the device does
+                not respond to the init handshake within 5 attempts.
         """
         if device_path is None:
             device_path = find_hidraw_device()
@@ -162,7 +200,7 @@ class DSPmini:
         raise OSError("Device opened but not responding to init handshake")
 
     def close(self) -> None:
-        """Close the HID device."""
+        """Close the HID device and release the exclusive lock."""
         if self._fd is not None:
             os.close(self._fd)
             self._fd = None
@@ -184,7 +222,14 @@ class DSPmini:
         os.write(self._fd, report)
 
     def _recv(self, timeout_ms: int = 500) -> bytes | None:
-        """Read a 64-byte HID IN report. Returns None on timeout."""
+        """Read a 64-byte HID IN report.
+
+        Args:
+            timeout_ms: Read timeout in milliseconds.
+
+        Returns:
+            Raw 64-byte report, or ``None`` on timeout or empty read.
+        """
         assert self._fd is not None, "Device not open"
         timeout_s = timeout_ms / 1000.0
         r, _, _ = select.select([self._fd], [], [], timeout_s)
@@ -203,8 +248,15 @@ class DSPmini:
                     skip_polls: bool = False) -> bytes | None:
         """Send a report and return the parsed payload of the response.
 
-        When skip_polls=True, discards unsolicited level poll responses (0x40)
-        that the device may send between non-poll commands.
+        Args:
+            report: Encoded 64-byte HID OUT report to send.
+            timeout_ms: Per-read timeout in milliseconds.
+            skip_polls: When ``True``, discard unsolicited level poll responses
+                (opcode 0x40) the device may interleave between non-poll commands.
+
+        Returns:
+            Parsed payload bytes on success, or ``None`` on timeout or
+            parse failure.
         """
         from .protocol import OP_POLL
         self._send(report)
@@ -227,14 +279,20 @@ class DSPmini:
     # --- High-level commands ---
 
     def init(self) -> bytes | None:
-        """Send the init handshake (0x10). Returns response payload."""
+        """Send the init handshake (0x10).
+
+        Returns:
+            Response payload bytes, or ``None`` on timeout.
+        """
         return self._send_recv(cmd_init())
 
     def poll_levels(self) -> dict | None:
-        """Poll the device for current input/output levels.
+        """Poll the device for current input/output level meter values.
 
-        Returns dict with keys: inputs (list[4]), outputs (list[4]),
-        input_flags, output_flags, state.  Or None on error/timeout.
+        Returns:
+            Dict with keys ``'inputs'`` (list[int], 4 channels),
+            ``'outputs'`` (list[int], 4 channels), ``'limiter_mask'`` (int),
+            and ``'state'`` (int). Returns ``None`` on error or timeout.
         """
         payload = self._send_recv(cmd_poll())
         if payload is None:
@@ -242,10 +300,15 @@ class DSPmini:
         return parse_levels(payload)
 
     def set_gain(self, channel: int, raw_value: int) -> bool:
-        """Set gain for a channel (unified index: inputs 0–3, outputs 4–7).
+        """Set gain for a channel.
 
-        raw_value: 0–400 (use db_to_raw() to convert from dB).
-        Returns True if the device ACK'd.
+        Args:
+            channel: Unified channel index (inputs 0–3, outputs 4–7).
+            raw_value: Raw gain 0–400. Use :func:`~minidsp.protocol.db_to_raw`
+                to convert from dB.
+
+        Returns:
+            ``True`` if the device ACK'd, ``False`` on timeout or NACK.
         """
         payload = self._send_recv(cmd_gain(channel, raw_value))
         if payload is None:
@@ -253,10 +316,14 @@ class DSPmini:
         return is_ack(payload)
 
     def set_phase(self, channel: int, inverted: bool) -> bool:
-        """Set phase invert for a channel (unified index: inputs 0-3, outputs 4-7).
+        """Set phase polarity for a channel.
 
-        inverted: True=180° inverted, False=normal.
-        Returns True if the device ACK'd.
+        Args:
+            channel: Unified channel index (inputs 0–3, outputs 4–7).
+            inverted: ``True`` for 180° inversion, ``False`` for normal polarity.
+
+        Returns:
+            ``True`` if the device ACK'd.
         """
         payload = self._send_recv(cmd_phase(channel, inverted))
         if payload is None:
@@ -264,12 +331,17 @@ class DSPmini:
         return is_ack(payload)
 
     def set_lopass(self, channel: int, freq_raw: int, slope: int = 0) -> bool:
-        """Set low-pass crossover for an output channel.
+        """Set the low-pass crossover for an output channel.
 
-        channel: unified index (outputs 4–7)
-        freq_raw: 0–300 (log scale, Hz = 19.70 × (20160/19.70)^(raw/300))
-        slope: 0x00=bypassed, 0x01–0x0a=active with slope type (see SLOPE_* constants)
-        Returns True if the device ACK'd.
+        Args:
+            channel: Unified output channel index (4–7).
+            freq_raw: Frequency raw value 0–300 (log scale;
+                Hz = 19.70 × (20160/19.70)^(raw/300)).
+            slope: Filter slope — 0x00=bypassed, 0x01–0x0A=active
+                (see ``SLOPE_*`` constants in :mod:`minidsp.protocol`).
+
+        Returns:
+            ``True`` if the device ACK'd.
         """
         payload = self._send_recv(cmd_lopass(channel, freq_raw, slope))
         if payload is None:
@@ -277,12 +349,17 @@ class DSPmini:
         return is_ack(payload)
 
     def set_hipass(self, channel: int, freq_raw: int, slope: int = 0) -> bool:
-        """Set high-pass crossover for an output channel.
+        """Set the high-pass crossover for an output channel.
 
-        channel: unified index (outputs 4–7)
-        freq_raw: 0–300 (log scale, Hz = 19.70 × (20160/19.70)^(raw/300))
-        slope: 0x00=bypassed, 0x01–0x0a=active with slope type (see SLOPE_* constants)
-        Returns True if the device ACK'd.
+        Args:
+            channel: Unified output channel index (4–7).
+            freq_raw: Frequency raw value 0–300 (log scale;
+                Hz = 19.70 × (20160/19.70)^(raw/300)).
+            slope: Filter slope — 0x00=bypassed, 0x01–0x0A=active
+                (see ``SLOPE_*`` constants in :mod:`minidsp.protocol`).
+
+        Returns:
+            ``True`` if the device ACK'd.
         """
         payload = self._send_recv(cmd_hipass(channel, freq_raw, slope))
         if payload is None:
@@ -292,9 +369,13 @@ class DSPmini:
     def set_delay(self, channel: int, samples: int) -> bool:
         """Set output delay for a channel.
 
-        channel: unified index (outputs 4–7)
-        samples: 0–32640 (delay in samples at 48 kHz; ms = samples / 48)
-        Returns True if the device ACK'd.
+        Args:
+            channel: Unified output channel index (4–7).
+            samples: Delay in samples at 48 kHz, range 0–32640
+                (ms = samples / 48, max ≈ 680 ms).
+
+        Returns:
+            ``True`` if the device ACK'd.
         """
         payload = self._send_recv(cmd_delay(channel, samples))
         if payload is None:
@@ -302,10 +383,14 @@ class DSPmini:
         return is_ack(payload)
 
     def set_delay_unit(self, unit: int) -> bool:
-        """Set the delay display unit (display-only — protocol uses samples).
+        """Set the delay display unit (display-only — protocol transmits samples).
 
-        unit: DELAY_UNIT_MS=0x00, DELAY_UNIT_M=0x01, DELAY_UNIT_FT=0x02
-        Returns True if the device ACK'd.
+        Args:
+            unit: ``DELAY_UNIT_MS`` (0x00), ``DELAY_UNIT_M`` (0x01), or
+                ``DELAY_UNIT_FT`` (0x02).
+
+        Returns:
+            ``True`` if the device ACK'd.
         """
         payload = self._send_recv(cmd_set_delay_unit(unit))
         if payload is None:
@@ -315,10 +400,14 @@ class DSPmini:
     def set_test_tone(self, mode: int, freq_index: int = 0) -> bool:
         """Enable or disable the internal test tone generator.
 
-        mode:       TONE_OFF=0x00, TONE_PINK=0x01, TONE_WHITE=0x02, TONE_SINE=0x03
-        freq_index: sine frequency index (SINE_FREQ_* constants, 0x00=20Hz … 0x1E=20kHz);
-                    ignored for noise modes (pass 0).
-        Returns True if the device ACK'd.
+        Args:
+            mode: Generator mode — ``TONE_OFF`` (0x00), ``TONE_PINK`` (0x01),
+                ``TONE_WHITE`` (0x02), or ``TONE_SINE`` (0x03).
+            freq_index: Sine frequency index (``SINE_FREQ_*`` constants,
+                0x00=20 Hz … 0x1E=20 kHz). Ignored for noise modes.
+
+        Returns:
+            ``True`` if the device ACK'd.
         """
         payload = self._send_recv(cmd_test_tone(mode, freq_index))
         if payload is None:
@@ -328,9 +417,12 @@ class DSPmini:
     def set_channel_name(self, channel: int, name: str) -> bool:
         """Set the display name for a channel.
 
-        channel: unified index (inputs 0-3, outputs 4-7)
-        name: up to 8 ASCII characters (zero-padded to 8 bytes)
-        Returns True if the device ACK'd.
+        Args:
+            channel: Unified channel index (inputs 0–3, outputs 4–7).
+            name: Up to 8 ASCII characters (truncated and zero-padded to 8 bytes).
+
+        Returns:
+            ``True`` if the device ACK'd.
         """
         payload = self._send_recv(cmd_set_channel_name(channel, name))
         if payload is None:
@@ -341,12 +433,16 @@ class DSPmini:
                  hold: int, threshold: int) -> bool:
         """Set noise gate parameters for an input channel.
 
-        channel: 0-indexed input (0–3)
-        attack: raw 34–998 (1–999 ms)
-        release: raw 0–2999 (0–3000 ms)
-        hold: raw 9–998 (10–999 ms)
-        threshold: raw 0–180 (−90.0 to 0.0 dB, 0.5 dB/step)
-        Returns True if the device ACK'd.
+        Args:
+            channel: 0-indexed input channel (0–3).
+            attack: Attack raw value 34–998 (ms = raw + 1, range 1–999 ms).
+            release: Release raw value 0–2999 (ms = raw + 1, range 0–3000 ms).
+            hold: Hold raw value 9–998 (ms = raw + 1, range 10–999 ms).
+            threshold: Threshold raw value 0–180
+                (dB = raw × 0.5 − 90, range −90 to 0 dB).
+
+        Returns:
+            ``True`` if the device ACK'd.
         """
         payload = self._send_recv(cmd_gate(channel, attack, release, hold, threshold))
         if payload is None:
@@ -354,9 +450,14 @@ class DSPmini:
         return is_ack(payload)
 
     def mute(self, channel: int, mute: bool) -> bool:
-        """Mute or unmute a channel (unified index: inputs 0–3, outputs 4–7).
+        """Mute or unmute a channel.
 
-        Returns True if the device ACK'd.
+        Args:
+            channel: Unified channel index (inputs 0–3, outputs 4–7).
+            mute: ``True`` to mute, ``False`` to unmute.
+
+        Returns:
+            ``True`` if the device ACK'd.
         """
         payload = self._send_recv(cmd_mute(channel, mute))
         if payload is None:
@@ -364,14 +465,21 @@ class DSPmini:
         return is_ack(payload)
 
     def read_config(self) -> dict | None:
-        """Run the manufacturer startup sequence and read active preset config.
+        """Run the manufacturer startup sequence and read the active preset config.
 
-        Replicates the exact command sequence the manufacturer software uses
-        before reading config pages (steps 2–8 from the protocol spec).
-        Step 1 (init) is already done in open().
+        Replicates the exact 8-step command sequence the manufacturer software
+        uses before reading config pages. Step 1 (init handshake) is already
+        performed in :meth:`open`.
 
-        Returns dict with 'gains' (list[8], raw 0–400) and 'mutes' (list[8], bool),
-        or None on failure.
+        Returns:
+            Config dict in the same format as
+            :func:`~minidsp.protocol.parse_preset_params`, augmented with
+            ``'active_slot'`` (int | None) and ``'preset_names'`` (list[str]).
+            Returns ``None`` on communication failure.
+
+        Raises:
+            DeviceLockedError: If the device lock is active (step 3 check).
+                Call :meth:`submit_pin` first.
         """
         # Step 2: firmware string
         log.info("Step 2/8: firmware query (0x13)")
@@ -439,11 +547,16 @@ class DSPmini:
         return params
 
     def load_preset(self, slot: int) -> dict | None:
-        """Load a preset from the device (0x20) and re-read config.
+        """Load a preset from the device (0x20) and re-read the config.
 
-        slot: direct index — 0=F00, 1=U01, …, 30=U30.
-        Sequence: send load command, re-read 9 config pages, activate.
-        Returns the new config dict (same format as read_config()), or None on failure.
+        Sequence: send load command → re-read 9 config pages → activate.
+
+        Args:
+            slot: Direct preset slot index — 0=F00, 1=U01, …, 30=U30.
+
+        Returns:
+            New config dict (same format as :meth:`read_config`), or ``None``
+            on communication failure.
         """
         log.info("load_preset: sending 0x20 for slot %d", slot)
         payload = self._send_recv(cmd_load_preset(slot), skip_polls=True, timeout_ms=2000)
@@ -475,11 +588,16 @@ class DSPmini:
     def store_preset(self, slot: int, name: str) -> bool:
         """Store the active settings to a user preset slot (0x21).
 
-        slot: 1=U01, …, 30=U30. Slot 0 (F00) raises ValueError.
-        name: up to 14 ASCII characters for the preset name.
-        Sequence: send name (0x26), send store (0x21), activate.
+        Sequence: send name (0x26) → send store (0x21) → activate.
         The device takes ~2 seconds to write to flash.
-        Returns True if the device ACK'd the store.
+
+        Args:
+            slot: User preset slot 1–30 (1=U01, …, 30=U30). Slot 0 (F00)
+                raises ``ValueError`` in the underlying command builder.
+            name: Up to 14 ASCII characters for the preset name.
+
+        Returns:
+            ``True`` if the device ACK'd the store command.
         """
         log.info("store_preset: sending name '%s' for slot %d", name, slot)
         payload = self._send_recv(cmd_store_preset_name(name), skip_polls=True)
@@ -519,14 +637,17 @@ class DSPmini:
                      bypass: bool = False) -> bool:
         """Set a single PEQ band for an output channel (0x33).
 
-        channel:     output channel index (0x04=Out1 .. 0x07=Out4)
-        band:        0-indexed band (0–6 for bands 1–7)
-        gain_raw:    0–240 (dB = (raw − 120) / 10.0; 0 dB = 120)
-        freq_raw:    0–300 (Hz = 19.70 × (20160/19.70)^(raw/300))
-        q_raw:       0–100 (Q = 0.4 × 320^(raw/100))
-        filter_type: use PEQ_TYPE_* constants
-        bypass:      True = bypass this band
-        Returns True if the device ACK'd.
+        Args:
+            channel: Output channel index (0x04=Out1 … 0x07=Out4).
+            band: 0-indexed band number (0–6 for bands 1–7).
+            gain_raw: Raw gain 0–240 (dB = (raw − 120) / 10.0; 0 dB = 120).
+            freq_raw: Raw frequency 0–300 (Hz = 19.70 × (20160/19.70)^(raw/300)).
+            q_raw: Raw Q 0–100 (Q = 0.4 × 320^(raw/100)).
+            filter_type: Filter shape — use ``PEQ_TYPE_*`` constants.
+            bypass: ``True`` to bypass this band.
+
+        Returns:
+            ``True`` if the device ACK'd.
         """
         payload = self._send_recv(cmd_peq_band(channel, band, gain_raw, freq_raw,
                                                q_raw, filter_type, bypass))
@@ -537,9 +658,12 @@ class DSPmini:
     def set_peq_channel_bypass(self, channel: int, bypass: bool) -> bool:
         """Bypass or restore all PEQ bands for an output channel (0x3C).
 
-        channel: output channel index (0x04=Out1 .. 0x07=Out4)
-        bypass:  True = all bands bypassed, False = all bands active
-        Returns True if the device ACK'd.
+        Args:
+            channel: Output channel index (0x04=Out1 … 0x07=Out4).
+            bypass: ``True`` to bypass all bands, ``False`` to restore.
+
+        Returns:
+            ``True`` if the device ACK'd.
         """
         payload = self._send_recv(cmd_peq_channel_bypass(channel, bypass))
         if payload is None:
@@ -550,13 +674,18 @@ class DSPmini:
                        attack: int, release: int, threshold: int) -> bool:
         """Set compressor/limiter parameters for an output channel (0x30).
 
-        channel:   output channel (0x04–0x07)
-        ratio:     0–15 enum (COMP_RATIO_* constants; 0=1:1, 15=Limit)
-        knee:      0–12 (direct dB, 0=hard knee)
-        attack:    raw 0–998 (ms = raw + 1, range 1–999 ms)
-        release:   raw 9–2999 (ms = raw + 1, range 10–3000 ms)
-        threshold: raw 0–220 (dB = raw/2 − 90, range −90 to +20 dB)
-        Returns True if the device ACK'd.
+        Args:
+            channel: Output channel index (0x04–0x07).
+            ratio: Compression ratio enum 0–15 (see ``COMP_RATIO_*`` constants;
+                0=1:1.0, 15=hard limiter).
+            knee: Knee width 0–12 (direct dB; 0=hard knee).
+            attack: Attack raw 0–998 (ms = raw + 1, range 1–999 ms).
+            release: Release raw 9–2999 (ms = raw + 1, range 10–3000 ms).
+            threshold: Threshold raw 0–220
+                (dB = raw / 2 − 90, range −90 to +20 dB).
+
+        Returns:
+            ``True`` if the device ACK'd.
         """
         payload = self._send_recv(
             cmd_compressor(channel, ratio, knee, attack, release, threshold))
@@ -565,13 +694,15 @@ class DSPmini:
         return is_ack(payload)
 
     def set_matrix_route(self, output_ch: int, input_mask: int) -> bool:
-        """Set routing matrix for an output channel (0x3A).
+        """Set the routing matrix for an output channel (0x3A).
 
-        Sets which input(s) feed the given output.
+        Args:
+            output_ch: Output channel index (0x04=Out1 … 0x07=Out4).
+            input_mask: Source bitmask
+                (InA=0x01, InB=0x02, InC=0x04, InD=0x08; 0x00=silence).
 
-        output_ch:  output channel index (0x04=Out1 .. 0x07=Out4)
-        input_mask: bitmask of sources (InA=0x01, InB=0x02, InC=0x04, InD=0x08; 0x00=silence)
-        Returns True if the device ACK'd.
+        Returns:
+            ``True`` if the device ACK'd.
         """
         payload = self._send_recv(cmd_matrix_route(output_ch, input_mask))
         if payload is None:
@@ -581,12 +712,15 @@ class DSPmini:
     def prepare_link(self, master_ch: int, slave_ch: int) -> bool:
         """Declare a master-slave pair before linking channels (0x2A).
 
-        Must be sent once per slave immediately before set_channel_link()
+        Must be sent once per slave immediately before :meth:`set_channel_link`
         when linking. Not needed when unlinking.
 
-        master_ch: unified channel index of the master (inputs 0-3, outputs 4-7)
-        slave_ch:  unified channel index of the slave
-        Returns True if the device ACK'd.
+        Args:
+            master_ch: Unified channel index of the master (inputs 0–3, outputs 4–7).
+            slave_ch: Unified channel index of the slave.
+
+        Returns:
+            ``True`` if the device ACK'd.
         """
         payload = self._send_recv(cmd_prepare_link(master_ch, slave_ch))
         if payload is None:
@@ -594,14 +728,18 @@ class DSPmini:
         return is_ack(payload)
 
     def set_channel_link(self, channel: int, link_flags: int) -> bool:
-        """Set channel link bitmask (0x3B).
+        """Set the channel link bitmask (0x3B).
 
         Send for every affected channel (both master and all slaves).
-        Preceded by prepare_link() per slave pair when linking.
+        Preceded by :meth:`prepare_link` per slave pair when linking.
 
-        channel:    unified channel index (inputs 0-3, outputs 4-7)
-        link_flags: bitmask within the 4-channel group (master=OR of all linked bits, slave=0x00)
-        Returns True if the device ACK'd.
+        Args:
+            channel: Unified channel index (inputs 0–3, outputs 4–7).
+            link_flags: Bitmask within the 4-channel group.
+                Master gets OR of all linked bits; slaves get 0x00.
+
+        Returns:
+            ``True`` if the device ACK'd.
         """
         payload = self._send_recv(cmd_channel_link(channel, link_flags))
         if payload is None:
@@ -609,14 +747,15 @@ class DSPmini:
         return is_ack(payload)
 
     def is_locked(self) -> bool | None:
-        """Check if the device is currently locked.
+        """Check whether the device lock is currently active.
 
-        Sends a 0x2C device-info query and checks byte 6 of the response.
-        Returns True if locked, False if unlocked, None if no response.
+        Sends a 0x2C device-info query and inspects byte 6 of the response.
+        Discovered by comparing 0x2C responses across 3 captures:
+        unlocked byte 6 = 0x00, locked byte 6 = 0x01.
 
-        Discovered from comparing 0x2C responses across 3 captures:
-          Unlocked: 2c 00 27 0f 00 00 00 00
-          Locked:   2c 00 27 0f 00 00 01 00
+        Returns:
+            ``True`` if locked, ``False`` if unlocked, ``None`` if no response
+            or the response could not be parsed.
         """
         payload = self._send_recv(cmd_device_info(), skip_polls=True)
         if payload is None:
@@ -629,12 +768,15 @@ class DSPmini:
     def submit_pin(self, pin: str) -> bool:
         """Submit a PIN to unlock a locked device (0x2D).
 
-        Call this BEFORE read_config() if the device is locked. When the device
-        is locked it keeps ACKing 0x12 activate commands without proceeding to
-        config load — it waits for a correct 0x2D PIN submission.
+        Call this before :meth:`read_config` when the device is locked. A
+        locked device keeps ACKing 0x12 activate commands without proceeding
+        to config load — it waits for a correct 0x2D PIN submission.
 
-        pin: exactly 4 ASCII digit characters (e.g. "7654")
-        Returns True if PIN was correct, False if wrong or no response.
+        Args:
+            pin: Exactly 4 ASCII digit characters (e.g. ``"7654"``).
+
+        Returns:
+            ``True`` if the PIN was correct, ``False`` if wrong or no response.
         """
         payload = self._send_recv(cmd_submit_pin(pin), skip_polls=True)
         if payload is None:
@@ -643,15 +785,20 @@ class DSPmini:
         return result is True
 
     def set_lock_pin(self, pin: str) -> bool:
-        """Set device lock PIN and immediately lock the device (0x2F).
+        """Set the device lock PIN and immediately lock the device (0x2F).
 
-        ⚠ WARNING: This LOCKS the device immediately after the ACK is received.
-        The current session ends — the device will not respond to further
-        commands until the correct PIN is entered on the next connection via
-        submit_pin(). If the PIN is lost, factory reset procedure is unknown.
+        Warning:
+            This **locks the device immediately** after the ACK is received.
+            The current session ends — the device will not respond to further
+            commands until the correct PIN is entered via :meth:`submit_pin`
+            on the next connection. If the PIN is lost, the factory reset
+            procedure is unknown.
 
-        pin: exactly 4 ASCII digit characters (e.g. "7654")
-        Returns True if the device ACK'd before disconnecting.
+        Args:
+            pin: Exactly 4 ASCII digit characters (e.g. ``"7654"``).
+
+        Returns:
+            ``True`` if the device ACK'd before disconnecting.
         """
         payload = self._send_recv(cmd_set_lock_pin(pin))
         if payload is None:

@@ -1,4 +1,18 @@
-"""CLI entry point for dspanalyze — USB HID protocol analysis tool."""
+"""CLI entry point for dspanalyze — USB HID protocol analysis tool.
+
+Subcommands (see :func:`main` for the argparse setup):
+
+- ``analyze`` — decode a capture and emit human/Claude/raw output.
+- ``check`` — run protocol assertions against a capture.
+- ``capture`` — record USB traffic via tshark (Linux/Windows).
+- ``diff-config`` — compare repeated config-page reads inside one capture.
+- ``list-captures`` — print metadata summaries for a directory of captures.
+- ``extract-defaults`` — stitch F00 preset pages into a TOML defaults file.
+- ``calibrate`` — manage level-meter calibration (capture/show/apply/reset).
+
+Most subcommands exit with status 1 on missing input or fatal errors so
+they are safe to wire into CI scripts.
+"""
 
 from __future__ import annotations
 
@@ -8,7 +22,30 @@ from pathlib import Path
 
 
 def cmd_analyze(args: argparse.Namespace) -> None:
-    """Decode and display capture data."""
+    """Decode a capture, write its sidecar metadata, and emit a formatted dump.
+
+    Reads ``args.file`` (``.pcapng`` or Wireshark text export), decodes every
+    frame using ``protocol_config.toml``, regenerates the ``.meta.toml``
+    sidecar (unless ``--no-meta``), applies opcode include/exclude filters,
+    and renders the result via the chosen formatter.
+
+    Args:
+        args: Parsed CLI arguments with attributes:
+
+            - ``file`` (str): capture path.
+            - ``format`` (str): ``"claude"``, ``"human"``, or ``"raw"``.
+            - ``output`` (str | None): destination file; ``None`` prints to stdout.
+            - ``filter`` (str | None): comma-separated hex opcodes to include.
+            - ``exclude`` (str | None): comma-separated hex opcodes to drop.
+            - ``summary`` (bool): emit summary-only output.
+            - ``decode`` (bool): include human-readable field values.
+            - ``no_meta`` (bool): skip writing the ``.meta.toml`` sidecar.
+
+    Side effects:
+        Writes to ``args.output`` or stdout, and (unless ``--no-meta``)
+        writes/updates ``<capture>.meta.toml``. Calls ``sys.exit(1)`` when
+        the capture is empty or the requested format is unknown.
+    """
     from dspanalyze.config import load_config
     from dspanalyze.decode import decode_packets
     from dspanalyze.readers import read_capture
@@ -60,7 +97,26 @@ def cmd_analyze(args: argparse.Namespace) -> None:
 
 
 def cmd_check(args: argparse.Namespace) -> None:
-    """Run protocol assertions against a capture file."""
+    """Run protocol assertions against a capture and print pass/fail results.
+
+    When ``--list`` is set, prints every registered assertion name with its
+    description and capture-glob filter and returns without opening the file.
+    Otherwise loads the capture, decodes it, runs every assertion whose name
+    matches ``--assertion`` (or all when ``"all"``) and whose ``capture_glob``
+    matches the filename, then prints a formatted result block.
+
+    Args:
+        args: Parsed CLI arguments with attributes:
+
+            - ``file`` (str): capture path.
+            - ``assertion`` (str): assertion name or ``"all"``.
+            - ``list_assertions`` (bool): list-only mode (``--list``).
+            - ``verbose`` (bool): also print passing assertions.
+
+    Side effects:
+        Prints to stdout. Calls ``sys.exit(1)`` when the capture is empty
+        or any assertion fails (so the command is CI-friendly).
+    """
     from dspanalyze.check import ASSERTIONS, format_results, run_assertions
 
     if args.list_assertions:
@@ -93,6 +149,7 @@ def cmd_check(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
+    """Entry point for the ``dspanalyze`` CLI."""
     parser = argparse.ArgumentParser(
         prog="dspanalyze",
         description="USB HID protocol analysis for the t.racks DSP 4x4 Mini",
@@ -198,7 +255,22 @@ def main() -> None:
 
 
 def cmd_list_captures(args: argparse.Namespace) -> None:
-    """List capture files with metadata summaries."""
+    """List capture files in a directory with their ``.meta.toml`` summaries.
+
+    Scans ``args.directory`` for ``.txt``, ``.pcapng``, and ``.pcap`` files,
+    sorts them by filename, and prints — for each — the packet count,
+    duration, feature description, observed opcodes, and an ``[HAS UNKNOWNS]``
+    marker when the sidecar reports any unrecognized opcodes. Captures
+    without a sidecar are listed with a hint to run ``analyze`` first.
+
+    Args:
+        args: Parsed CLI arguments with attribute ``directory`` (str, path to
+            scan; defaults to ``analysis/usb_captures``).
+
+    Side effects:
+        Prints to stdout. Calls ``sys.exit(1)`` when ``directory`` does not
+        exist or is not a directory.
+    """
     import tomllib
 
     from dspanalyze.metadata import meta_path_for
@@ -245,7 +317,21 @@ def cmd_list_captures(args: argparse.Namespace) -> None:
 
 
 def cmd_diff_config(args: argparse.Namespace) -> None:
-    """Compare config page reads within a capture."""
+    """Compare repeated config-page reads inside a single capture.
+
+    When a capture contains multiple full reads of the 9 config pages
+    (e.g. before/after a preset load), this command extracts each read and
+    reports which bytes changed between them — useful for isolating the
+    offsets that store a newly-touched parameter.
+
+    Args:
+        args: Parsed CLI arguments with attribute ``file`` (str, capture path
+            that contains at least two complete page-0–page-8 sequences).
+
+    Side effects:
+        Prints the diff report to stdout. Calls ``sys.exit(1)`` when the
+        capture is empty.
+    """
     from dspanalyze.config import load_config
     from dspanalyze.decode import decode_packets
     from dspanalyze.diff_config import diff_config_reads, extract_config_reads
@@ -264,7 +350,35 @@ def cmd_diff_config(args: argparse.Namespace) -> None:
 
 
 def cmd_capture(args: argparse.Namespace) -> None:
-    """Capture USB traffic from the DSP device."""
+    """Capture USB traffic from the DSP device using tshark.
+
+    Two modes:
+
+    - ``--detect``: print the detected device's VID/PID, system, USB bus
+      and (on Linux) USB device address, then list every tshark capture
+      interface and return without recording.
+    - Otherwise: invoke :func:`dspanalyze.capture.run_capture` to record a
+      ``.pcapng`` into ``--output-dir`` (auto-named from description), with
+      an optional time limit.
+
+    Platform notes:
+        On Linux the USB bus and device address are auto-discovered from
+        sysfs. On Windows the user must pass ``--device-address`` because
+        USBPcap filters by address, not VID/PID. ``find_tshark()`` raises
+        if tshark is not on ``$PATH``.
+
+    Args:
+        args: Parsed CLI arguments with attributes ``output_dir`` (str),
+            ``duration`` (int | None, seconds; ``None`` = until Ctrl+C),
+            ``interface`` (str | None, auto-detected if absent),
+            ``description`` (str), ``notes`` (str),
+            ``device_address`` (int | None, required on Windows),
+            and ``detect`` (bool).
+
+    Side effects:
+        Prints status to stdout. Writes a ``.pcapng`` capture and its
+        ``.meta.toml`` sidecar under ``output_dir`` (capture mode only).
+    """
     from dspanalyze.capture import (
         _find_linux_device_address,
         detect_device,
@@ -306,7 +420,25 @@ def cmd_capture(args: argparse.Namespace) -> None:
 
 
 def cmd_extract_defaults(args: argparse.Namespace) -> None:
-    """Extract factory defaults from a preset-load capture and write JSON."""
+    """Stitch the F00 factory-preset config pages from a capture into a TOML file.
+
+    Reads ``args.file`` (typically a capture of an F00 preset load), uses
+    :func:`dspanalyze.extract_defaults.extract_defaults` to reconstruct the
+    9-page config block, and writes a TOML representation suitable for
+    bundling as ``minidsp/factory_defaults.toml``. The parent directory of
+    the output path is created if missing.
+
+    Args:
+        args: Parsed CLI arguments with attributes ``file`` (str, capture
+            path) and ``output`` (str, TOML destination).
+
+    Side effects:
+        Creates ``Path(args.output).parent`` and writes the TOML. Prints
+        the resulting path on success. Calls ``sys.exit(1)`` and prints
+        the error message when
+        :class:`~dspanalyze.extract_defaults.ExtractDefaultsError` is raised
+        (e.g. capture is missing pages).
+    """
     from dspanalyze.extract_defaults import ExtractDefaultsError, extract_defaults
 
     capture = Path(args.file)
@@ -321,7 +453,29 @@ def cmd_extract_defaults(args: argparse.Namespace) -> None:
 
 
 def cmd_calibrate(args: argparse.Namespace) -> None:
-    """Dispatch calibration subcommands."""
+    """Dispatch the ``calibrate`` subcommand to one of four action handlers.
+
+    Routes ``args.calibrate_action`` to a handler in
+    :mod:`dspanalyze.calibrate`:
+
+    - ``capture`` — record ``--samples`` level readings on ``--channel`` at
+      the known analog level ``dbu`` and append a measurement point.
+    - ``show`` — print all stored points and the best-fit ``REF_LEVEL``.
+    - ``apply`` — compute the best-fit ``REF_LEVEL`` (weighted geometric
+      mean per :func:`minidsp.protocol.calibrate_compute_ref`) and write it
+      to the package-bundled ``calibration.toml``.
+    - ``reset`` — revert ``calibration.toml`` to the factory default.
+
+    Args:
+        args: Parsed CLI arguments with attribute ``calibrate_action`` (str,
+            one of the four actions). For ``capture`` also ``dbu`` (float),
+            ``channel`` (int 0–7), and ``samples`` (int | None — falls back
+            to :data:`dspanalyze.calibrate.DEFAULT_SAMPLES`).
+
+    Side effects:
+        Performs disk I/O on ``calibration.toml`` and (for ``capture``) live
+        device I/O. Calls ``sys.exit(1)`` for unknown actions.
+    """
     from dspanalyze.calibrate import (
         DEFAULT_SAMPLES,
         cmd_calibrate_apply,

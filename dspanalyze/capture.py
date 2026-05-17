@@ -21,7 +21,14 @@ PRODUCT_ID = 0x0821
 
 
 def find_tshark() -> str:
-    """Locate tshark binary on PATH."""
+    """Locate the tshark binary on PATH (or common Windows install paths).
+
+    Returns:
+        Absolute path to the tshark executable.
+
+    Raises:
+        SystemExit: If tshark is not found (prints an error and exits with code 1).
+    """
     tshark = shutil.which("tshark")
     if tshark is None:
         # Windows: try common install locations
@@ -36,7 +43,15 @@ def find_tshark() -> str:
 
 
 def list_interfaces(tshark: str) -> list[dict]:
-    """List available capture interfaces from tshark."""
+    """List available capture interfaces reported by tshark.
+
+    Args:
+        tshark: Path to the tshark binary.
+
+    Returns:
+        List of dicts with keys ``'index'`` (int), ``'name'`` (str), and
+        ``'description'`` (str).
+    """
     result = subprocess.run(
         [tshark, "-D"],
         capture_output=True, text=True, timeout=10,
@@ -57,8 +72,15 @@ def list_interfaces(tshark: str) -> list[dict]:
 def find_usb_interface(tshark: str) -> str | None:
     """Auto-detect the USB capture interface carrying the DSP device.
 
-    On Linux: looks for usbmon interfaces.
-    On Windows: looks for USBPcap interfaces.
+    On Linux looks for the correct ``usbmonN`` interface by matching the
+    device's USB bus number. On Windows looks for a USBPcap interface.
+
+    Args:
+        tshark: Path to the tshark binary.
+
+    Returns:
+        Interface name string (e.g. ``"usbmon1"``), or ``None`` if no
+        suitable interface is found.
     """
     interfaces = list_interfaces(tshark)
     system = platform.system()
@@ -86,7 +108,18 @@ def find_usb_interface(tshark: str) -> str | None:
 
 
 def _find_linux_usb_bus() -> int | None:
-    """Find the USB bus number for the DSP device via sysfs."""
+    """Find the Linux USB bus number for the DSP device via sysfs.
+
+    Iterates ``/sys/bus/usb/devices/*`` looking for the entry whose
+    ``idVendor``/``idProduct`` files match ``VENDOR_ID``/``PRODUCT_ID``
+    (``0168``/``0821``), then returns the integer parsed from ``busnum``.
+
+    Returns:
+        The USB bus number (integer matching ``usbmonN``), or ``None`` if
+        the device is not present in sysfs. Any ``OSError`` or ``ValueError``
+        encountered while reading sysfs files is swallowed and treated as
+        "not found".
+    """
     try:
         usb_devices = Path("/sys/bus/usb/devices")
         for dev_dir in usb_devices.iterdir():
@@ -105,7 +138,16 @@ def _find_linux_usb_bus() -> int | None:
 
 
 def _find_linux_device_address() -> int | None:
-    """Find the USB device address (devnum) for the DSP device via sysfs."""
+    """Find the Linux USB device address (``devnum``) for the DSP device.
+
+    Same sysfs scan as :func:`_find_linux_usb_bus`, but returns the
+    ``devnum`` instead of the ``busnum``. The device address is what the
+    pcapng filter ``usb.device_address == N`` needs.
+
+    Returns:
+        The integer USB device address, or ``None`` if the device is not
+        present or sysfs cannot be read.
+    """
     try:
         usb_devices = Path("/sys/bus/usb/devices")
         for dev_dir in usb_devices.iterdir():
@@ -124,7 +166,13 @@ def _find_linux_device_address() -> int | None:
 
 
 def detect_device() -> dict | None:
-    """Detect the DSP device and return info dict, or None if not found."""
+    """Detect the DSP device and return its connection info.
+
+    Returns:
+        Dict with keys ``'vid'``, ``'pid'``, and ``'system'``. Linux builds
+        also include ``'bus'`` (int). Returns ``None`` if the device is not
+        found.
+    """
     system = platform.system()
 
     if system == "Linux":
@@ -156,15 +204,27 @@ def run_capture(
     interface: str | None = None,
     device_address: int | None = None,
 ) -> Path | None:
-    """Run a tshark capture session and save the pcapng file.
+    """Run a tshark capture session and save the result as a pcapng file.
 
     Uses a two-pass approach: captures all USB traffic to a temp file, then
-    filters by usb.device_address to produce a small final pcapng with only
-    DSP device traffic. This is necessary because tshark has no BPF capture
-    filters for USB-specific fields — they're only available as display filters,
-    which can't be combined with -w during live capture.
+    filters by ``usb.device_address`` to produce a small final pcapng with
+    only DSP device traffic. This is necessary because tshark has no BPF
+    capture filters for USB-specific fields — they're only available as
+    display filters, which can't be combined with ``-w`` during live capture.
 
-    Returns the path to the saved capture file, or None on failure.
+    Args:
+        output_dir: Directory where the pcapng and metadata sidecar are saved.
+        description: Short label embedded in the filename and metadata.
+        notes: Free-text notes written to the ``.meta.toml`` sidecar.
+        duration: Capture duration in seconds. ``None`` means capture until
+            Ctrl+C.
+        interface: tshark interface name to capture on. Auto-detected if
+            ``None``.
+        device_address: USB device address for post-capture filtering.
+            Auto-detected on Linux; required explicitly on Windows.
+
+    Returns:
+        Path to the saved ``.pcapng`` file, or ``None`` on failure.
     """
     tshark = find_tshark()
     system = platform.system()

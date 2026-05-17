@@ -22,13 +22,17 @@ _RESOURCE_NAME = "factory_defaults.toml"
 def load_factory_defaults() -> dict:
     """Return the parsed contents of ``minidsp/factory_defaults.toml``.
 
-    The dict has top-level keys ``schema_version``, ``preset``, ``preset_name``,
-    ``source_capture``, ``encoding``, ``channels`` (8-element list), and
-    ``params`` (matches ``parse_preset_params`` output plus ``test_tone_mode``,
-    ``test_tone_freq``, ``delay_unit``).
+    Returns:
+        Dict with top-level keys ``schema_version``, ``preset``,
+        ``preset_name``, ``source_capture``, ``encoding``,
+        ``channels`` (8-element list), and ``params`` (matches
+        :func:`~minidsp.protocol.parse_preset_params` output plus
+        ``test_tone_mode``, ``test_tone_freq``, ``delay_unit``).
 
-    Raises FileNotFoundError if the package resource is missing — that means
-    the package was built without the data file, which is a packaging bug.
+    Raises:
+        FileNotFoundError: If the bundled TOML resource is missing — this
+            indicates a packaging bug (the data file was not included in the
+            build). Regenerate with ``dspanalyze extract-defaults <f00-capture>``.
     """
     resource = importlib.resources.files("minidsp").joinpath(_RESOURCE_NAME)
     with importlib.resources.as_file(resource) as path:

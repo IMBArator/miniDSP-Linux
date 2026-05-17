@@ -25,7 +25,11 @@ from .device import DSPmini
 
 
 def cmd_dump(args: argparse.Namespace) -> None:
-    """Read all DSP configuration parameters and print them as formatted tables."""
+    """Read all DSP configuration parameters and print them as formatted tables.
+
+    Args:
+        args: Parsed CLI arguments (no subcommand-specific flags).
+    """
     from rich.console import Console
     from rich.table import Table
     from rich import box as rich_box
@@ -221,7 +225,12 @@ def cmd_dump(args: argparse.Namespace) -> None:
 
 
 def cmd_levels(args: argparse.Namespace) -> None:
-    """Poll device levels and display raw uint16 + dB for all 8 channels."""
+    """Poll device levels and display raw uint16 + dBu for all 8 channels.
+
+    Args:
+        args: Parsed CLI arguments — ``watch``, ``count``, ``interval``,
+            ``csv``, ``csv_only``.
+    """
     from rich.console import Console
     from rich.table import Table
     from rich import box as rich_box
@@ -258,6 +267,8 @@ def cmd_levels(args: argparse.Namespace) -> None:
     running = True
 
     def _stop(sig, frame):
+        """SIGINT handler — clears the ``running`` closure flag so the watch
+        loop exits cleanly on the next iteration."""
         nonlocal running
         running = False
 
@@ -309,16 +320,39 @@ def cmd_levels(args: argparse.Namespace) -> None:
 
 
 def cmd_mute(args: argparse.Namespace) -> None:
-    """Mute one or more input channels."""
+    """Mute one or more input channels.
+
+    Args:
+        args: Parsed CLI arguments — ``channels`` (list[int], 1-indexed).
+    """
     _do_mute(args.channels, mute=True)
 
 
 def cmd_unmute(args: argparse.Namespace) -> None:
-    """Unmute one or more input channels."""
+    """Unmute one or more input channels.
+
+    Args:
+        args: Parsed CLI arguments — ``channels`` (list[int], 1-indexed).
+    """
     _do_mute(args.channels, mute=False)
 
 
 def _do_mute(channels: list[int], mute: bool) -> None:
+    """Apply mute or unmute to a list of input channels.
+
+    Opens the device, iterates the channel list, and prints per-channel
+    status to stdout. Channels outside 1–4 are skipped with a warning on
+    stderr but do not abort the operation.
+
+    Args:
+        channels: 1-indexed input channel numbers (1–4). Indices outside
+            this range are skipped with a warning.
+        mute: ``True`` to mute, ``False`` to unmute.
+
+    Side effects:
+        Writes per-channel status lines to stdout. Calls ``sys.exit(1)``
+        if the device cannot be opened.
+    """
     action = "Mute" if mute else "Unmute"
     dsp = DSPmini()
     try:
@@ -340,6 +374,7 @@ def _do_mute(channels: list[int], mute: bool) -> None:
 
 
 def main() -> None:
+    """Entry point for the ``minidsp`` CLI."""
     parser = argparse.ArgumentParser(
         prog="minidsp",
         description="the t.racks DSP 4x4 Mini — USB HID control tool",

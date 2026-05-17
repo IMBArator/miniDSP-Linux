@@ -2,7 +2,10 @@
 the t.racks DSP 4x4 Mini — USB HID protocol encoding/decoding.
 
 Frame format (inside 64-byte HID report):
-    10 02 [SRC] [DST] [LEN] [PAYLOAD...] 10 03 [CHK]
+
+```text
+10 02 [SRC] [DST] [LEN] [PAYLOAD...] 10 03 [CHK]
+```
 
 Checksum = XOR of LEN and all payload bytes.
 """
@@ -141,7 +144,15 @@ COMP_RATIO_LIMIT = 0x0F # Hard limiter
 
 
 def checksum(length: int, payload: bytes) -> int:
-    """XOR of length byte and all payload bytes."""
+    """Compute the protocol frame checksum.
+
+    Args:
+        length: The frame length byte value.
+        payload: The frame payload bytes.
+
+    Returns:
+        XOR of ``length`` and all bytes in ``payload``, masked to 8 bits.
+    """
     chk = length
     for b in payload:
         chk ^= b
@@ -151,7 +162,13 @@ def checksum(length: int, payload: bytes) -> int:
 def build_frame(payload: bytes) -> bytes:
     """Build a 64-byte HID OUT report from a payload.
 
-    Frame: 10 02 00 01 [LEN] [PAYLOAD] 10 03 [CHK] [zero-pad to 64]
+    Frame layout: ``10 02 00 01 [LEN] [PAYLOAD] 10 03 [CHK] [zero-pad to 64]``
+
+    Args:
+        payload: Raw command payload bytes (opcode + parameters).
+
+    Returns:
+        Zero-padded 64-byte HID report ready to write to the device.
     """
     length = len(payload)
     chk = checksum(length, payload)
@@ -164,7 +181,12 @@ def build_frame(payload: bytes) -> bytes:
 def parse_frame(data: bytes) -> tuple[int, int, int, bytes] | None:
     """Parse a 64-byte HID IN report.
 
-    Returns (src, dst, length, payload) or None if framing is invalid.
+    Args:
+        data: Raw 64-byte HID report received from the device.
+
+    Returns:
+        ``(src, dst, length, payload)`` on success, or ``None`` if framing
+        is invalid (bad STX/ETX, truncated, or checksum mismatch).
     """
     if len(data) < 8 or data[0] != 0x10 or data[1] != 0x02:
         log.debug("parse_frame: bad STX (got %s, need 10 02)",
@@ -201,9 +223,15 @@ def cmd_poll() -> bytes:
 def cmd_lopass(channel: int, freq_raw: int, slope: int = SLOPE_BYPASS) -> bytes:
     """Build a low-pass crossover command (0x31).
 
-    channel: unified index (outputs 0x04–0x07)
-    freq_raw: 0–300 (log scale, Hz = 19.70 × (20160/19.70)^(raw/300), 19.7 Hz–20.16 kHz)
-    slope: 0x00=bypassed, 0x01–0x0a=active with slope type (see SLOPE_* constants)
+    Args:
+        channel: Unified channel index for outputs (0x04–0x07).
+        freq_raw: Frequency raw value 0–300 (log scale;
+            Hz = 19.70 × (20160/19.70)^(raw/300), range 19.7 Hz–20.16 kHz).
+        slope: Filter slope. ``SLOPE_BYPASS`` (0x00) disables the filter;
+            ``SLOPE_BW6``–``SLOPE_LR24`` select active slopes (see ``SLOPE_*`` constants).
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     freq_raw = max(0, min(300, freq_raw))
     lo = freq_raw & 0xFF
@@ -214,9 +242,15 @@ def cmd_lopass(channel: int, freq_raw: int, slope: int = SLOPE_BYPASS) -> bytes:
 def cmd_hipass(channel: int, freq_raw: int, slope: int = SLOPE_BYPASS) -> bytes:
     """Build a high-pass crossover command (0x32).
 
-    channel: unified index (outputs 0x04–0x07)
-    freq_raw: 0–300 (log scale, Hz = 19.70 × (20160/19.70)^(raw/300), 19.7 Hz–20.16 kHz)
-    slope: 0x00=bypassed, 0x01–0x0a=active with slope type (see SLOPE_* constants)
+    Args:
+        channel: Unified channel index for outputs (0x04–0x07).
+        freq_raw: Frequency raw value 0–300 (log scale;
+            Hz = 19.70 × (20160/19.70)^(raw/300), range 19.7 Hz–20.16 kHz).
+        slope: Filter slope. ``SLOPE_BYPASS`` (0x00) disables the filter;
+            ``SLOPE_BW6``–``SLOPE_LR24`` select active slopes (see ``SLOPE_*`` constants).
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     freq_raw = max(0, min(300, freq_raw))
     lo = freq_raw & 0xFF
@@ -227,17 +261,27 @@ def cmd_hipass(channel: int, freq_raw: int, slope: int = SLOPE_BYPASS) -> bytes:
 def cmd_mute(channel: int, mute: bool) -> bytes:
     """Build a mute command (0x35).
 
-    channel: 0-indexed (0=ch1, 1=ch2, 2=ch3, 3=ch4)
-    mute: True=mute on, False=mute off
+    Args:
+        channel: Unified channel index (inputs 0–3, outputs 4–7).
+        mute: ``True`` to mute, ``False`` to unmute.
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     return build_frame(bytes([OP_MUTE, channel, 0x01 if mute else 0x00]))
 
 
 def cmd_gain(channel: int, raw_value: int) -> bytes:
-    """Build an input gain command (0x34).
+    """Build a gain command (0x34).
 
-    channel: 0-indexed
-    raw_value: 0–400  (dB = raw × 0.1 − 28)
+    Args:
+        channel: Unified channel index (inputs 0–3, outputs 4–7).
+        raw_value: Raw gain value 0–400. Use :func:`db_to_raw` to convert
+            from dB; dual resolution (0.5 dB/step below −20 dB,
+            0.1 dB/step above).
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     raw_value = max(0, min(400, raw_value))
     lo = raw_value & 0xFF
@@ -248,8 +292,12 @@ def cmd_gain(channel: int, raw_value: int) -> bytes:
 def cmd_phase(channel: int, inverted: bool) -> bytes:
     """Build a phase invert command (0x36).
 
-    channel: unified index (inputs 0-3, outputs 4-7)
-    inverted: True=180° inverted, False=normal
+    Args:
+        channel: Unified channel index (inputs 0–3, outputs 4–7).
+        inverted: ``True`` for 180° inversion, ``False`` for normal polarity.
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     return build_frame(bytes([OP_PHASE, channel, 0x01 if inverted else 0x00]))
 
@@ -257,8 +305,13 @@ def cmd_phase(channel: int, inverted: bool) -> bytes:
 def cmd_delay(channel: int, samples: int) -> bytes:
     """Build an output delay command (0x38).
 
-    channel: unified index (outputs 0x04–0x07)
-    samples: 0–32640 (delay in samples at 48 kHz; ms = samples / 48)
+    Args:
+        channel: Unified channel index for outputs (0x04–0x07).
+        samples: Delay in samples at 48 kHz, range 0–32640
+            (ms = samples / 48, max ≈ 680 ms).
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     samples = max(0, min(32640, samples))
     lo = samples & 0xFF
@@ -269,9 +322,15 @@ def cmd_delay(channel: int, samples: int) -> bytes:
 def cmd_set_delay_unit(unit: int) -> bytes:
     """Build a delay display unit command (0x15).
 
-    unit: DELAY_UNIT_MS=0x00, DELAY_UNIT_M=0x01, DELAY_UNIT_FT=0x02
-    Display-only — protocol always transmits delay in samples via 0x38.
-    Persisted at config offset 424.
+    Controls the unit shown in the UI only; the protocol always transmits
+    delay in samples via 0x38. Persisted at config offset 424.
+
+    Args:
+        unit: Display unit — ``DELAY_UNIT_MS`` (0x00), ``DELAY_UNIT_M`` (0x01),
+            or ``DELAY_UNIT_FT`` (0x02).
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     return build_frame(bytes([OP_SET_DELAY_UNIT, unit & 0xFF]))
 
@@ -282,17 +341,24 @@ def cmd_test_tone(mode: int, freq_index: int = 0) -> bytes:
     Enables or disables the internal signal generator. Device ACKs with 0x01.
     State is persisted at config offset 420 (mode) and 422 (last sine freq index).
 
-    mode:       TONE_OFF=0x00, TONE_PINK=0x01, TONE_WHITE=0x02, TONE_SINE=0x03
-    freq_index: SINE_FREQ_* constant (0x00=20Hz … 0x1E=20kHz); 0x00 for noise modes.
-                When disabling (mode=TONE_OFF), pass the last used sine freq index
-                so the device retains it in config — or just use 0x00.
+    Args:
+        mode: Generator mode — ``TONE_OFF`` (0x00), ``TONE_PINK`` (0x01),
+            ``TONE_WHITE`` (0x02), or ``TONE_SINE`` (0x03).
+        freq_index: Sine frequency index (``SINE_FREQ_*`` constant, 0x00=20 Hz …
+            0x1E=20 kHz). Ignored for noise modes. When disabling after a sine
+            session, pass the last used index so the device retains it in config.
 
-    Captured examples:
-      White noise:  39 02 00
-      Pink noise:   39 01 00
-      Sine 20 Hz:   39 03 00
-      Sine 20 kHz:  39 03 1e
-      Off (after sine 25Hz session): 39 00 01
+    Returns:
+        Encoded 64-byte HID report.
+
+    Example::
+
+        # White noise
+        cmd_test_tone(TONE_WHITE)
+        # Sine at 1 kHz
+        cmd_test_tone(TONE_SINE, SINE_FREQ_1KHZ)
+        # Off (retain last sine freq index)
+        cmd_test_tone(TONE_OFF, SINE_FREQ_1KHZ)
     """
     freq_index = max(0, min(0x1E, freq_index))
     return build_frame(bytes([OP_TEST_TONE, mode & 0xFF, freq_index & 0xFF]))
@@ -301,10 +367,15 @@ def cmd_test_tone(mode: int, freq_index: int = 0) -> bytes:
 def cmd_matrix_route(output_ch: int, input_mask: int) -> bytes:
     """Build a matrix routing command (0x3A).
 
-    Sets which input(s) feed the given output. Sends the full bitmask each time.
+    Sets which input(s) feed a given output. The full bitmask is sent each time.
 
-    output_ch:  output channel index (0x04=Out1, 0x05=Out2, 0x06=Out3, 0x07=Out4)
-    input_mask: bitmask of sources (InA=0x01, InB=0x02, InC=0x04, InD=0x08; 0x00=silence)
+    Args:
+        output_ch: Output channel index (0x04=Out1, 0x05=Out2, 0x06=Out3, 0x07=Out4).
+        input_mask: Source bitmask (InA=0x01, InB=0x02, InC=0x04, InD=0x08;
+            0x00=silence; multiple bits allowed for summing).
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     return build_frame(bytes([OP_MATRIX, output_ch, input_mask & 0x0F]))
 
@@ -312,20 +383,25 @@ def cmd_matrix_route(output_ch: int, input_mask: int) -> bytes:
 def cmd_prepare_link(master_ch: int, slave_ch: int) -> bytes:
     """Build a prepare-link command (0x2A).
 
-    Must be sent once per master↔slave pair immediately before cmd_channel_link()
-    when linking channels. Not sent when unlinking.
+    Must be sent once per master↔slave pair immediately before
+    :func:`cmd_channel_link` when linking channels. Not sent when unlinking.
 
-    master_ch: unified channel index of the master (inputs 0-3, outputs 4-7)
-    slave_ch:  unified channel index of the slave
+    For N-channel links send one ``cmd_prepare_link`` per slave, then all
+    :func:`cmd_channel_link` calls. Example — link InA+InB+InC::
 
-    For N-channel links send one cmd_prepare_link per slave, then all cmd_channel_link calls.
-    Example — link InA+InB+InC:
-        cmd_prepare_link(0, 1)  # InA→InB
-        cmd_prepare_link(0, 2)  # InA→InC
+        cmd_prepare_link(0, 1)     # InA→InB
+        cmd_prepare_link(0, 2)     # InA→InC
         cmd_channel_link(0, 0x07)  # InA master: bits 0|1|2
         cmd_channel_link(1, 0x00)  # InB slave
         cmd_channel_link(2, 0x00)  # InC slave
         cmd_activate()
+
+    Args:
+        master_ch: Unified channel index of the master (inputs 0–3, outputs 4–7).
+        slave_ch: Unified channel index of the slave.
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     return build_frame(bytes([OP_PREPARE_LINK, master_ch & 0xFF, slave_ch & 0xFF]))
 
@@ -334,15 +410,21 @@ def cmd_channel_link(channel: int, link_flags: int) -> bytes:
     """Build a channel link state command (0x3B).
 
     Sets the link bitmask for one channel. Send for every affected channel
-    (both master and all slaves). Preceded by cmd_prepare_link() per slave pair
-    when linking; no prepare needed when unlinking.
+    (both master and all slaves). Preceded by :func:`cmd_prepare_link` per
+    slave pair when linking; no prepare needed when unlinking.
 
-    channel:    unified channel index (inputs 0-3, outputs 4-7)
-    link_flags: bitmask within the 4-channel group:
-                  inputs:  InA=0x01, InB=0x02, InC=0x04, InD=0x08
-                  outputs: Out1=0x01, Out2=0x02, Out3=0x04, Out4=0x08
-                Master gets OR of all linked bits; slaves get 0x00.
-                Standalone (unlinked) channel gets its own bit only (e.g. InA=0x01).
+    Args:
+        channel: Unified channel index (inputs 0–3, outputs 4–7).
+        link_flags: Bitmask within the 4-channel group.
+
+            - Inputs:  InA=0x01, InB=0x02, InC=0x04, InD=0x08
+            - Outputs: Out1=0x01, Out2=0x02, Out3=0x04, Out4=0x08
+
+            Master gets OR of all linked bits; slaves get 0x00.
+            Standalone (unlinked) channel gets its own bit only (e.g. InA=0x01).
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     return build_frame(bytes([OP_LINK, channel & 0xFF, link_flags & 0x0F]))
 
@@ -350,13 +432,16 @@ def cmd_channel_link(channel: int, link_flags: int) -> bytes:
 def cmd_set_channel_name(channel: int, name: str) -> bytes:
     """Build a set-channel-name command (0x3D).
 
-    Sets the display name for a channel (shown in the app's channel strips).
-    Verified from captures:
-      Out3 "Out3"→"AUSGANG3": 3d 06 41 55 53 47 41 4e 47 33
-      InC  "InC" →"EINGANGC": 3d 02 45 49 4e 47 41 4e 47 43
+    Sets the display name shown in the app's channel strips. Verified from
+    captures: Out3 "Out3"→"AUSGANG3" and InC "InC"→"EINGANGC".
 
-    channel: unified index (inputs 0-3, outputs 4-7)
-    name:    up to 8 ASCII characters — truncated and zero-padded to exactly 8 bytes.
+    Args:
+        channel: Unified channel index (inputs 0–3, outputs 4–7).
+        name: Up to 8 ASCII characters. Truncated and zero-padded to exactly
+            8 bytes before transmission.
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     encoded = name[:8].encode("ascii", errors="replace")
     padded = encoded.ljust(8, b"\x00")
@@ -367,20 +452,22 @@ def cmd_peq_band(channel: int, band: int, gain_raw: int, freq_raw: int,
                  q_raw: int, filter_type: int, bypass: bool = False) -> bytes:
     """Build a PEQ band command (0x33).
 
-    Sets a single parametric EQ band for an output channel.
-    Verified from 7 captures on 4x4 Mini (output channels, 7 bands each).
+    Sets a single parametric EQ band for an output channel. Verified from
+    7 captures on the 4x4 Mini (output channels, 7 bands each).
 
-    channel:     output channel index (0x04=Out1, 0x05=Out2, 0x06=Out3, 0x07=Out4)
-    band:        0-indexed band number (0–6 for bands 1–7)
-    gain_raw:    LE uint16, raw 0–240; gain_dB = (raw - 120) / 10.0; 0dB = 120
-    freq_raw:    LE uint16, raw 0–300; Hz = 19.70 * (20160/19.70)^(raw/300)
-    q_raw:       uint8, raw 0–100; Q = 0.4 * 320^(raw/100); shelf/pass max = 35
-    filter_type: uint8, use PEQ_TYPE_* constants
-    bypass:      True = this band bypassed, False = active
+    Args:
+        channel: Output channel index (0x04=Out1, 0x05=Out2, 0x06=Out3, 0x07=Out4).
+        band: 0-indexed band number (0–6 for bands 1–7).
+        gain_raw: LE uint16, range 0–240; gain_dB = (raw − 120) / 10.0 (0 dB = 120).
+        freq_raw: LE uint16, range 0–300;
+            Hz = 19.70 × (20160/19.70)^(raw/300).
+        q_raw: uint8, range 0–100; Q = 0.4 × 320^(raw/100).
+            Shelf/pass filters are UI-restricted to raw 0–35.
+        filter_type: Filter shape — use ``PEQ_TYPE_*`` constants.
+        bypass: ``True`` to bypass this band, ``False`` for active.
 
-    Captured examples:
-      Band1 Peak 1kHz 0dB Q=1.0 active: 33 04 00 78 00 78 00 19 00 00
-      Band1 Low Shelf bypass:            33 04 00 78 00 00 00 0a 01 01
+    Returns:
+        Encoded 64-byte HID report.
     """
     gain_raw = max(0, min(240, gain_raw))
     freq_raw = max(0, min(300, freq_raw))
@@ -404,12 +491,13 @@ def cmd_peq_channel_bypass(channel: int, bypass: bool) -> bytes:
     """Build a PEQ channel bypass command (0x3C).
 
     Bypasses or restores ALL PEQ bands for an output channel at once.
-    Verified from capture: capture_20260409_091811_output_peq_channel_1_bypass.pcapng
 
-    channel: output channel index (0x04=Out1 .. 0x07=Out4)
-    bypass:  True = all bands bypassed, False = all bands active
+    Args:
+        channel: Output channel index (0x04=Out1 … 0x07=Out4).
+        bypass: ``True`` to bypass all bands, ``False`` to restore all bands.
 
-    Captured: 3c 04 01 (Out1 all bypassed), 3c 04 00 (Out1 active)
+    Returns:
+        Encoded 64-byte HID report.
     """
     return build_frame(bytes([OP_PEQ_BYPASS, channel & 0xFF, 0x01 if bypass else 0x00]))
 
@@ -417,11 +505,16 @@ def cmd_peq_channel_bypass(channel: int, bypass: bool) -> bytes:
 def cmd_gate(channel: int, attack: int, release: int, hold: int, threshold: int) -> bytes:
     """Build a noise gate command (0x3E).
 
-    channel: 0-indexed input channel (0–3)
-    attack: raw 34–998 (maps to 1–999 ms)
-    release: raw 0–2999 (maps to 0–3000 ms)
-    hold: raw 9–998 (maps to 10–999 ms)
-    threshold: raw 0–180 (maps to −90.0 to 0.0 dB, 0.5 dB/step)
+    Args:
+        channel: 0-indexed input channel (0–3).
+        attack: Attack time raw value 34–998 (maps to 1–999 ms; raw + 1).
+        release: Release time raw value 0–2999 (maps to 0–3000 ms; raw + 1).
+        hold: Hold time raw value 9–998 (maps to 10–999 ms; raw + 1).
+        threshold: Gate threshold raw value 0–180
+            (maps to −90.0–0.0 dB; dB = raw × 0.5 − 90).
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     return build_frame(bytes([
         OP_GATE, channel,
@@ -444,12 +537,18 @@ def cmd_compressor(
 
     All 5 compressor parameters are sent in one frame.
 
-    channel:   output channel (0x04–0x07)
-    ratio:     0–15 enum (see COMP_RATIO_* constants; 0=1:1.0, 15=Limit)
-    knee:      0–12 (direct dB, 0=hard knee, 12=softest)
-    attack:    raw 0–998 (ms = raw + 1, range 1–999 ms)
-    release:   raw 9–2999 (ms = raw + 1, range 10–3000 ms)
-    threshold: raw 0–220 (dB = raw/2 − 90, range −90.0 to +20.0 dB, 0.5 dB/step)
+    Args:
+        channel: Output channel index (0x04–0x07).
+        ratio: Compression ratio enum 0–15 (see ``COMP_RATIO_*`` constants;
+            0=1:1.0 no compression, 15=hard limiter).
+        knee: Knee width 0–12 (direct dB; 0=hard knee, 12=softest).
+        attack: Attack time raw 0–998 (ms = raw + 1, range 1–999 ms).
+        release: Release time raw 9–2999 (ms = raw + 1, range 10–3000 ms).
+        threshold: Threshold raw 0–220
+            (dB = raw / 2 − 90, range −90.0 to +20.0 dB, 0.5 dB/step).
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     return build_frame(bytes([
         OP_COMPRESSOR, channel,
@@ -477,15 +576,17 @@ def cmd_device_info() -> bytes:
 
 
 def parse_device_info(payload: bytes) -> dict | None:
-    """Parse a 0x2C device-info response from the device.
+    """Parse a 0x2C device-info response.
 
-    Returns dict with keys:
-      'locked': bool — True if device lock is active (requires PIN via 0x2D)
+    Lock flag discovered by comparing 0x2C responses across 3 captures:
+    unlocked byte 6 = 0x00, locked byte 6 = 0x01.
 
-    Lock flag discovered by comparing 0x2c responses across 3 captures:
-      Unlocked: 2c 00 27 0f 00 00 00 00
-      Locked:   2c 00 27 0f 00 00 01 00
-    Byte 6 of the response payload is 0x01 when locked, 0x00 when unlocked.
+    Args:
+        payload: Raw response payload starting with opcode byte.
+
+    Returns:
+        Dict with key ``'locked'`` (bool) when valid, or ``None`` if the
+        payload is too short or has the wrong opcode.
     """
     if len(payload) < 7 or payload[0] != OP_DEVICE_INFO:
         return None
@@ -500,14 +601,15 @@ LOCK_PIN_WRONG = 0x00
 def cmd_submit_pin(pin: str) -> bytes:
     """Build a PIN authentication command (0x2D).
 
-    Sent when the device is locked. PIN is 4 ASCII digit characters.
-    The device responds with a 0x2D payload: [2d, 00, 01=correct / 00=wrong].
+    Sent when the device is locked. The device responds with a 0x2D payload:
+    ``[2d, 00, 01=correct / 00=wrong]``.
 
-    Captured:
-      2d 00 37 36 35 34 (PIN "7654" — correct) → response 2d 00 01
-      2d 00 38 38 38 38 (PIN "8888" — wrong)   → response 2d 00 00
+    Args:
+        pin: Exactly 4 ASCII digit characters (e.g. ``"7654"``). Truncated to
+            4 chars and zero-padded with ``b"0"`` if shorter.
 
-    pin: exactly 4 ASCII digit characters (e.g. "7654")
+    Returns:
+        Encoded 64-byte HID report.
     """
     encoded = pin[:4].encode("ascii", errors="replace").ljust(4, b"0")
     return build_frame(bytes([OP_SUBMIT_PIN, 0x00]) + encoded)
@@ -516,23 +618,31 @@ def cmd_submit_pin(pin: str) -> bytes:
 def cmd_set_lock_pin(pin: str) -> bytes:
     """Build a device lock PIN command (0x2F).
 
-    ⚠ WARNING: Sending this command IMMEDIATELY locks the device and
-    disconnects the application. The device cannot be controlled again
-    until the correct PIN is submitted via cmd_submit_pin() on the next
-    connection. If the PIN is lost, factory reset procedure is unknown.
+    Warning:
+        Sending this command **immediately locks the device** and disconnects
+        the application. The device cannot be controlled again until the correct
+        PIN is submitted via :func:`cmd_submit_pin` on the next connection.
+        If the PIN is lost, the factory reset procedure is unknown.
 
-    pin: exactly 4 ASCII digit characters (e.g. "7654")
+    Args:
+        pin: Exactly 4 ASCII digit characters (e.g. ``"7654"``).
 
-    Captured: 2f 37 36 35 34 (set PIN "7654") → device locks + disconnects
+    Returns:
+        Encoded 64-byte HID report.
     """
     encoded = pin[:4].encode("ascii", errors="replace").ljust(4, b"0")
     return build_frame(bytes([OP_SET_LOCK_PIN]) + encoded)
 
 
 def parse_pin_response(payload: bytes) -> bool | None:
-    """Parse a 0x2D PIN response from the device.
+    """Parse a 0x2D PIN authentication response.
 
-    Returns True if PIN was correct, False if wrong, None if payload invalid.
+    Args:
+        payload: Raw response payload starting with opcode byte.
+
+    Returns:
+        ``True`` if the PIN was correct, ``False`` if wrong,
+        or ``None`` if the payload is invalid.
     """
     if len(payload) < 3 or payload[0] != OP_SUBMIT_PIN:
         return None
@@ -552,9 +662,12 @@ def cmd_preset_index() -> bytes:
 def cmd_read_name(slot: int) -> bytes:
     """Build preset name read command (0x29).
 
-    slot: 0-indexed request index, 0–29.
-    Index 0 = U01, index 1 = U02, …, index 29 = U30.
-    F00 (slot 0 in 0x14 terms) is NOT accessible via this command.
+    Args:
+        slot: 0-indexed request index 0–29 (0=U01, 1=U02, …, 29=U30).
+            F00 (slot 0 in 0x14 terms) is NOT accessible via this command.
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     return build_frame(bytes([OP_READ_NAME, slot]))
 
@@ -562,8 +675,14 @@ def cmd_read_name(slot: int) -> bytes:
 def cmd_load_preset(slot: int) -> bytes:
     """Build a load-preset command (0x20).
 
-    slot: direct index — 0=F00, 1=U01, …, 30=U30.
-    After the device ACKs, read all 9 config pages (0x27) then send cmd_activate().
+    After the device ACKs, read all 9 config pages (0x27) then send
+    :func:`cmd_activate`.
+
+    Args:
+        slot: Direct preset slot index — 0=F00, 1=U01, …, 30=U30.
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     return build_frame(bytes([OP_LOAD_PRESET, slot & 0xFF]))
 
@@ -571,10 +690,17 @@ def cmd_load_preset(slot: int) -> bytes:
 def cmd_store_preset_name(name: str) -> bytes:
     """Build a store-preset-name command (0x26).
 
-    name: up to 14 ASCII characters — truncated and space-padded to exactly 14.
-    Must be sent BEFORE cmd_store_preset().
+    Must be sent BEFORE :func:`cmd_store_preset`.
 
-    WARNING: the device crashes if more than 14 characters are sent.
+    Warning:
+        The device crashes if more than 14 characters are sent.
+
+    Args:
+        name: Up to 14 ASCII characters. Truncated and space-padded to exactly
+            14 bytes before transmission.
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     encoded = name[:14].encode("ascii", errors="replace")
     padded = encoded.ljust(14, b" ")
@@ -584,13 +710,23 @@ def cmd_store_preset_name(name: str) -> bytes:
 def cmd_store_preset(slot: int) -> bytes:
     """Build a store-preset command (0x21).
 
-    slot: 1=U01, …, 30=U30.
-    Send cmd_store_preset_name() first, then this command, then cmd_activate().
-    The device takes ~2 seconds to ACK while writing to flash — wait for it.
+    Send :func:`cmd_store_preset_name` first, then this command, then
+    :func:`cmd_activate`. The device takes ~2 seconds to ACK while writing
+    to flash — wait for the ACK before proceeding.
 
-    WARNING: never pass slot=0 (F00 factory preset). Overwriting F00 may
-    permanently corrupt the device's factory default and could require a
-    firmware reflash to recover.
+    Warning:
+        Never pass ``slot=0`` (F00 factory preset). Overwriting F00 may
+        permanently corrupt the device and could require a firmware reflash
+        to recover.
+
+    Args:
+        slot: User preset slot index 1–30 (1=U01, …, 30=U30).
+
+    Returns:
+        Encoded 64-byte HID report.
+
+    Raises:
+        ValueError: If ``slot`` is 0 (factory preset F00).
     """
     if slot == 0:
         raise ValueError("slot 0 (F00) is the factory preset and must not be overwritten")
@@ -600,8 +736,12 @@ def cmd_store_preset(slot: int) -> bytes:
 def cmd_read_config(page: int) -> bytes:
     """Build a config page read command (0x27).
 
-    page: 0–8 (9 pages of 51 bytes each).
-    Device responds with opcode 0x24.
+    Args:
+        page: Page index 0–8 (9 pages of 50 bytes each). Device responds
+            with opcode 0x24.
+
+    Returns:
+        Encoded 64-byte HID report.
     """
     return build_frame(bytes([OP_READ_CONFIG, page]))
 
@@ -623,6 +763,13 @@ def _ch_level(payload: bytes, group_start: int) -> int:
     = barely visible, uint16 136 = end of green zone), so only the uint16
     value is used for metering. The device transitions to uint16 mode
     right at the manufacturer's display threshold.
+
+    Args:
+        payload: Raw 28-byte level response payload.
+        group_start: Byte offset of the first (low) byte of the triplet.
+
+    Returns:
+        uint16 LE amplitude (val_lo + val_hi × 256).
     """
     return payload[group_start] + payload[group_start + 1] * 256
 
@@ -630,9 +777,24 @@ def _ch_level(payload: bytes, group_start: int) -> int:
 def parse_levels(payload: bytes) -> dict | None:
     """Parse a 28-byte level monitoring response (opcode 0x40).
 
-    Payload: opcode + 8 × 3-byte channel triplets + 3-byte tail.
-    Each triplet: [val_lo, val_hi, instant] — uint16 LE + instant sample.
-    Input channels at offsets 1,4,7,10; output channels at 13,16,19,22.
+    Payload layout: opcode + 8 × 3-byte channel triplets + 3-byte tail.
+    Each triplet: ``[val_lo, val_hi, instant]`` — uint16 LE + instant sample.
+    Input channels at offsets 1, 4, 7, 10; output channels at 13, 16, 19, 22.
+
+    Args:
+        payload: Raw 28-byte response payload starting with opcode byte.
+
+    Returns:
+        Dict with the following keys, or ``None`` if payload length or opcode
+        is invalid:
+
+        - ``'inputs'``: list[int] — 4 input channel uint16 levels (InA–InD).
+        - ``'outputs'``: list[int] — 4 output channel uint16 levels (Out1–Out4).
+        - ``'limiter_mask'``: int — bitmask at payload[25]; bit N set means
+            output channel N (Out1=bit0 … Out4=bit3) has the compressor/limiter
+            actively clamping (gain reduction engaged).
+        - ``'state'``: int — device state byte at payload[26]; semantics not
+            fully decoded.
     """
     if len(payload) != 28 or payload[0] != OP_POLL:
         return None
@@ -647,7 +809,14 @@ def parse_levels(payload: bytes) -> dict | None:
 
 
 def is_ack(payload: bytes) -> bool:
-    """Check if payload is an ACK response (single byte 0x01)."""
+    """Check if payload is an ACK response (single byte 0x01).
+
+    Args:
+        payload: Raw response payload.
+
+    Returns:
+        ``True`` if the payload is exactly ``b'\\x01'``.
+    """
     return len(payload) == 1 and payload[0] == 0x01
 
 
@@ -703,7 +872,11 @@ _TEST_TONE_FREQ_OFFSET = 422   # uint8: last selected SINE_FREQ_* index
 def parse_preset_index(payload: bytes) -> int | None:
     """Parse a 0x14 active-preset-index response.
 
-    Returns the slot index (0=F00, 1=U01, …, 30=U30) or None if invalid.
+    Args:
+        payload: Raw response payload starting with opcode byte.
+
+    Returns:
+        Slot index (0=F00, 1=U01, …, 30=U30), or ``None`` if invalid.
     """
     if len(payload) < 2 or payload[0] != OP_PRESET_INDEX:
         return None
@@ -711,11 +884,18 @@ def parse_preset_index(payload: bytes) -> int | None:
 
 
 def parse_preset_name(payload: bytes) -> tuple[int, str] | None:
-    """Parse a 0x29 preset-name response → (request_index, name).
+    """Parse a 0x29 preset-name response.
 
-    Response format: 29 [request_index] [14 bytes ASCII name, space-padded].
-    request_index 0 = U01, 1 = U02, …, 29 = U30 (NOT 0x14 slot numbers).
-    To convert to 0x14 slot: slot = request_index + 1.
+    Response format: ``29 [request_index] [14 bytes ASCII name, space-padded]``.
+    ``request_index`` 0=U01, 1=U02, …, 29=U30 (not 0x14 slot numbers;
+    to convert: slot = request_index + 1).
+
+    Args:
+        payload: Raw response payload starting with opcode byte.
+
+    Returns:
+        ``(request_index, name)`` tuple on success, or ``None`` if the
+        payload is too short or has the wrong opcode.
     """
     if len(payload) < 16 or payload[0] != OP_READ_NAME:
         return None
@@ -727,7 +907,12 @@ def parse_preset_name(payload: bytes) -> tuple[int, str] | None:
 def parse_config_page(payload: bytes) -> tuple[int, bytes] | None:
     """Parse a config page response (opcode 0x24).
 
-    Returns (page_index, 50_bytes_data) or None.
+    Args:
+        payload: Raw response payload starting with opcode byte.
+
+    Returns:
+        ``(page_index, data)`` where ``data`` is exactly 50 bytes, or
+        ``None`` if the payload has the wrong opcode or is too short.
     """
     if len(payload) < 2 or payload[0] != OP_CONFIG_RESP:
         log.debug("parse_config_page: bad header (opcode=%02x, len=%d, need 0x%02x)",
@@ -743,25 +928,36 @@ def parse_config_page(payload: bytes) -> tuple[int, bytes] | None:
 
 
 def parse_preset_params(config_data: bytes) -> dict | None:
-    """Extract gain, mute, phase, gate, and delay from stitched config data.
+    """Extract all preset parameters from the stitched config blob.
 
-    config_data: 450 bytes (9 pages × 50 bytes) from read_config().
-    Returns dict with:
-      'names' (list[8], str — ASCII channel names, null-stripped),
-      'gains' (list[8], raw 0–400), 'mutes' (list[8], bool),
-      'phases' (list[8], bool — True=inverted),
-      'link_flags' (list[8], uint8 — per-channel link bitmask from config; standalone=own bit, master=OR of all linked bits, slave=0x00),
-      'routings' (list[4], uint8 — per-output input routing bitmask; InA=0x01, InB=0x02, InC=0x04, InD=0x08),
-      'gates' (list[4], dict with attack/release/hold/threshold raw values),
-      'delays' (list[4], int — raw samples 0–32640, ms = raw / 48),
-      'crossovers' (list[4], dict with hipass/lopass freq and slope per filter),
-      'compressors' (list[4], dict with ratio/knee/attack/release/threshold raw values),
-      'peqs' (list[4], dict with 'bands' list[7] and 'channel_bypass' bool).
-        Each band dict: gain (raw 0–240), freq (raw 0–300), q (raw 0–100),
-        type (0–6, use PEQ_TYPE_* constants), bypass (bool — True=this band bypassed).
-      'test_tone_mode' (int — TONE_OFF/PINK/WHITE/SINE, persisted at config offset 420),
-      'test_tone_freq' (int — last selected SINE_FREQ_* index 0x00–0x1E at config offset 422).
-    Channel order: inputs 0–3, outputs 4–7 (gates input-only; delays/crossovers/compressors/peqs output-only).
+    Args:
+        config_data: 450-byte blob (9 pages × 50 bytes) from
+            :meth:`~minidsp.device.DSPmini.read_config`.
+
+    Returns:
+        Dict with the following keys, or ``None`` if ``config_data`` is too
+        short:
+
+        - ``'names'``: list[str] — 8 channel display names (null-stripped ASCII).
+        - ``'gains'``: list[int] — 8 raw gain values 0–400.
+        - ``'mutes'``: list[bool] — 8 mute states.
+        - ``'phases'``: list[bool] — 8 phase states (``True`` = inverted).
+        - ``'link_flags'``: list[int] — 8 per-channel link bitmasks.
+        - ``'routings'``: list[int] — 4 per-output input routing bitmasks.
+        - ``'gates'``: list[dict] — 4 input noise gate dicts
+            (keys: ``attack``, ``release``, ``hold``, ``threshold``, all raw).
+        - ``'delays'``: list[int] — 4 output delay raw values (samples at 48 kHz).
+        - ``'crossovers'``: list[dict] — 4 output crossover dicts
+            (keys: ``hipass_freq``, ``lopass_freq``, ``hipass_slope``, ``lopass_slope``).
+        - ``'compressors'``: list[dict] — 4 output compressor dicts
+            (keys: ``ratio``, ``knee``, ``attack``, ``release``, ``threshold``, all raw).
+        - ``'peqs'``: list[dict] — 4 output PEQ dicts with keys ``'bands'``
+            (list[7] of band dicts: ``gain``, ``freq``, ``q``, ``type``, ``bypass``)
+            and ``'channel_bypass'`` (bool).
+        - ``'test_tone_mode'``: int — ``TONE_*`` constant (config offset 420).
+        - ``'test_tone_freq'``: int — ``SINE_FREQ_*`` index (config offset 422).
+
+        Channel order throughout: inputs 0–3, outputs 4–7.
     """
     if len(config_data) < _OUTPUT_MUTE_BITMASK_OFFSET + 2:
         log.debug("parse_preset_params: too short (%d bytes, need %d)",
@@ -861,8 +1057,14 @@ def parse_preset_params(config_data: bytes) -> dict | None:
 def raw_to_db(raw: int) -> float:
     """Convert raw gain value (0–400) to dB.
 
-    Dual resolution: coarse 0.5 dB/step below −20 dB, fine 0.1 dB/step above.
+    Uses dual resolution: 0.5 dB/step below −20 dB, 0.1 dB/step above.
     Confirmed via dsp-408-ui project (same Musicrown protocol).
+
+    Args:
+        raw: Raw gain value 0–400.
+
+    Returns:
+        Gain in dB (range −60.0 to +12.0).
     """
     if raw < 80:
         return raw / 2.0 - 60.0
@@ -872,7 +1074,13 @@ def raw_to_db(raw: int) -> float:
 def db_to_raw(db: float) -> int:
     """Convert dB to raw gain value (0–400).
 
-    Dual resolution: coarse 0.5 dB/step below −20 dB, fine 0.1 dB/step above.
+    Uses dual resolution: 0.5 dB/step below −20 dB, 0.1 dB/step above.
+
+    Args:
+        db: Gain in dB (range −60.0 to +12.0; clamped at boundaries).
+
+    Returns:
+        Raw gain value 0–400.
     """
     if db < -20.0:
         return max(0, round((db + 60.0) * 2))
@@ -883,20 +1091,39 @@ def peq_gain_to_raw(gain_db: float) -> int:
     """Convert PEQ gain in dB to raw protocol value.
 
     Range: −12.0 to +12.0 dB → raw 0–240. 0 dB = raw 120. 0.1 dB resolution.
+
+    Args:
+        gain_db: PEQ gain in dB, clamped to −12.0–+12.0.
+
+    Returns:
+        Raw PEQ gain value 0–240.
     """
     return max(0, min(240, round(gain_db * 10) + 120))
 
 
 def peq_raw_to_gain(raw: int) -> float:
-    """Convert raw PEQ gain value to dB."""
+    """Convert raw PEQ gain value to dB.
+
+    Args:
+        raw: Raw PEQ gain value 0–240.
+
+    Returns:
+        Gain in dB (range −12.0 to +12.0).
+    """
     return (raw - 120) / 10.0
 
 
 def peq_q_to_raw(q: float) -> int:
     """Convert PEQ Q value to raw protocol value.
 
-    Q = 0.4 * 320^(raw/100). Range: Q 0.4–128 → raw 0–100.
+    Formula: Q = 0.4 × 320^(raw/100). Range: Q 0.4–128 → raw 0–100.
     Shelf/pass filters are restricted to Q 0.4–3.0 (raw 0–35) by the app UI.
+
+    Args:
+        q: Q factor (minimum 0.4).
+
+    Returns:
+        Raw Q value 0–100.
     """
     if q <= 0.4:
         return 0
@@ -905,46 +1132,101 @@ def peq_q_to_raw(q: float) -> int:
 
 
 def peq_raw_to_q(raw: int) -> float:
-    """Convert raw PEQ Q value to Q."""
+    """Convert raw PEQ Q value to Q factor.
+
+    Args:
+        raw: Raw Q value 0–100.
+
+    Returns:
+        Q factor (range 0.4–128).
+    """
     return 0.4 * (320 ** (raw / 100))
 
 
 def freq_raw_to_hz(raw: int) -> float:
-    """Log-scale frequency: raw 0–300 → 19.7–20160 Hz."""
+    """Convert log-scale frequency raw value to Hz.
+
+    Args:
+        raw: Raw frequency value 0–300.
+
+    Returns:
+        Frequency in Hz (range 19.7–20160 Hz).
+    """
     return 19.70 * (20160.0 / 19.70) ** (raw / 300.0)
 
 
 def comp_threshold_to_db(raw: int) -> float:
-    """raw 0–220 → dB; formula: raw/2 − 90. Range −90 to +20 dB."""
+    """Convert compressor threshold raw value to dB.
+
+    Args:
+        raw: Raw threshold value 0–220.
+
+    Returns:
+        Threshold in dB (range −90.0 to +20.0; formula: raw / 2 − 90).
+    """
     return raw / 2.0 - 90.0
 
 
 def comp_attack_to_ms(raw: int) -> int:
-    """raw 0–998 → ms; formula: raw + 1. Range 1–999 ms."""
+    """Convert compressor attack raw value to milliseconds.
+
+    Args:
+        raw: Raw attack value 0–998.
+
+    Returns:
+        Attack time in ms (range 1–999; formula: raw + 1).
+    """
     return raw + 1
 
 
 def comp_release_to_ms(raw: int) -> int:
-    """raw 9–2999 → ms; formula: raw + 1. Range 10–3000 ms."""
+    """Convert compressor release raw value to milliseconds.
+
+    Args:
+        raw: Raw release value 9–2999.
+
+    Returns:
+        Release time in ms (range 10–3000; formula: raw + 1).
+    """
     return raw + 1
 
 
 def gate_threshold_to_db(raw: int) -> float:
-    """raw 0–180 → dB; formula: raw × 0.5 − 90.0. Range −90 to 0 dB."""
+    """Convert noise gate threshold raw value to dB.
+
+    Args:
+        raw: Raw threshold value 0–180.
+
+    Returns:
+        Threshold in dB (range −90.0 to 0.0; formula: raw × 0.5 − 90).
+    """
     return raw * 0.5 - 90.0
 
 
 def gate_time_to_ms(raw: int) -> int:
-    """Convert gate attack/hold/release raw value to ms. Formula: raw + 1.
+    """Convert gate attack/hold/release raw value to milliseconds.
 
     Same encoding as compressor timings. Confirmed by hold range:
     raw 9 → 10 ms (minimum), raw 998 → 999 ms (maximum).
+
+    Args:
+        raw: Raw time value.
+
+    Returns:
+        Time in ms (formula: raw + 1).
     """
     return raw + 1
 
 
 def delay_samples_to_ms(raw: int) -> float:
-    """raw 0–32640 samples → ms at 48 kHz."""
+    """Convert output delay raw sample count to milliseconds at 48 kHz.
+
+    Args:
+        raw: Raw delay value 0–32640 (samples at 48 kHz).
+
+    Returns:
+        Delay in milliseconds (range 0–680 ms).
+    """
     return raw / 48.0
 
 
@@ -959,7 +1241,18 @@ _CALIBRATION_LOADED = False
 
 
 def _load_calibration_ref() -> float | None:
-    """Load calibrated REF_LEVEL from package-bundled calibration.toml."""
+    """Load the calibrated ``REF_LEVEL`` from the package-bundled TOML file.
+
+    Looks for ``calibration.toml`` inside the installed ``minidsp`` package
+    (typically written by ``dspanalyze calibrate write``). The file is expected
+    to contain a top-level ``ref_level`` key with a float value.
+
+    Returns:
+        The ``ref_level`` float read from ``calibration.toml``, or ``None`` if
+        the file is absent, unreadable, malformed, or does not contain a
+        ``ref_level`` key. Any exception during lookup/parse is swallowed and
+        logged at DEBUG level so the factory default can be used as a fallback.
+    """
     import importlib.resources
     import tomllib
     try:
@@ -975,7 +1268,19 @@ def _load_calibration_ref() -> float | None:
 
 
 def _ensure_ref_level() -> float:
-    """Return the effective REF_LEVEL, loading package calibration once."""
+    """Return the effective ``REF_LEVEL`` for dBu conversion, caching the result.
+
+    On the first call this attempts to load a user calibration via
+    :func:`_load_calibration_ref` and, if successful, replaces the module-level
+    ``LEVEL_REF_UINT16`` with the calibrated value. Subsequent calls return the
+    cached value without re-reading the file. Module state mutated:
+    ``LEVEL_REF_UINT16`` and ``_CALIBRATION_LOADED``.
+
+    Returns:
+        The effective ``REF_LEVEL`` (uint16 amplitude corresponding to 0 dBu).
+        Falls back to ``LEVEL_REF_UINT16_FACTORY`` (1153) when no calibration
+        file is bundled.
+    """
     global LEVEL_REF_UINT16, _CALIBRATION_LOADED
     if not _CALIBRATION_LOADED:
         _CALIBRATION_LOADED = True
@@ -987,11 +1292,16 @@ def _ensure_ref_level() -> float:
 
 
 def level_uint16_to_dbu(raw: int | float) -> float:
-    """Linear uint16 amplitude → dBu using the calibrated reference level.
+    """Convert a linear uint16 amplitude value to dBu.
 
-    Uses REF_LEVEL from ``minidsp/calibration.toml`` if present,
-    otherwise the factory default (1153).
-    Returns -inf for raw ≈ 0 (silence).
+    Uses the calibrated reference level from ``minidsp/calibration.toml``
+    if present, otherwise the factory default (1153).
+
+    Args:
+        raw: Linear uint16 amplitude from the device level response.
+
+    Returns:
+        Level in dBu, or ``-inf`` for raw values near zero (silence).
     """
     if raw < 0.01:
         return float("-inf")
@@ -1000,14 +1310,20 @@ def level_uint16_to_dbu(raw: int | float) -> float:
 
 
 def calibrate_compute_ref(points: list[dict]) -> float | None:
-    """Compute best-fit REF_LEVEL from calibration points using weighted least-squares.
+    """Compute best-fit REF_LEVEL from calibration measurement points.
 
-    Each point has 'dbu' and 'mean_uint16'. We fit:
-      dbu = 20 * log10(uint16 / REF)
-    => REF = uint16 / 10^(dbu/20)
+    Fits the model ``dbu = 20 * log10(uint16 / REF)`` using weighted
+    least-squares. Each point contributes a per-point REF estimate;
+    the result is a weighted geometric mean, weighted by uint16 magnitude
+    (higher values have less quantization error).
 
-    Returns the weighted geometric mean of per-point REF values, weighted
-    by uint16 magnitude (higher values have less quantization error).
+    Args:
+        points: List of dicts, each with keys ``'dbu'`` (float) and
+            ``'mean_uint16'`` (float) from a known-level measurement.
+
+    Returns:
+        Best-fit REF_LEVEL float, or ``None`` if fewer than 2 valid points
+        are provided.
     """
     if len(points) < 2:
         return None
@@ -1081,19 +1397,27 @@ CHANNEL_NAMES: dict[int, str] = {
 
 
 def decode_link_groups(link_flags: list[int]) -> list[dict]:
-    """Decode raw link_flags (8 entries: inputs 0-3, outputs 4-7) into structured link info.
+    """Decode raw link_flags into structured per-channel link information.
 
-    Returns a list of 8 dicts, one per channel:
-      { "role": "master"|"slave"|"standalone",
-        "master": int|None,      # master channel index (slaves only)
-        "linked_to": list[int] } # all channels in the group (masters only, includes self)
+    Link flag semantics within each 4-channel group:
 
-    Link flag semantics (within each 4-channel group):
-      - Standalone: flags == own bit only (e.g. InA=0x01)
-      - Master:     flags == OR of all linked bits (e.g. InA+InB=0x03)
-      - Slave:      flags == 0x00
+    - Standalone: ``flags == own bit only`` (e.g. InA = 0x01)
+    - Master: ``flags == OR of all linked bits`` (e.g. InA+InB = 0x03)
+    - Slave: ``flags == 0x00``
 
-    Groups are processed independently: inputs 0-3, outputs 4-7.
+    Groups are processed independently: inputs 0–3, outputs 4–7.
+
+    Args:
+        link_flags: 8 raw link bitmask values (inputs 0–3, outputs 4–7)
+            from :func:`parse_preset_params`.
+
+    Returns:
+        List of 8 dicts, one per channel, each with keys:
+
+        - ``'role'``: ``"master"``, ``"slave"``, or ``"standalone"``.
+        - ``'master'``: int channel index of the master (slaves only), or ``None``.
+        - ``'linked_to'``: list[int] of all channels in the group (masters only,
+            including self).
     """
     results: list[dict] = []
     for group_start in (0, 4):
@@ -1130,9 +1454,23 @@ def decode_link_groups(link_flags: list[int]) -> list[dict]:
 
 
 def _find_master(link_flags: list[int], group_start: int, slave_ch: int) -> int | None:
-    """Find which channel in the group is the master for the given slave.
+    """Locate the master channel for a given slave inside a 4-channel link group.
 
-    The master's flags will have the slave's bit set.
+    A slave channel carries ``flags == 0x00``; its master is the channel in the
+    same group (inputs 0–3 or outputs 4–7) whose flags bitmask has the slave's
+    bit set. This helper scans the three sibling channels in the group and
+    returns the first match.
+
+    Args:
+        link_flags: Full 8-element list of raw link bitmasks from
+            :func:`parse_preset_params`.
+        group_start: First channel index of the group (``0`` for inputs,
+            ``4`` for outputs).
+        slave_ch: Unified channel index of the slave whose master to find.
+
+    Returns:
+        Unified channel index of the master, or ``None`` if no other channel
+        in the group claims this slave (orphaned/inconsistent link state).
     """
     slave_idx = slave_ch - group_start
     slave_bit = 1 << slave_idx
@@ -1150,17 +1488,21 @@ _ROUTING_INPUT_BITS = {0: "InA", 1: "InB", 2: "InC", 3: "InD"}
 
 
 def decode_routing_matrix(routings: list[int]) -> list[dict]:
-    """Decode output routing masks into structured per-output info.
-
-    Takes the 4-element routings list from parse_preset_params() and returns
-    a list of 4 dicts (one per output channel):
-
-      { "sources": list[str],        # ["InA", "InB"]
-        "source_indices": list[int],  # [0, 1]
-        "mask": int }                 # 0x03
+    """Decode output routing bitmasks into structured per-output information.
 
     A mask of 0x00 means no input (silence). Default routing is 1:1 diagonal:
-    [0x01, 0x02, 0x04, 0x08] (Out1←InA, Out2←InB, Out3←InC, Out4←InD).
+    ``[0x01, 0x02, 0x04, 0x08]`` (Out1←InA, Out2←InB, Out3←InC, Out4←InD).
+
+    Args:
+        routings: 4-element list of routing bitmasks from
+            :func:`parse_preset_params`.
+
+    Returns:
+        List of 4 dicts (one per output channel), each with keys:
+
+        - ``'sources'``: list[str] — source names (e.g. ``["InA", "InB"]``).
+        - ``'source_indices'``: list[int] — source channel indices.
+        - ``'mask'``: int — raw routing bitmask.
     """
     results: list[dict] = []
     for i in range(4):

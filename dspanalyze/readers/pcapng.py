@@ -19,11 +19,23 @@ from dspanalyze.readers import RawPacket
 
 
 def read_pcapng(filepath: str | Path) -> list[RawPacket]:
-    """Extract HID interrupt packets from a pcapng/pcap file using tshark.
+    """Extract HID interrupt packets from a pcapng/pcap file via tshark.
 
-    Requires tshark to be installed and on PATH.
-    Queries both usbhid.data (Windows/USBPcap) and usb.capdata (Linux/usbmon)
-    since tshark classifies the data differently depending on the capture source.
+    Tries ``usbhid.data`` first (typical for Windows/USBPcap captures) and
+    falls back to ``usb.capdata`` filtered by ``usb.transfer_type == 0x01``
+    (typical for Linux/usbmon). The first attempt that yields any packets
+    is returned — captures from either platform are handled transparently.
+
+    Args:
+        filepath: Path to a ``.pcapng`` or ``.pcap`` file.
+
+    Returns:
+        Ordered list of :class:`RawPacket`. Empty if no HID interrupt
+        traffic is found.
+
+    Raises:
+        SystemExit: When ``tshark`` is not found on ``$PATH`` (prints an
+            error and exits with status 1).
     """
     filepath = Path(filepath)
     tshark = shutil.which("tshark")
@@ -50,7 +62,27 @@ def _extract_with_filter(
     data_field: str,
     display_filter: str,
 ) -> list[RawPacket]:
-    """Run tshark with a specific data field and display filter."""
+    """Invoke tshark with a specific data field and display filter.
+
+    Runs ``tshark -T fields`` requesting frame number, relative timestamp,
+    endpoint address, and the chosen HID data field, with the display filter
+    applied. Each non-empty hex blob is decoded into a :class:`RawPacket`.
+    Endpoint 0x02 is mapped to ``direction="out"`` and 0x81 to ``"in"``;
+    other endpoints fall back to a high-bit heuristic.
+
+    Args:
+        tshark: Absolute path to the tshark executable.
+        filepath: Capture file to read.
+        data_field: Field to extract for the HID payload — either
+            ``"usbhid.data"`` or ``"usb.capdata"``.
+        display_filter: Wireshark display filter passed via ``-Y``.
+
+    Returns:
+        Ordered list of :class:`RawPacket`. Returns an empty list when
+        tshark exits with a non-zero status (e.g. unknown field name on an
+        older tshark) — callers should try the alternate field rather than
+        propagating an exception.
+    """
     result = subprocess.run(
         [
             tshark, "-r", str(filepath),

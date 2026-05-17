@@ -33,11 +33,25 @@ _HEX_CONT_RE = re.compile(r"^[0-9a-fA-F]+$")
 
 
 def read_wireshark_text(filepath: str | Path) -> list[RawPacket]:
-    """Parse a Wireshark text export and return HID interrupt packets.
+    """Parse a Wireshark text export and return its HID interrupt packets.
 
-    Extracts URB_INTERRUPT packets that contain HID data, determines
-    direction from endpoint (0x02=OUT, 0x81=IN), and returns structured
-    RawPacket instances.
+    Walks the file as a small state machine: a packet-summary header
+    (matching :data:`_PKT_HEADER_RE`) opens a new packet; subsequent lines
+    populate its endpoint/direction and HID payload. HID payloads that span
+    multiple lines — Wireshark wraps long hex blobs onto continuation lines
+    of pure hex — are stitched together until a non-hex line is seen. Only
+    URB_INTERRUPT packets with non-empty HID data are emitted; direction is
+    derived from the endpoint byte (``0x02`` → OUT, ``0x81`` → IN) with the
+    text "Direction: OUT/IN" field as fallback.
+
+    Args:
+        filepath: Path to a Wireshark "Export Packet Dissections > As Plain
+            Text" file (typically ``.txt``).
+
+    Returns:
+        Ordered list of :class:`RawPacket`. Empty if the file contains no
+        URB_INTERRUPT HID transfers. Hex blobs that fail to decode are
+        silently skipped (one bad packet does not abort the whole parse).
     """
     filepath = Path(filepath)
     with open(filepath, "r", errors="replace") as f:

@@ -84,6 +84,14 @@ def format_human(
 
 
 def _duration(commands: list[DecodedCommand]) -> float:
+    """Return the elapsed capture time in seconds (max − min timestamp).
+
+    Args:
+        commands: Decoded commands; order does not matter.
+
+    Returns:
+        Duration in seconds, or ``0.0`` for an empty list.
+    """
     if not commands:
         return 0.0
     times = [c.frame.raw.timestamp for c in commands]
@@ -91,7 +99,20 @@ def _duration(commands: list[DecodedCommand]) -> float:
 
 
 def _format_details(cmd: DecodedCommand, decode: bool) -> str:
-    """Format field details for a single command."""
+    """Render the ``Details`` column for a single packet row.
+
+    Args:
+        cmd: The command to render.
+        decode: When ``True`` and the command has human-readable fields
+            (``cmd.human_fields``), emits ``key=value`` pairs separated by
+            commas. When ``False`` or no human fields exist, falls back to
+            the raw payload hex inside square brackets for packets that are
+            either unknown or unverified.
+
+    Returns:
+        Formatted details string, or empty string for a verified known
+        packet with no field details to show.
+    """
     if decode and cmd.human_fields:
         return ", ".join(f"{k}={v}" for k, v in cmd.human_fields.items())
     if not cmd.is_known and cmd.frame.payload:

@@ -34,15 +34,26 @@ _DELAY_UNIT_OFFSET = 424
 
 
 class ExtractDefaultsError(RuntimeError):
-    pass
+    """Raised when factory default extraction fails due to bad capture data."""
 
 
 def stitch_config_pages(capture_path: Path) -> bytes:
-    """Decode capture, grab the 9 config_page responses, return the 450-byte blob.
+    """Decode a capture and stitch the 9 config-page responses into a 450-byte blob.
 
-    If the capture contains more than one full set of pages (e.g. multiple
-    preset loads), the LAST complete sequence wins — matching what the device
-    ends up showing the host.
+    If the capture contains more than one full set of config pages (e.g.
+    multiple preset loads), the **last** complete sequence wins — matching
+    what the device ends up showing the host.
+
+    Args:
+        capture_path: Path to a ``.pcapng`` or Wireshark text export file
+            containing at least one full preset-load sequence.
+
+    Returns:
+        450-byte raw config blob (9 pages × 50 bytes).
+
+    Raises:
+        ExtractDefaultsError: If the capture has no HID packets, fewer than
+            9 config-page responses, or the last 9 pages have unexpected indices.
     """
     config = load_config()
     packets = read_capture(str(capture_path))
@@ -88,14 +99,26 @@ def stitch_config_pages(capture_path: Path) -> bytes:
 
 
 def build_defaults_dict(config_blob: bytes, source_capture: str) -> dict:
-    """Build the factory_defaults structure from a 450-byte config blob.
+    """Build the ``factory_defaults.toml`` structure from a 450-byte config blob.
 
-    Returns parse_preset_params output plus footer-byte parameters
-    (test_tone_mode, test_tone_freq, delay_unit) and a metadata block.
-
-    Within each table, scalar/array fields come before arrays-of-tables —
-    required for valid TOML serialization (a table can't have scalar keys
+    Scalar/array fields are ordered before arrays-of-tables within each
+    section — required by the TOML spec (a table cannot have scalar keys
     after an array-of-tables sub-section).
+
+    Args:
+        config_blob: 450-byte raw config blob from :func:`stitch_config_pages`.
+        source_capture: Filename of the originating capture, written to the
+            metadata block for traceability.
+
+    Returns:
+        Dict with top-level keys ``schema_version``, ``preset``,
+        ``preset_name``, ``source_capture``, ``encoding``, ``channels``,
+        and ``params`` (matching :func:`~minidsp.protocol.parse_preset_params`
+        plus ``test_tone_mode``, ``test_tone_freq``, and ``delay_unit``).
+
+    Raises:
+        ExtractDefaultsError: If ``config_blob`` is not exactly 450 bytes or
+            :func:`~minidsp.protocol.parse_preset_params` returns ``None``.
     """
     from minidsp.protocol import parse_preset_params
 
@@ -144,7 +167,19 @@ def build_defaults_dict(config_blob: bytes, source_capture: str) -> dict:
 
 
 def extract_defaults(capture_path: Path, output_path: Path) -> dict:
-    """End-to-end extraction. Returns the dict that was written."""
+    """Run end-to-end factory default extraction and write the TOML file.
+
+    Args:
+        capture_path: Path to the source capture file.
+        output_path: Destination path for the generated TOML file.
+
+    Returns:
+        The dict that was serialised and written to ``output_path``.
+
+    Raises:
+        ExtractDefaultsError: Propagated from :func:`stitch_config_pages` or
+            :func:`build_defaults_dict` on bad capture data.
+    """
     blob = stitch_config_pages(capture_path)
     data = build_defaults_dict(blob, source_capture=capture_path.name)
     output_path.write_bytes(tomli_w.dumps(data).encode("utf-8"))
