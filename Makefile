@@ -5,7 +5,7 @@ CAPTURES := analysis/usb_captures
 
 .PHONY: sync install test analyze analyze-raw analyze-no-poll analyze-human \
         analyze-summary analyze-all diff-config check-all \
-        capture-enable capture-disable build version help \
+        capture-enable capture-disable build version publish help \
         docs docs-serve docs-clean
 
 help:
@@ -14,6 +14,7 @@ help:
 	@echo "Build"
 	@echo "  build                   Build sdist and wheel (default)"
 	@echo "  version VERSION=X.Y.Z   Bump version, generate changelog, tag"
+	@echo "  publish [VERSION=X.Y.Z] Create GitHub Release + deploy docs (prompts if VERSION omitted)"
 	@echo ""
 	@echo "Development"
 	@echo "  sync                    Install all dependencies (incl. dev extras)"
@@ -53,6 +54,13 @@ build:
 # Create a release (usage: make version VERSION=X.Y.Z)
 version:
 	@bash scripts/version.sh $(VERSION)
+
+# Publish an already-tagged version to GitHub Releases + Pages
+# (usage: make publish               -> prompts for version
+#         make publish VERSION=X.Y.Z -> non-interactive)
+# Requires GITHUB_TOKEN env var with `repo` scope.
+publish:
+	@bash scripts/publish.sh $(VERSION)
 
 # Analyze a single capture (usage: make analyze FILE="path/to/capture.txt")
 analyze:
