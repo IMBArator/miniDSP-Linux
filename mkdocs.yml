@@ -82,7 +82,7 @@ nav:
   - Home: index.md
   - Protocol: protocol.md
   - Feature List: feature-list.md
-  - CLI Usage: usage.md
+  - DSPanalyze CLI Usage: dspanalyze-usage.md
   - Development Notes: development.md
   - API Reference: api/
   - Changelog: changelog.md
