@@ -27,6 +27,7 @@ tag_pattern = "v[0-9]*"
 [changelog]
 header = """
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
 """
@@ -45,6 +46,7 @@ body = """
         ([`{{ commit.id | truncate(length=7, end="") }}`](https://github.com/IMBArator/miniDSP-Linux/commit/{{ commit.id }}))\
     {% endfor %}
 {% endfor %}
+
 """
 trim = true
 
