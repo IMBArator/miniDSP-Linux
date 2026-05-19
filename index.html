@@ -284,13 +284,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="usage/" class="md-tabs__link">
+      <a href="dspanalyze-usage/" class="md-tabs__link">
         
   
   
     
   
-  CLI Usage
+  DSPanalyze CLI Usage
 
       </a>
     </li>
@@ -478,21 +478,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#gui" class="md-nav__link">
+  <a href="#supported-dsp-features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        GUI
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#protocol-implemented-usable-via-devicepy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Protocol implemented (usable via device.py)
+        Supported DSP Features
       
     </span>
   </a>
@@ -733,14 +722,14 @@
   
   
     <li class="md-nav__item">
-      <a href="usage/" class="md-nav__link">
+      <a href="dspanalyze-usage/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    CLI Usage
+    DSPanalyze CLI Usage
   
 
     
@@ -1738,21 +1727,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#gui" class="md-nav__link">
+  <a href="#supported-dsp-features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        GUI
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#protocol-implemented-usable-via-devicepy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Protocol implemented (usable via device.py)
+        Supported DSP Features
       
     </span>
   </a>
@@ -1942,17 +1920,12 @@
 
 
 <h1 id="minidsp-linux">miniDSP-Linux<a class="headerlink" href="#minidsp-linux" title="Permanent link">&para;</a></h1>
-<blockquote>
-<p><strong>Protocol:</strong> Fully reverse-engineered (as far as we can tell) — all commands verified from Wireshark captures.</p>
-<p><strong>minidsp tool (CLI):</strong> Gain, mute, dump, and the full protocol surface are available via the CLI. A graphical interface is available in <a href="https://github.com/IMBArator/miniDSP-Linux-qt">miniDSP-Linux-qt</a>.</p>
-</blockquote>
-<p>Linux control tool for the <strong>the t.racks DSP 4x4 Mini</strong> (Musicrown-based DSP processor). Provides a CLI and Python API for device control over USB HID — no official Linux software required.</p>
+<p>Python library for the <strong>the t.racks DSP 4x4 Mini</strong> (Musicrown-based DSP processor) — full device control over USB HID, since no official Linux software exists. A Qt-based GUI is available at <a href="https://github.com/IMBArator/miniDSP-Linux-qt">miniDSP-Linux-qt</a>.</p>
+<p>The <code>minidsp</code> package provides a complete Python API (<a href="../minidsp/device.py"><code>DSPmini</code></a> class) covering every DSP opcode. A companion CLI utility and a protocol analysis toolkit (<code>dspanalyze</code>) are included.</p>
 <p>The USB HID protocol was fully reverse-engineered from Wireshark captures. See <a href="protocol/">analysis/protocol.md</a> for the complete specification and <a href="feature-list/">analysis/feature-list.md</a> for the full feature inventory.</p>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
-<h3 id="gui">GUI<a class="headerlink" href="#gui" title="Permanent link">&para;</a></h3>
-<p>A Qt-based graphical interface is available at <a href="https://github.com/IMBArator/miniDSP-Linux-qt">miniDSP-Linux-qt</a>.</p>
-<h3 id="protocol-implemented-usable-via-devicepy">Protocol implemented (usable via <code>device.py</code>)<a class="headerlink" href="#protocol-implemented-usable-via-devicepy" title="Permanent link">&para;</a></h3>
-<p>All commands verified against real Wireshark captures on the device.</p>
+<h3 id="supported-dsp-features">Supported DSP Features<a class="headerlink" href="#supported-dsp-features" title="Permanent link">&para;</a></h3>
+<p>All commands are verified against real Wireshark captures on the device.</p>
 <table>
 <thead>
 <tr>
@@ -2040,6 +2013,7 @@
 </tbody>
 </table>
 <h3 id="cli-minidsp">CLI (<code>minidsp</code>)<a class="headerlink" href="#cli-minidsp" title="Permanent link">&para;</a></h3>
+<p>A command-line utility for quick access to common operations — additional commands are added on demand:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>dump                    Dump all DSP configuration parameters as tables
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>levels [--watch]        Snapshot live level meters (raw uint16 + dBu)
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>mute    [channel ...]   Mute input channel(s)
