@@ -1,22 +1,16 @@
 # miniDSP-Linux
 
-> **Protocol:** Fully reverse-engineered (as far as we can tell) — all commands verified from Wireshark captures.
+Python library for the **the t.racks DSP 4x4 Mini** (Musicrown-based DSP processor) — full device control over USB HID, since no official Linux software exists. A Qt-based GUI is available at [miniDSP-Linux-qt](https://github.com/IMBArator/miniDSP-Linux-qt).
 
-> **minidsp tool (CLI):** Gain, mute, dump, and the full protocol surface are available via the CLI. A graphical interface is available in [miniDSP-Linux-qt](https://github.com/IMBArator/miniDSP-Linux-qt).
-
-Linux control tool for the **the t.racks DSP 4x4 Mini** (Musicrown-based DSP processor). Provides a CLI and Python API for device control over USB HID — no official Linux software required.
+The `minidsp` package provides a complete Python API ([`DSPmini`](minidsp/device.py) class) covering every DSP opcode. A companion CLI utility and a protocol analysis toolkit (`dspanalyze`) are included.
 
 The USB HID protocol was fully reverse-engineered from Wireshark captures. See [analysis/protocol.md](analysis/protocol.md) for the complete specification and [analysis/feature-list.md](analysis/feature-list.md) for the full feature inventory.
 
 ## Features
 
-### GUI
+### Supported DSP Features
 
-A Qt-based graphical interface is available at [miniDSP-Linux-qt](https://github.com/IMBArator/miniDSP-Linux-qt).
-
-### Protocol implemented (usable via `device.py`)
-
-All commands verified against real Wireshark captures on the device.
+All commands are verified against real Wireshark captures on the device.
 
 | Feature | Opcode |
 |---|---|
@@ -41,6 +35,8 @@ All commands verified against real Wireshark captures on the device.
 | Real-time level metering (8 ch + limiter mask) | `0x40` |
 
 ### CLI (`minidsp`)
+
+A command-line utility for quick access to common operations — additional commands are added on demand:
 
 ```
 dump                    Dump all DSP configuration parameters as tables
