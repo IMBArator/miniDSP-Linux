@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] - 2026-05-24
+
+### Changed
+
+- Source publish notes from CHANGELOG.md, not git-cliff ([`20e2399`](https://github.com/IMBArator/miniDSP-Linux/commit/20e239972b2c9072ae6ea6d20ee0a0462f6ef42b))
+
+### Documentation
+
+- Include CHANGELOG.md in the rendered docs site ([`e679606`](https://github.com/IMBArator/miniDSP-Linux/commit/e67960608a00c636578f126baf4eca9f42895baf))
+- Rename CLI Usage page to DSP-Analyze CLI Usage ([`cb8e1a6`](https://github.com/IMBArator/miniDSP-Linux/commit/cb8e1a633ba27659a0242e096c4b4f965ce0d46d))
+- Reposition project as library-first ([`8bf0178`](https://github.com/IMBArator/miniDSP-Linux/commit/8bf017802a2ac6ea900c16c88a312e2a93989356))
+- Correct disconnect ownership and PIN charset for 0x2f ([`9e84b34`](https://github.com/IMBArator/miniDSP-Linux/commit/9e84b34fc8066bec44db4a02f2821194ce5a147c))
+
+### Fixed
+
+- Raise DeviceClosedError instead of bare assertion on closed handle ([`39bdbae`](https://github.com/IMBArator/miniDSP-Linux/commit/39bdbaeb7d7b72475d5c44b430e065fdcaf92138))
+
 ## [1.0.0] - 2026-05-17
 
 First public release. Complete reverse-engineering of the **the t.racks
