@@ -3132,7 +3132,7 @@ This matches the magic header in the <code>.unt</code> config file (<code>***4x4
 <h3 id="0x2f-set-device-lock-pin">0x2f — Set Device Lock PIN<a class="headerlink" href="#0x2f-set-device-lock-pin" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>OUT payload (5 bytes): 2f [pin_byte0] [pin_byte1] [pin_byte2] [pin_byte3]
 </code></pre></div>
-<p>Sets the device lock PIN and immediately locks the device. No dedicated IN response — the device sends <code>0x01</code> ACK then disconnects.</p>
+<p>Sets the device lock PIN and flips the device's internal lock flag. The device sends <code>0x01</code> ACK; the original software then tears down the USB session. Subsequent commands on the same handle will fail; reopening the device puts it in the locked state (<code>0x2c</code> byte 6 = <code>0x01</code>) and requires <code>0x2d</code> to unlock.</p>
 <table>
 <thead>
 <tr>
@@ -3149,13 +3149,13 @@ This matches the magic header in the <code>.unt</code> config file (<code>***4x4
 </tr>
 <tr>
 <td>1–4</td>
-<td>ASCII digits</td>
-<td>PIN digits as ASCII (e.g. "7654" = 37 36 35 34)</td>
+<td>ASCII</td>
+<td>4-byte ASCII PIN (e.g. "7654" = 37 36 35 34)</td>
 </tr>
 </tbody>
 </table>
-<p><strong>⚠ WARNING:</strong> After receiving this command, the device immediately locks and the USB connection is terminated. The device cannot be controlled until the correct PIN is submitted via <code>0x2d</code> on next connection. If the PIN is lost, factory reset procedure is unknown — do not use this without careful consideration.</p>
-<p><strong>Verified capture:</strong> Set PIN "7654" → OUT <code>2f 37 36 35 34</code> → <code>0x01</code> ACK → device disconnects.</p>
+<p><strong>⚠ WARNING:</strong> After receiving this command the device is locked. The host is expected to close the handle after the ACK; the next session lands in the locked state and the device cannot be controlled until the correct PIN is submitted via <code>0x2d</code>. If the PIN is lost, factory-reset procedure is unknown — do not use this without careful consideration.</p>
+<p><strong>Verified capture:</strong> Set PIN "7654" → OUT <code>2f 37 36 35 34</code> → <code>0x01</code> ACK → host closes session.</p>
 <h3 id="0x22-active-preset-header">0x22 — Active Preset Header<a class="headerlink" href="#0x22-active-preset-header" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Payload (1 byte): 22
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>Full frame:       10 02 00 01 01 22 10 03 23

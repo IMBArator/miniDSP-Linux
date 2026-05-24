@@ -5939,7 +5939,7 @@ unlocked byte 6 = 0x00, locked byte 6 = 0x01.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Exactly 4 ASCII digit characters (e.g. <code>"7654"</code>). Truncated to
+                <p>Exactly 4 ASCII characters (e.g. <code>"7654"</code>). Truncated to
 4 chars and zero-padded with <code>b"0"</code> if shorter.</p>
               </div>
             </td>
@@ -5997,7 +5997,7 @@ unlocked byte 6 = 0x00, locked byte 6 = 0x01.</p>
 <a id="__codelineno-0-605" name="__codelineno-0-605"></a><span class="sd">    ``[2d, 00, 01=correct / 00=wrong]``.</span>
 <a id="__codelineno-0-606" name="__codelineno-0-606"></a>
 <a id="__codelineno-0-607" name="__codelineno-0-607"></a><span class="sd">    Args:</span>
-<a id="__codelineno-0-608" name="__codelineno-0-608"></a><span class="sd">        pin: Exactly 4 ASCII digit characters (e.g. ``&quot;7654&quot;``). Truncated to</span>
+<a id="__codelineno-0-608" name="__codelineno-0-608"></a><span class="sd">        pin: Exactly 4 ASCII characters (e.g. ``&quot;7654&quot;``). Truncated to</span>
 <a id="__codelineno-0-609" name="__codelineno-0-609"></a><span class="sd">            4 chars and zero-padded with ``b&quot;0&quot;`` if shorter.</span>
 <a id="__codelineno-0-610" name="__codelineno-0-610"></a>
 <a id="__codelineno-0-611" name="__codelineno-0-611"></a><span class="sd">    Returns:</span>
@@ -6025,15 +6025,12 @@ unlocked byte 6 = 0x00, locked byte 6 = 0x01.</p>
     <div class="doc doc-contents ">
 
         <p>Build a device lock PIN command (0x2F).</p>
+<p>The device flips its internal lock flag and ACKs (<code>0x01</code>). The USB
+session itself stays nominally alive; the caller is responsible for
+closing the handle after the ACK. Reopening the device puts it in the
+locked state and requires :func:<code>cmd_submit_pin</code> to unlock. If the PIN
+is lost, the factory-reset procedure is unknown.</p>
 
-
-<details class="warning" open>
-  <summary>Warning</summary>
-  <p>Sending this command <strong>immediately locks the device</strong> and disconnects
-the application. The device cannot be controlled again until the correct
-PIN is submitted via :func:<code>cmd_submit_pin</code> on the next connection.
-If the PIN is lost, the factory reset procedure is unknown.</p>
-</details>
 
 <p><span class="doc-section-title">Parameters:</span></p>
     <table>
@@ -6055,7 +6052,7 @@ If the PIN is lost, the factory reset procedure is unknown.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Exactly 4 ASCII digit characters (e.g. <code>"7654"</code>).</p>
+                <p>Exactly 4 ASCII characters (e.g. <code>"7654"</code>).</p>
               </div>
             </td>
             <td>
@@ -6110,14 +6107,14 @@ If the PIN is lost, the factory reset procedure is unknown.</p>
 <span class="normal"><a href="#__codelineno-0-634">634</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-618" name="__codelineno-0-618"></a><span class="k">def</span><span class="w"> </span><span class="nf">cmd_set_lock_pin</span><span class="p">(</span><span class="n">pin</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
 <a id="__codelineno-0-619" name="__codelineno-0-619"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a device lock PIN command (0x2F).</span>
 <a id="__codelineno-0-620" name="__codelineno-0-620"></a>
-<a id="__codelineno-0-621" name="__codelineno-0-621"></a><span class="sd">    Warning:</span>
-<a id="__codelineno-0-622" name="__codelineno-0-622"></a><span class="sd">        Sending this command **immediately locks the device** and disconnects</span>
-<a id="__codelineno-0-623" name="__codelineno-0-623"></a><span class="sd">        the application. The device cannot be controlled again until the correct</span>
-<a id="__codelineno-0-624" name="__codelineno-0-624"></a><span class="sd">        PIN is submitted via :func:`cmd_submit_pin` on the next connection.</span>
-<a id="__codelineno-0-625" name="__codelineno-0-625"></a><span class="sd">        If the PIN is lost, the factory reset procedure is unknown.</span>
+<a id="__codelineno-0-621" name="__codelineno-0-621"></a><span class="sd">    The device flips its internal lock flag and ACKs (``0x01``). The USB</span>
+<a id="__codelineno-0-622" name="__codelineno-0-622"></a><span class="sd">    session itself stays nominally alive; the caller is responsible for</span>
+<a id="__codelineno-0-623" name="__codelineno-0-623"></a><span class="sd">    closing the handle after the ACK. Reopening the device puts it in the</span>
+<a id="__codelineno-0-624" name="__codelineno-0-624"></a><span class="sd">    locked state and requires :func:`cmd_submit_pin` to unlock. If the PIN</span>
+<a id="__codelineno-0-625" name="__codelineno-0-625"></a><span class="sd">    is lost, the factory-reset procedure is unknown.</span>
 <a id="__codelineno-0-626" name="__codelineno-0-626"></a>
 <a id="__codelineno-0-627" name="__codelineno-0-627"></a><span class="sd">    Args:</span>
-<a id="__codelineno-0-628" name="__codelineno-0-628"></a><span class="sd">        pin: Exactly 4 ASCII digit characters (e.g. ``&quot;7654&quot;``).</span>
+<a id="__codelineno-0-628" name="__codelineno-0-628"></a><span class="sd">        pin: Exactly 4 ASCII characters (e.g. ``&quot;7654&quot;``).</span>
 <a id="__codelineno-0-629" name="__codelineno-0-629"></a>
 <a id="__codelineno-0-630" name="__codelineno-0-630"></a><span class="sd">    Returns:</span>
 <a id="__codelineno-0-631" name="__codelineno-0-631"></a><span class="sd">        Encoded 64-byte HID report.</span>
