@@ -118,6 +118,10 @@ c_grn "Preparing release $TAG"
 # Bump pyproject.toml — only the first `version = "..."` line at top of file.
 sed -i "0,/^version = \".*\"/{s/^version = \".*\"/version = \"$VERSION\"/}" "$PYPROJECT"
 
+# Refresh uv.lock so it reflects the new project version. Folded into
+# the release commit below so the tag covers a self-consistent tree.
+uv lock --quiet
+
 # Update the changelog. When CHANGELOG.md already exists (the usual case
 # after the first release), prepend the unreleased commits as a new
 # section under the existing entries — this preserves any hand-curated
@@ -139,13 +143,13 @@ sed -n "/^## \[${VERSION//./\\.}\]/,/^## /p" "$CHANGELOG" | head -25 | sed 's/^/
 
 if ! confirm "Commit and tag $TAG?"; then
     c_yel "Reverting working-tree changes..."
-    git checkout -- "$PYPROJECT" "$CHANGELOG"
+    git checkout -- "$PYPROJECT" "$CHANGELOG" uv.lock
     die "aborted by user"
 fi
 
 # --- 5. commit + tag ---------------------------------------------------------
 
-git add "$PYPROJECT" "$CHANGELOG"
+git add "$PYPROJECT" "$CHANGELOG" uv.lock
 git commit -m "chore(release): $TAG"
 git tag -a "$TAG" -m "Release $TAG"
 
