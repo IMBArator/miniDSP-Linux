@@ -35,6 +35,16 @@ class DeviceLockedError(RuntimeError):
     """Raised when the device is locked and requires a PIN before config access."""
 
 
+class DeviceClosedError(OSError):
+    """Raised when an I/O method is called on a closed :class:`DSPmini` handle.
+
+    Subclasses :class:`OSError` so existing ``except OSError`` blocks in
+    callers catch it transparently — useful when device disappearance
+    (cable yank) and ordinary "you forgot to call ``open()``" should be
+    handled the same way.
+    """
+
+
 from .protocol import (
     VENDOR_ID,
     PRODUCT_ID,
@@ -216,7 +226,8 @@ class DSPmini:
 
     def _send(self, report: bytes) -> None:
         """Send a 64-byte HID OUT report."""
-        assert self._fd is not None, "Device not open"
+        if self._fd is None:
+            raise DeviceClosedError("Device not open")
         if log.isEnabledFor(logging.DEBUG):
             log.debug("TX %s", _frame_hex(report))
         os.write(self._fd, report)
@@ -230,7 +241,8 @@ class DSPmini:
         Returns:
             Raw 64-byte report, or ``None`` on timeout or empty read.
         """
-        assert self._fd is not None, "Device not open"
+        if self._fd is None:
+            raise DeviceClosedError("Device not open")
         timeout_s = timeout_ms / 1000.0
         r, _, _ = select.select([self._fd], [], [], timeout_s)
         if not r:
