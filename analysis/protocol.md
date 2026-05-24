@@ -241,16 +241,16 @@ Sent when the device is locked. The PIN is 4 ASCII digit characters (e.g. "7654"
 OUT payload (5 bytes): 2f [pin_byte0] [pin_byte1] [pin_byte2] [pin_byte3]
 ```
 
-Sets the device lock PIN and immediately locks the device. No dedicated IN response — the device sends `0x01` ACK then disconnects.
+Sets the device lock PIN and flips the device's internal lock flag. The device sends `0x01` ACK; the original software then tears down the USB session. Subsequent commands on the same handle will fail; reopening the device puts it in the locked state (`0x2c` byte 6 = `0x01`) and requires `0x2d` to unlock.
 
 | Byte | Value | Meaning |
 |---|---|---|
 | 0 | `2f` | opcode |
-| 1–4 | ASCII digits | PIN digits as ASCII (e.g. "7654" = 37 36 35 34) |
+| 1–4 | ASCII | 4-byte ASCII PIN (e.g. "7654" = 37 36 35 34) |
 
-**⚠ WARNING:** After receiving this command, the device immediately locks and the USB connection is terminated. The device cannot be controlled until the correct PIN is submitted via `0x2d` on next connection. If the PIN is lost, factory reset procedure is unknown — do not use this without careful consideration.
+**⚠ WARNING:** After receiving this command the device is locked. The host is expected to close the handle after the ACK; the next session lands in the locked state and the device cannot be controlled until the correct PIN is submitted via `0x2d`. If the PIN is lost, factory-reset procedure is unknown — do not use this without careful consideration.
 
-**Verified capture:** Set PIN "7654" → OUT `2f 37 36 35 34` → `0x01` ACK → device disconnects.
+**Verified capture:** Set PIN "7654" → OUT `2f 37 36 35 34` → `0x01` ACK → host closes session.
 
 ### 0x22 — Active Preset Header
 

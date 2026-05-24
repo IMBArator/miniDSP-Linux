@@ -605,7 +605,7 @@ def cmd_submit_pin(pin: str) -> bytes:
     ``[2d, 00, 01=correct / 00=wrong]``.
 
     Args:
-        pin: Exactly 4 ASCII digit characters (e.g. ``"7654"``). Truncated to
+        pin: Exactly 4 ASCII characters (e.g. ``"7654"``). Truncated to
             4 chars and zero-padded with ``b"0"`` if shorter.
 
     Returns:
@@ -618,14 +618,14 @@ def cmd_submit_pin(pin: str) -> bytes:
 def cmd_set_lock_pin(pin: str) -> bytes:
     """Build a device lock PIN command (0x2F).
 
-    Warning:
-        Sending this command **immediately locks the device** and disconnects
-        the application. The device cannot be controlled again until the correct
-        PIN is submitted via :func:`cmd_submit_pin` on the next connection.
-        If the PIN is lost, the factory reset procedure is unknown.
+    The device flips its internal lock flag and ACKs (``0x01``). The USB
+    session itself stays nominally alive; the caller is responsible for
+    closing the handle after the ACK. Reopening the device puts it in the
+    locked state and requires :func:`cmd_submit_pin` to unlock. If the PIN
+    is lost, the factory-reset procedure is unknown.
 
     Args:
-        pin: Exactly 4 ASCII digit characters (e.g. ``"7654"``).
+        pin: Exactly 4 ASCII characters (e.g. ``"7654"``).
 
     Returns:
         Encoded 64-byte HID report.

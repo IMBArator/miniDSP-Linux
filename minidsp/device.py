@@ -785,7 +785,7 @@ class DSPmini:
         to config load — it waits for a correct 0x2D PIN submission.
 
         Args:
-            pin: Exactly 4 ASCII digit characters (e.g. ``"7654"``).
+            pin: Exactly 4 ASCII characters (e.g. ``"7654"``).
 
         Returns:
             ``True`` if the PIN was correct, ``False`` if wrong or no response.
@@ -797,20 +797,30 @@ class DSPmini:
         return result is True
 
     def set_lock_pin(self, pin: str) -> bool:
-        """Set the device lock PIN and immediately lock the device (0x2F).
+        """Set the device lock PIN (0x2F).
+
+        On receipt the device flips its internal lock flag and sends a
+        ``0x01`` ACK. The USB session itself remains nominally alive — it is
+        the **caller's** responsibility to tear down the connection after
+        the ACK; subsequent commands on the same handle will not succeed.
+        Reopening the device puts it in the locked state (see
+        :meth:`is_locked` / the ``0x2c`` lock byte) and requires
+        :meth:`submit_pin` to unlock.
+
+        Example:
+            >>> if dsp.set_lock_pin(pin):
+            ...     dsp.close()
 
         Warning:
-            This **locks the device immediately** after the ACK is received.
-            The current session ends — the device will not respond to further
-            commands until the correct PIN is entered via :meth:`submit_pin`
-            on the next connection. If the PIN is lost, the factory reset
-            procedure is unknown.
+            If the PIN is lost, the factory-reset procedure is unknown.
+            Treat this as a footgun and confirm with the user before
+            invoking from automation.
 
         Args:
-            pin: Exactly 4 ASCII digit characters (e.g. ``"7654"``).
+            pin: Exactly 4 ASCII characters (e.g. ``"7654"``).
 
         Returns:
-            ``True`` if the device ACK'd before disconnecting.
+            ``True`` if the device ACK'd, ``False`` on timeout / no response.
         """
         payload = self._send_recv(cmd_set_lock_pin(pin))
         if payload is None:
