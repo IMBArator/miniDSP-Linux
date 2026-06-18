@@ -1155,6 +1155,24 @@ def freq_raw_to_hz(raw: int) -> float:
     return 19.70 * (20160.0 / 19.70) ** (raw / 300.0)
 
 
+def freq_hz_to_raw(hz: float) -> int:
+    """Convert a frequency in Hz to its log-scale raw protocol value.
+
+    Inverse of :func:`freq_raw_to_hz`. The mapping is logarithmic over the
+    19.7 Hz–20160 Hz band spanned by raw values 0–300.
+
+    Args:
+        hz: Frequency in Hz. Values <= 0 return 0.
+
+    Returns:
+        Raw frequency value clamped to 0–300.
+    """
+    if hz <= 0:
+        return 0
+    raw = round(300.0 * math.log(hz / 19.70) / math.log(20160.0 / 19.70))
+    return max(0, min(300, raw))
+
+
 def comp_threshold_to_db(raw: int) -> float:
     """Convert compressor threshold raw value to dB.
 

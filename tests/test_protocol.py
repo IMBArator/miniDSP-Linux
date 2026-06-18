@@ -40,6 +40,8 @@ from minidsp.protocol import (
     peq_raw_to_gain,
     peq_q_to_raw,
     peq_raw_to_q,
+    freq_raw_to_hz,
+    freq_hz_to_raw,
     level_uint16_to_dbu,
     LEVEL_REF_UINT16,
     LEVEL_REF_UINT16_FACTORY,
@@ -596,6 +598,21 @@ def test_peq_q_encoding():
     assert abs(peq_raw_to_q(peq_q_to_raw(2.0)) - 2.0) < 0.05
     assert abs(peq_raw_to_q(0) - 0.4) < 0.001
     assert abs(peq_raw_to_q(100) - 128.0) < 0.01
+
+
+def test_freq_hz_to_raw():
+    # Endpoints of the 0–300 raw band.
+    assert freq_hz_to_raw(19.70) == 0
+    assert freq_hz_to_raw(20160.0) == 300
+    # Non-positive and sub-band frequencies clamp to 0.
+    assert freq_hz_to_raw(0) == 0
+    assert freq_hz_to_raw(-100) == 0
+    assert freq_hz_to_raw(10.0) == 0
+    # Above-band frequencies clamp to 300.
+    assert freq_hz_to_raw(40000.0) == 300
+    # Round-trips with freq_raw_to_hz across the range.
+    for raw in (0, 30, 118, 150, 240, 300):
+        assert freq_hz_to_raw(freq_raw_to_hz(raw)) == raw
 
 
 def test_level_uint16_to_dbu():
