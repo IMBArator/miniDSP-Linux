@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-06-19
+
+### Added
+
+- Add freq_hz_to_raw inverse helper ([`34b40cb`](https://github.com/IMBArator/miniDSP-Linux/commit/34b40cb2e205aaca2526ed4547e538eb007076ac))
+
 ## [1.0.1] - 2026-05-24
 
 ### Changed
