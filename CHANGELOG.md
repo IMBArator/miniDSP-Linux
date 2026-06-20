@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-06-20
+
+### Added
+
+- Expose device firmware/model string from read_config ([`c6101a3`](https://github.com/IMBArator/miniDSP-Linux/commit/c6101a3022ddabb8f532c41e68a60b1b9edc603c))
+
+### Documentation
+
+- Document 0x13 firmware parsing and read_config exposure ([`de6d4d6`](https://github.com/IMBArator/miniDSP-Linux/commit/de6d4d6c2835ca9c554b4a988eba3cd96963426a))
+
 ## [1.1.0] - 2026-06-19
 
 ### Added
