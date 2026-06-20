@@ -188,6 +188,11 @@ Full frame:       10 02 00 01 01 13 10 03 12
 Device responds with 13-byte payload: `13` + ASCII string `"4x4MINI V010"`.
 This matches the magic header in the `.unt` config file (`***4x4MINIV010**`).
 
+The first whitespace-separated token is the **model** (`4x4MINI`), the second the
+**firmware version** (`V010`). The library parses this in `parse_firmware()` →
+`{'model', 'version', 'raw'}`, exposed as `read_config()['firmware']` and shown
+by `minidsp dump`.
+
 ### 0x2c — Device Info
 
 ```
