@@ -91,6 +91,20 @@ def cmd_dump(args: argparse.Namespace) -> None:
 
     active_slot  = cfg.get("active_slot")
     preset_names = cfg.get("preset_names", [])
+    firmware     = cfg.get("firmware")
+
+    # ── Device identity (0x13 firmware/model string) ───────────────────
+    dt = Table(title="Device", box=rich_box.SIMPLE_HEAD)
+    dt.add_column("Parameter", style="bold", min_width=14)
+    dt.add_column("Value", min_width=14)
+    if firmware:
+        dt.add_row("Model",     firmware.get("model", "") or "—")
+        dt.add_row("Firmware",  firmware.get("version", "") or "—")
+        dt.add_row("Raw",       firmware.get("raw", "") or "—")
+    else:
+        dt.add_row("Model",    "—")
+        dt.add_row("Firmware", "—")
+    console.print(dt)
 
     # ── Preset list ─────────────────────────────────────────────────────
     # 0x29 reads 30 names for user presets U01–U30 (index 0 → U01, index 29 → U30).

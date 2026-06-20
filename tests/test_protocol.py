@@ -31,6 +31,7 @@ from minidsp.protocol import (
     SINE_FREQ_1KHZ,
     SINE_FREQ_20KHZ,
     parse_device_info,
+    parse_firmware,
     parse_pin_response,
     LOCK_PIN_CORRECT,
     LOCK_PIN_WRONG,
@@ -676,6 +677,40 @@ def test_parse_device_info_locked():
 def test_parse_device_info_invalid():
     assert parse_device_info(bytes([0x01])) is None       # wrong opcode
     assert parse_device_info(bytes([0x2C, 0x00])) is None  # too short
+
+
+# --- Firmware / model string (0x13) ---
+
+def test_parse_firmware_typical():
+    # Real device reply: opcode + b"4x4MINI V010"
+    payload = b"\x13" + b"4x4MINI V010"
+    fw = parse_firmware(payload)
+    assert fw == {"model": "4x4MINI", "version": "V010", "raw": "4x4MINI V010"}
+
+
+def test_parse_firmware_strips_padding():
+    # Trailing NUL/space padding is stripped
+    payload = b"\x13" + b"4x4MINI V010\x00"
+    fw = parse_firmware(payload)
+    assert fw is not None
+    assert fw["raw"] == "4x4MINI V010"
+    assert fw["model"] == "4x4MINI"
+    assert fw["version"] == "V010"
+
+
+def test_parse_firmware_model_only():
+    # No space → version empty, model == raw
+    payload = b"\x13" + b"4x4MINI"
+    fw = parse_firmware(payload)
+    assert fw is not None
+    assert fw["model"] == "4x4MINI"
+    assert fw["version"] == ""
+    assert fw["raw"] == "4x4MINI"
+
+
+def test_parse_firmware_invalid():
+    assert parse_firmware(bytes([0x01])) is None       # wrong opcode
+    assert parse_firmware(bytes([0x13])) is None       # too short (opcode only)
 
 
 # --- Device lock (0x2D / 0x2F) ---

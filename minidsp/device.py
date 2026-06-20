@@ -94,6 +94,7 @@ from .protocol import (
     OP_INIT,
     parse_config_page,
     parse_device_info,
+    parse_firmware,
     parse_frame,
     parse_levels,
     parse_pin_response,
@@ -486,7 +487,9 @@ class DSPmini:
         Returns:
             Config dict in the same format as
             :func:`~minidsp.protocol.parse_preset_params`, augmented with
-            ``'active_slot'`` (int | None) and ``'preset_names'`` (list[str]).
+            ``'active_slot'`` (int | None), ``'preset_names'`` (list[str]) and
+            ``'firmware'`` (dict | None with ``'model'`` / ``'version'`` /
+            ``'raw'``, parsed from the 0x13 response).
             Returns ``None`` on communication failure.
 
         Raises:
@@ -495,7 +498,8 @@ class DSPmini:
         """
         # Step 2: firmware string
         log.info("Step 2/8: firmware query (0x13)")
-        if self._send_recv(cmd_firmware(), skip_polls=True) is None:
+        fw_payload = self._send_recv(cmd_firmware(), skip_polls=True)
+        if fw_payload is None:
             log.warning("Step 2/8: firmware query — no response — device not ready")
             return None
         # Step 3: device info — also contains the lock status flag
@@ -556,6 +560,7 @@ class DSPmini:
             return None
         params["active_slot"] = active_slot
         params["preset_names"] = preset_names
+        params["firmware"] = parse_firmware(fw_payload)
         return params
 
     def load_preset(self, slot: int) -> dict | None:

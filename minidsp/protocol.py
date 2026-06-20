@@ -593,6 +593,31 @@ def parse_device_info(payload: bytes) -> dict | None:
     return {"locked": payload[6] == 0x01}
 
 
+def parse_firmware(payload: bytes) -> dict | None:
+    """Parse a 0x13 firmware/model-string response.
+
+    The device replies with the opcode followed by a 12-byte ASCII string,
+    e.g. ``b'\\x134x4MINI V010'`` → ``"4x4MINI V010"``. The first whitespace-
+    separated token is the model, the second (if present) the firmware version.
+
+    Args:
+        payload: Raw response payload starting with the opcode byte.
+
+    Returns:
+        Dict with ``'model'``, ``'version'`` and ``'raw'`` (str) when valid,
+        or ``None`` if the payload is too short or has the wrong opcode.
+    """
+    if len(payload) < 2 or payload[0] != OP_FIRMWARE:
+        return None
+    raw = payload[1:].decode("ascii", errors="replace").strip("\x00 ").strip()
+    parts = raw.split()
+    return {
+        "model": parts[0] if parts else "",
+        "version": parts[1] if len(parts) > 1 else "",
+        "raw": raw,
+    }
+
+
 # Lock PIN response codes (byte 2 of 0x2D response payload)
 LOCK_PIN_CORRECT = 0x01
 LOCK_PIN_WRONG = 0x00
