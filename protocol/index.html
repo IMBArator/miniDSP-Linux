@@ -3032,6 +3032,10 @@ portion and ignore padding.</p>
 </code></pre></div>
 <p>Device responds with 13-byte payload: <code>13</code> + ASCII string <code>"4x4MINI V010"</code>.
 This matches the magic header in the <code>.unt</code> config file (<code>***4x4MINIV010**</code>).</p>
+<p>The first whitespace-separated token is the <strong>model</strong> (<code>4x4MINI</code>), the second the
+<strong>firmware version</strong> (<code>V010</code>). The library parses this in <code>parse_firmware()</code> →
+<code>{'model', 'version', 'raw'}</code>, exposed as <code>read_config()['firmware']</code> and shown
+by <code>minidsp dump</code>.</p>
 <h3 id="0x2c-device-info">0x2c — Device Info<a class="headerlink" href="#0x2c-device-info" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Payload (1 byte): 2c
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>Full frame:       10 02 00 01 01 2c 10 03 2d
