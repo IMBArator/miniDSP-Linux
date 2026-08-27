@@ -218,6 +218,8 @@ dspanalyze/               Protocol analysis toolchain
   output/                 claude / human / raw output formatters
 
 tests/                    Protocol unit tests (pytest)
+docs/                     MkDocs site sources
+  decisions/              Architecture decision records (MADR)
 analysis/                 Reverse engineering reference
   protocol.md             Full protocol specification
   feature-list.md         DSP feature inventory with protocol status
