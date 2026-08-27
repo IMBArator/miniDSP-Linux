@@ -15,6 +15,8 @@
 - always feel free to suggest improvements to the code and to the process!
 - be more explanative so the humans can learn along the way.
 - always remember to update the protocol implementation and documentation as well as the feature list. but always make sure the results are verified before changing docs and code. and always ask. it is curcial to never change protocol docs and code without confirmation!
+- never mention how many tests exactly are there in any documentation. (No counts.)
+- always use the make targets instead of create oneliners to test and build the software or docs
 
 ## Project Goal
 
@@ -69,6 +71,9 @@ analysis/                 # Protocol reverse engineering (reference only)
   miniDSP current settings.unt
   usb_captures/           # Wireshark captures (.txt exports + .pcapng)
   resources/              # screenshots, manual PDF
+
+docs/                     # MkDocs site sources (transclusion stubs + generators)
+  decisions/              # architecture decision records (MADR); see decisions/index.md
 
 pyproject.toml            # build system, dependencies, entry points
 Makefile                  # convenience targets for analysis workflows
