@@ -71,8 +71,20 @@ dspanalyze calibrate reset
 
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/) — manages the virtual environment and dependencies
-- Linux with kernel HID driver — communicates via `/dev/hidraw*` (no libusb needed)
+
+### Linux
+
+- Kernel HID driver — communicates via `/dev/hidraw*` (no libusb needed)
 - Read/write access to `/dev/hidraw*` (see [Permissions](#permissions))
+
+### Windows
+
+- No driver installation and no udev equivalent — Windows binds its built-in
+  HID driver to the DSP automatically
+- `uv sync` installs [hidapi](https://pypi.org/project/hidapi/) automatically;
+  it is only pulled in on Windows
+- Wireshark with USBPcap is needed **only** for `dspanalyze capture`, not for
+  controlling the device
 
 ## Installation
 
@@ -82,6 +94,21 @@ cd miniDSP-Linux
 uv sync              # creates .venv, installs core deps
 uv sync --extra dev  # also installs pytest for development
 ```
+
+### Windows
+
+Install uv (`winget install astral-sh.uv`), then run the same commands in
+PowerShell — uv provisions Python itself, so nothing else is needed:
+
+```powershell
+git clone https://github.com/IMBArator/miniDSP-Linux.git
+cd miniDSP-Linux
+uv sync
+uv run minidsp dump
+```
+
+Prefix the commands below with `uv run` (`uv run minidsp levels --watch`,
+`uv run dspanalyze analyze ...`). The `make` targets are Linux-only.
 
 ## Usage
 
@@ -137,6 +164,8 @@ See `Makefile` for pre-defined analysis workflows (`make analyze FILE=...`, `mak
 
 ## Permissions
 
+### Linux
+
 The tool communicates via `/dev/hidraw*`. By default this requires root. To allow regular users, create a udev rule:
 
 ```bash
@@ -147,6 +176,14 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
 
 Then reconnect the device.
+
+### Windows
+
+Nothing to configure — HID devices are accessible to normal users, so no
+driver, no rule and no elevated shell are required. Only one process may talk
+to the DSP at a time (enforced by a named mutex, the counterpart of the Linux
+lock); a second one fails immediately with "already in use by another
+process".
 
 ## Device
 
@@ -199,7 +236,8 @@ Key opcodes (see [analysis/protocol.md](analysis/protocol.md) for full reference
 ```
 minidsp/                  Python control package
   __main__.py             Entry point (delegates to cli.main)
-  device.py               USB HID open/close, send/recv, config read
+  device.py               Open/close, send/recv, command methods, config read
+  transport.py            HID I/O backends: hidraw (Linux), hidapi (Windows)
   protocol.py             Frame encoding/decoding, all command builders
   calibration.toml        Level meter calibration (REF_LEVEL + anchor points)
   factory_defaults.toml   F00 factory-preset parameter values (raw protocol form)
@@ -217,7 +255,7 @@ dspanalyze/               Protocol analysis toolchain
   readers/                pcapng and Wireshark text export parsers
   output/                 claude / human / raw output formatters
 
-tests/                    Protocol unit tests (pytest)
+tests/                    Protocol and device-layer unit tests (pytest)
 docs/                     MkDocs site sources
   decisions/              Architecture decision records (MADR)
 analysis/                 Reverse engineering reference

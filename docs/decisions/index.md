@@ -49,6 +49,7 @@ add a line to the relevant table below.
 | [0017](0017-bundle-factory-defaults-as-a-package-resource-in-raw-protocol-form.md) | Bundle factory defaults as a generated TOML package resource in raw protocol form |
 | [0018](0018-add-observability-with-stdlib-logging-behind-verbosity-flags.md) | Add observability with stdlib logging behind -v/-vv, configured only at the entry point |
 | [0019](0019-ship-level-meter-calibration-as-an-editable-package-resource.md) | Ship level-meter calibration as an editable package resource with a fitting workflow |
+| [0024](0024-support-windows-through-a-hidapi-transport.md) | Support Windows through a platform-selected hidapi transport |
 
 ## Build, release, and documentation
 

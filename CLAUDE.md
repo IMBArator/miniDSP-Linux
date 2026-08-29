@@ -28,7 +28,8 @@ Reverse engineer the USB HID protocol used by the **the t.racks DSP 4x4 Mini** (
 minidsp/                  # Python package — the runtime control application
   __init__.py
   __main__.py             # entry point (CLI)
-  device.py               # USB HID open/close, send/recv, config read
+  device.py               # open/close, send/recv, command methods, config read
+  transport.py            # HID I/O backends: hidraw (Linux), hidapi (Windows)
   protocol.py             # frame encoding/decoding, command builders, parsers
   factory_defaults.toml   # F00 factory-preset values (raw protocol form); regenerate via `dspanalyze extract-defaults`
   defaults.py             # load_factory_defaults() — parses the bundled TOML

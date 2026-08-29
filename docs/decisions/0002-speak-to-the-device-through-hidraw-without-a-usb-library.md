@@ -83,3 +83,7 @@ transport; `pyproject.toml` lists no USB/HID dependency.
   owning the raw fd.
 * The `device.py` module docstring mentions a cython-hidapi fallback; no such
   fallback is implemented. Treat hidraw as the only transport.
+* Amended by [ADR-0024](0024-support-windows-through-a-hidapi-transport.md):
+  hidapi now exists as the Windows transport (selected by platform, not a
+  fallback) and the false docstring is fixed; hidraw remains unchanged as the
+  only Linux transport, now living in `minidsp/transport.py`.

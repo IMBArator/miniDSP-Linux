@@ -58,3 +58,7 @@ the docstring documents the semantics.
 ## More Information
 
 * `ca91676` — implementation, motivated by CLI/Qt-app concurrent access.
+* Amended by [ADR-0024](0024-support-windows-through-a-hidapi-transport.md):
+  this decision is scoped to Linux — the flock moved with the hidraw code into
+  `minidsp/transport.py`, and Windows reaches the same guarantee with a named
+  Win32 mutex that the OS likewise abandons on process death.
