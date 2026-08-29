@@ -1,17 +1,17 @@
 """
 the t.racks DSP 4x4 Mini — USB HID device communication.
 
-Uses /dev/hidraw directly (no library dependency beyond the kernel driver).
-Falls back to cython-hidapi if available and hidraw not found.
+Implements the request/response protocol on top of a byte-level
+:class:`~minidsp.transport.Transport`: framing, the init handshake and its
+retries, response validation, and the high-level command methods. The
+platform-specific I/O (``/dev/hidraw`` on Linux) lives in
+:mod:`minidsp.transport` and is selected by
+:func:`~minidsp.transport.default_transport`.
 """
 
 from __future__ import annotations
 
-import fcntl
-import glob
 import logging
-import os
-import select
 import time
 
 log = logging.getLogger(__name__)
@@ -35,15 +35,15 @@ class DeviceLockedError(RuntimeError):
     """Raised when the device is locked and requires a PIN before config access."""
 
 
-class DeviceClosedError(OSError):
-    """Raised when an I/O method is called on a closed :class:`DSPmini` handle.
+from .transport import (
+    DeviceClosedError,
+    HidrawTransport,
+    Transport,
+    default_transport,
+)
 
-    Subclasses :class:`OSError` so existing ``except OSError`` blocks in
-    callers catch it transparently — useful when device disappearance
-    (cable yank) and ordinary "you forgot to call ``open()``" should be
-    handled the same way.
-    """
-
+# Back-compat: both names lived in this module before the transport split.
+find_hidraw_device = HidrawTransport.find_device
 
 from .protocol import (
     VENDOR_ID,
@@ -104,92 +104,61 @@ from .protocol import (
 )
 
 
-def find_hidraw_device() -> str | None:
-    """Find the ``/dev/hidrawN`` path for the DSPmini by scanning sysfs for VID/PID.
-
-    Returns:
-        Path string such as ``"/dev/hidraw0"``, or ``None`` if the device is
-        not connected or not yet visible in sysfs.
-    """
-    for path in sorted(glob.glob("/sys/class/hidraw/hidraw*/device")):
-        uevent_path = os.path.join(path, "uevent")
-        try:
-            with open(uevent_path) as f:
-                uevent = f.read()
-        except OSError:
-            continue
-        # Look for HID_ID=0003:00000168:00000821 (bus_type:vid:pid)
-        vid_str = f"{VENDOR_ID:08X}"
-        pid_str = f"{PRODUCT_ID:08X}"
-        if vid_str in uevent and pid_str in uevent:
-            hidraw_name = path.split("/")[-2]  # e.g. "hidraw0"
-            return f"/dev/{hidraw_name}"
-    return None
-
-
 class DSPmini:
     """Interface to the t.racks DSP 4x4 Mini over USB HID.
 
-    Acquires an **exclusive advisory lock** (``fcntl.flock(LOCK_EX|LOCK_NB)``)
-    on the hidraw file descriptor in :meth:`open`. This prevents a second
-    process (or a second :class:`DSPmini` instance in the same process) from
-    opening the device concurrently. The lock is released automatically when
-    :meth:`close` calls ``os.close()``.
+    Device I/O is delegated to a :class:`~minidsp.transport.Transport`; by
+    default :func:`~minidsp.transport.default_transport` picks the right one
+    for the running platform. Every transport takes a **single-instance
+    guard** in :meth:`open` (an ``fcntl.flock`` on Linux), so a second
+    process — or a second :class:`DSPmini` instance — cannot talk to the
+    device concurrently. The guard is released by :meth:`close`.
 
     Use as a context manager to guarantee release even on exceptions::
 
         with DSPmini() as dsp:
             cfg = dsp.read_config()
 
+    Args:
+        transport: Transport to use. Defaults to
+            :func:`~minidsp.transport.default_transport`; pass an explicit
+            one to force a backend or to inject a fake in tests.
+
     Note:
-        ``fcntl`` locks are advisory — they protect against other cooperative
-        Python processes but do not prevent a raw ``open()`` by uncooperative
-        programs (e.g. the manufacturer Windows app under Wine).
+        The guard only binds cooperating processes — an ``flock`` is
+        advisory and the Windows mutex is honoured by name — so neither
+        prevents a raw open by an uncooperative program (e.g. the
+        manufacturer Windows app under Wine).
     """
 
-    def __init__(self) -> None:
-        self._fd: int | None = None
+    def __init__(self, transport: Transport | None = None) -> None:
+        self._transport: Transport = transport or default_transport()
 
     # --- Connection ---
 
     def open(self, device_path: str | None = None) -> None:
-        """Open the HID device, acquire an exclusive lock, and perform init.
+        """Open the HID device, acquire the single-instance guard, and init.
 
-        Opens the hidraw node with ``O_RDWR`` then immediately calls
-        ``fcntl.flock(LOCK_EX|LOCK_NB)`` so that no other process can open
-        the same device concurrently. If the lock cannot be acquired the fd
-        is closed and an ``OSError`` is raised — the caller does not need to
-        call :meth:`close` in that case.
+        Delegates discovery, opening and locking to the transport. If the
+        guard cannot be acquired the transport is closed again and an
+        ``OSError`` is raised — the caller does not need to call
+        :meth:`close` in that case.
 
         After locking, sends the init handshake (0x10) with up to 5 retries
         (0.5 s apart). If the device still does not respond, closes and raises.
 
         Args:
-            device_path: Path to the hidraw device (e.g. ``"/dev/hidraw0"``).
-                If ``None``, auto-detects via sysfs VID/PID matching.
+            device_path: Transport-specific device path (e.g.
+                ``"/dev/hidraw0"`` on Linux). If ``None``, the transport
+                auto-detects the device by VID/PID.
 
         Raises:
-            OSError: If the device is not found, the exclusive lock cannot be
-                acquired (already held by another process), or the device does
-                not respond to the init handshake within 5 attempts.
+            OSError: If the device is not found, the single-instance guard
+                cannot be acquired (already held by another process), or the
+                device does not respond to the init handshake within 5
+                attempts.
         """
-        if device_path is None:
-            device_path = find_hidraw_device()
-            if device_path is None:
-                raise OSError(
-                    "DSP 4x4 Mini not found. Is it connected? "
-                    "Check: lsusb | grep 0168"
-                )
-        self._fd = os.open(device_path, os.O_RDWR)
-        try:
-            fcntl.flock(self._fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except (OSError, BlockingIOError):
-            os.close(self._fd)
-            self._fd = None
-            raise OSError(
-                f"{device_path} is already in use by another process"
-            )
-        log.info("Opened %s (exclusive lock acquired)", device_path)
+        self._transport.open(device_path)
 
         max_retries = 5
         retry_delay = 0.5
@@ -206,15 +175,12 @@ class DSPmini:
                 time.sleep(retry_delay)
 
         log.warning("Init handshake failed after %d attempts", max_retries)
-        os.close(self._fd)
-        self._fd = None
+        self._transport.close()
         raise OSError("Device opened but not responding to init handshake")
 
     def close(self) -> None:
-        """Close the HID device and release the exclusive lock."""
-        if self._fd is not None:
-            os.close(self._fd)
-            self._fd = None
+        """Close the HID device and release the single-instance guard."""
+        self._transport.close()
 
     def __enter__(self) -> DSPmini:
         self.open()
@@ -227,11 +193,11 @@ class DSPmini:
 
     def _send(self, report: bytes) -> None:
         """Send a 64-byte HID OUT report."""
-        if self._fd is None:
+        if not self._transport.is_open:
             raise DeviceClosedError("Device not open")
         if log.isEnabledFor(logging.DEBUG):
             log.debug("TX %s", _frame_hex(report))
-        os.write(self._fd, report)
+        self._transport.write(report)
 
     def _recv(self, timeout_ms: int = 500) -> bytes | None:
         """Read a 64-byte HID IN report.
@@ -242,20 +208,12 @@ class DSPmini:
         Returns:
             Raw 64-byte report, or ``None`` on timeout or empty read.
         """
-        if self._fd is None:
-            raise DeviceClosedError("Device not open")
-        timeout_s = timeout_ms / 1000.0
-        r, _, _ = select.select([self._fd], [], [], timeout_s)
-        if not r:
-            log.debug("RX timeout (%d ms)", timeout_ms)
-            return None
-        data = os.read(self._fd, REPORT_SIZE)
-        if not data:
-            log.debug("RX empty read")
+        data = self._transport.read(timeout_ms)
+        if data is None:
             return None
         if log.isEnabledFor(logging.DEBUG):
-            log.debug("RX %s", _frame_hex(bytes(data)))
-        return bytes(data)
+            log.debug("RX %s", _frame_hex(data))
+        return data
 
     def _send_recv(self, report: bytes, timeout_ms: int = 500,
                     skip_polls: bool = False) -> bytes | None:

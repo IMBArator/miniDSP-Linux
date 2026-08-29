@@ -10,6 +10,9 @@ requires-python = ">=3.11"
 dependencies = [
     "tomli-w>=1.0",
     "rich>=13.0",
+    # Windows HID transport (minidsp/transport.py). Linux uses /dev/hidraw
+    # and installs nothing extra.
+    "hidapi>=0.14; sys_platform == 'win32'",
 ]
 
 [project.optional-dependencies]
