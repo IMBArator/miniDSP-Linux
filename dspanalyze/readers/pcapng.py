@@ -10,11 +10,10 @@ fields and use whichever is populated.
 
 from __future__ import annotations
 
-import shutil
 import subprocess
-import sys
 from pathlib import Path
 
+from dspanalyze.capture import find_tshark
 from dspanalyze.readers import RawPacket
 
 
@@ -34,15 +33,13 @@ def read_pcapng(filepath: str | Path) -> list[RawPacket]:
         traffic is found.
 
     Raises:
-        SystemExit: When ``tshark`` is not found on ``$PATH`` (prints an
-            error and exits with status 1).
+        SystemExit: When ``tshark`` is not found (prints an error and exits
+            with status 1) — see
+            :func:`~dspanalyze.capture.find_tshark`, which also checks the
+            standard Windows install locations.
     """
     filepath = Path(filepath)
-    tshark = shutil.which("tshark")
-    if tshark is None:
-        print("Error: tshark not found on PATH. Install Wireshark/tshark.",
-              file=sys.stderr)
-        sys.exit(1)
+    tshark = find_tshark()
 
     # Try usbhid.data first (Windows/USBPcap captures)
     packets = _extract_with_filter(tshark, filepath, "usbhid.data", "usbhid.data")
