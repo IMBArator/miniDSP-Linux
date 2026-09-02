@@ -46,6 +46,22 @@ class DeviceClosedError(OSError):
     """
 
 
+class DeviceBusyError(OSError):
+    """Raised by :meth:`Transport.open` when another process holds the device.
+
+    Every transport takes a single-instance guard while opening — an
+    ``fcntl.flock`` on the hidraw fd on Linux, a named Win32 mutex on Windows
+    (see ADR-0012 and ADR-0024). A conflict on that guard is a distinct,
+    *transient* condition: the device is present and healthy, it is simply
+    owned by someone else right now.
+
+    Subclasses :class:`OSError` so existing ``except OSError`` blocks keep
+    catching it unchanged, while callers that care — a GUI's reconnect loop,
+    for instance — can catch this type first and show "busy, waiting" instead
+    of "device not found", then keep retrying until the other process exits.
+    """
+
+
 class Transport(abc.ABC):
     """Byte-level HID pipe to the DSP.
 
@@ -74,8 +90,9 @@ class Transport(abc.ABC):
                 device is auto-detected via :meth:`find_device`.
 
         Raises:
-            OSError: If the device is not found or is already in use by
+            DeviceBusyError: If the single-instance guard is already held by
                 another process.
+            OSError: If the device is not found.
         """
 
     @abc.abstractmethod
@@ -160,8 +177,8 @@ class HidrawTransport(Transport):
     def open(self, device_path: str | None = None) -> None:
         """Open the hidraw node with ``O_RDWR`` and take the exclusive lock.
 
-        If the lock cannot be acquired the fd is closed again and an
-        ``OSError`` is raised — the caller does not need to call
+        If the lock cannot be acquired the fd is closed again and a
+        :class:`DeviceBusyError` is raised — the caller does not need to call
         :meth:`close` in that case.
 
         Args:
@@ -169,8 +186,9 @@ class HidrawTransport(Transport):
                 If ``None``, auto-detects via sysfs VID/PID matching.
 
         Raises:
-            OSError: If the device is not found or the exclusive lock cannot
-                be acquired (already held by another process).
+            DeviceBusyError: If the exclusive lock is already held by another
+                process.
+            OSError: If the device is not found or cannot be opened.
         """
         if device_path is None:
             device_path = self.find_device()
@@ -185,7 +203,7 @@ class HidrawTransport(Transport):
         except (OSError, BlockingIOError):
             os.close(self._fd)
             self._fd = None
-            raise OSError(
+            raise DeviceBusyError(
                 f"{device_path} is already in use by another process"
             )
         log.info("Opened %s (exclusive lock acquired)", device_path)
@@ -299,8 +317,9 @@ class HidapiTransport(Transport):
                 by VID/PID.
 
         Raises:
-            OSError: If the device is not found, another process already
-                holds the single-instance mutex, or hidapi cannot open the
+            DeviceBusyError: If another process already holds the
+                single-instance mutex.
+            OSError: If the device is not found or hidapi cannot open the
                 interface.
         """
         import hid
@@ -377,8 +396,10 @@ class HidapiTransport(Transport):
             device_path: Only used for the error message.
 
         Raises:
-            OSError: If the mutex already exists (another process is talking
-                to the device) or cannot be created.
+            DeviceBusyError: If the mutex already exists — another process is
+                talking to the device.
+            OSError: If the mutex cannot be created at all, which is a
+                Win32 failure rather than a lock conflict.
         """
         import ctypes
 
@@ -390,7 +411,7 @@ class HidapiTransport(Transport):
             raise OSError(f"Could not create single-instance mutex (error {err})")
         if err == self._ERROR_ALREADY_EXISTS:
             kernel32.CloseHandle(ctypes.c_void_p(handle))
-            raise OSError(
+            raise DeviceBusyError(
                 f"{device_path} is already in use by another process"
             )
         self._mutex = handle

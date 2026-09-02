@@ -18,8 +18,14 @@ import sys
 
 import pytest
 
+from minidsp import device as device_module
 from minidsp import protocol, transport
-from minidsp.device import DeviceClosedError, DSPmini, DeviceLockedError
+from minidsp.device import (
+    DeviceBusyError,
+    DeviceClosedError,
+    DSPmini,
+    DeviceLockedError,
+)
 from minidsp.protocol import REPORT_SIZE
 from minidsp.transport import (
     HidapiTransport,
@@ -219,6 +225,96 @@ def test_device_closed_error_is_catchable_as_oserror():
 
     with pytest.raises(OSError):
         dsp.poll_levels()
+
+
+# --- Device-busy errors (ADR-0012 / ADR-0024) ------------------------------
+
+class BusyTransport(FakeTransport):
+    """A :class:`FakeTransport` whose :meth:`open` reports a lock conflict."""
+
+    def open(self, device_path: str | None = None) -> None:
+        self.open_calls.append(device_path)
+        raise DeviceBusyError(f"{device_path} is already in use by another process")
+
+
+def test_device_busy_error_is_an_oserror_and_reexported():
+    # OSError subclassing keeps every existing ``except OSError`` caller
+    # working, and device.py must re-export the same object, not a copy.
+    assert issubclass(DeviceBusyError, OSError)
+    assert device_module.DeviceBusyError is transport.DeviceBusyError
+
+
+def test_dspmini_open_propagates_device_busy(monkeypatch):
+    monkeypatch.setattr("minidsp.device.time.sleep", lambda _s: None)
+    busy = BusyTransport()
+    dsp = DSPmini(transport=busy)
+
+    # The init-handshake retry loop must not swallow or retype this.
+    with pytest.raises(DeviceBusyError, match="already in use"):
+        dsp.open()
+
+    assert busy.sent == []
+    assert busy.close_calls == 0
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="flock is POSIX-only")
+def test_hidraw_open_raises_device_busy_when_flock_is_held(monkeypatch):
+    closed: list[int] = []
+
+    def refuse_lock(_fd, _operation):
+        raise BlockingIOError("Resource temporarily unavailable")
+
+    monkeypatch.setattr(transport.os, "open", lambda _path, _flags: 42)
+    monkeypatch.setattr(transport.os, "close", closed.append)
+    monkeypatch.setattr(transport.fcntl, "flock", refuse_lock)
+    t = HidrawTransport()
+
+    with pytest.raises(DeviceBusyError, match="already in use"):
+        t.open("/dev/hidraw0")
+
+    # The fd is handed back before raising, so the caller need not close().
+    assert closed == [42]
+    assert t._fd is None
+    assert t.is_open is False
+
+
+@pytest.mark.skipif(sys.platform != "win32",
+                    reason="ctypes.WinDLL/get_last_error are Windows-only")
+def test_hidapi_acquire_mutex_raises_device_busy_when_mutex_exists(monkeypatch):
+    import ctypes
+
+    class FakeWin32Func:
+        """Callable stand-in for a kernel32 export, recording its calls."""
+
+        def __init__(self, result: int) -> None:
+            self.result = result
+            self.restype = None
+            self.calls: list[tuple] = []
+
+        def __call__(self, *args):
+            self.calls.append(args)
+            return self.result
+
+    class FakeKernel32:
+        """The two kernel32 entry points ``_acquire_mutex`` touches."""
+
+        def __init__(self) -> None:
+            self.CreateMutexW = FakeWin32Func(1)   # a non-NULL handle
+            self.CloseHandle = FakeWin32Func(1)
+
+    kernel32 = FakeKernel32()
+    monkeypatch.setattr(ctypes, "WinDLL",
+                        lambda _name, use_last_error=False: kernel32)
+    monkeypatch.setattr(ctypes, "get_last_error",
+                        lambda: HidapiTransport._ERROR_ALREADY_EXISTS)
+    t = HidapiTransport()
+
+    with pytest.raises(DeviceBusyError, match="already in use"):
+        t._acquire_mutex("\\\\?\\hid#vid_0168&pid_0821")
+
+    # The handle CreateMutexW still returned must not leak.
+    assert len(kernel32.CloseHandle.calls) == 1
+    assert t._mutex is None
 
 
 # --- Response validation (ADR-0015) ----------------------------------------

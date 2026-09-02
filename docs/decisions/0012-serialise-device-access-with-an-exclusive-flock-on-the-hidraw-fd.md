@@ -62,3 +62,10 @@ the docstring documents the semantics.
   this decision is scoped to Linux — the flock moved with the hidraw code into
   `minidsp/transport.py`, and Windows reaches the same guarantee with a named
   Win32 mutex that the OS likewise abandons on process death.
+* Amended by the typed lock-conflict error: a failed flock now raises
+  `DeviceBusyError` instead of a plain `OSError`. It subclasses `OSError` and
+  keeps the same "already in use by another process" message, so every
+  existing `except OSError` caller is unaffected, but a GUI can now tell
+  "busy" from "not found" — showing a *busy* state and continuing to retry
+  until the other process releases the device, instead of reporting a
+  disconnect.

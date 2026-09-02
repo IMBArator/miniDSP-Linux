@@ -141,6 +141,14 @@ verified.
 * Scopes [ADR-0012](0012-serialise-device-access-with-an-exclusive-flock-on-the-hidraw-fd.md)
   to Linux: the flock reasoning stands there; Windows reaches the same
   guarantee with a named mutex.
+* Amended by the typed lock-conflict error: `ERROR_ALREADY_EXISTS` on the
+  named mutex now raises `DeviceBusyError` instead of a plain `OSError`, in
+  step with the Linux flock path. It subclasses `OSError` and keeps the same
+  "already in use by another process" message, so existing `except OSError`
+  callers are unaffected, but a GUI can tell "busy" from "not found" and keep
+  waiting for the other process rather than reporting a disconnect. Failure to
+  *create* the mutex at all stays a plain `OSError` — that is a Win32 fault,
+  not a lock conflict.
 * `setup-windows.bat` was removed with this change: it predated uv, pinned a
   Python version, named a setuptools backend the project no longer uses, and
   advertised a `python -m minidsp` that could not have worked. The README's

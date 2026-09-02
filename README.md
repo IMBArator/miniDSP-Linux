@@ -183,7 +183,9 @@ Nothing to configure — HID devices are accessible to normal users, so no
 driver, no rule and no elevated shell are required. Only one process may talk
 to the DSP at a time (enforced by a named mutex, the counterpart of the Linux
 lock); a second one fails immediately with "already in use by another
-process".
+process". That conflict is raised as `minidsp.device.DeviceBusyError`, an
+`OSError` subclass, so a caller can distinguish "the device is busy" from
+"the device is not there" and wait for it to be released.
 
 ## Device
 

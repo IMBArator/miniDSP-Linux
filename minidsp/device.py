@@ -36,6 +36,7 @@ class DeviceLockedError(RuntimeError):
 
 
 from .transport import (
+    DeviceBusyError,
     DeviceClosedError,
     HidrawTransport,
     Transport,
@@ -140,9 +141,12 @@ class DSPmini:
         """Open the HID device, acquire the single-instance guard, and init.
 
         Delegates discovery, opening and locking to the transport. If the
-        guard cannot be acquired the transport is closed again and an
-        ``OSError`` is raised — the caller does not need to call
-        :meth:`close` in that case.
+        guard cannot be acquired the transport is closed again and a
+        :class:`~minidsp.transport.DeviceBusyError` is raised — the caller
+        does not need to call :meth:`close` in that case. That error is an
+        ``OSError`` subclass, so a caller that only wants "could not open"
+        needs no change, while a reconnect loop can single it out and keep
+        waiting for the other process to finish.
 
         After locking, sends the init handshake (0x10) with up to 5 retries
         (0.5 s apart). If the device still does not respond, closes and raises.
@@ -153,10 +157,10 @@ class DSPmini:
                 auto-detects the device by VID/PID.
 
         Raises:
-            OSError: If the device is not found, the single-instance guard
-                cannot be acquired (already held by another process), or the
-                device does not respond to the init handshake within 5
-                attempts.
+            DeviceBusyError: If the single-instance guard is already held by
+                another process.
+            OSError: If the device is not found or does not respond to the
+                init handshake within 5 attempts.
         """
         self._transport.open(device_path)
 
