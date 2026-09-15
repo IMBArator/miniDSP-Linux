@@ -16,7 +16,7 @@
         <link rel="prev" href="../dspanalyze-usage/">
       
       
-        <link rel="next" href="../api/">
+        <link rel="next" href="../decisions/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Development Notes - miniDSP-Linux</title>
+        <title>Development - miniDSP-Linux</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#minidsp-linux" class="md-skip">
+        <a href="#development" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Development Notes
+              Development
             
           </span>
         </div>
@@ -311,7 +311,26 @@
   
     
   
-  Development Notes
+  Development
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../decisions/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Decisions
 
       </a>
     </li>
@@ -532,7 +551,7 @@
   <span class="md-ellipsis">
     
   
-    Development Notes
+    Development
   
 
     
@@ -550,7 +569,7 @@
   <span class="md-ellipsis">
     
   
-    Development Notes
+    Development
   
 
     
@@ -576,66 +595,33 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#important" class="md-nav__link">
+  <a href="#requirements" class="md-nav__link">
     <span class="md-ellipsis">
       
-        IMPORTANT
+        Requirements
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#project-goal" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Project Goal
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#repository-layout" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Repository Layout
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#device-info" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Device Info
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#protocol-summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Protocol Summary
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Protocol Summary">
+    <nav class="md-nav" aria-label="Requirements">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#cross-reference" class="md-nav__link">
+  <a href="#linux" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cross-reference
+        Linux
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#windows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Windows
       
     </span>
   </a>
@@ -648,10 +634,99 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#workflow-notes" class="md-nav__link">
+  <a href="#development-environment" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Workflow Notes
+        Development environment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development environment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#testing-changes-against-the-qt-gui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing changes against the Qt GUI
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Running tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gnu-make-on-windows-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GNU make on Windows (optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#protocol-analysis-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protocol analysis workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#releasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Releasing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repository-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture decisions
       
     </span>
   </a>
@@ -661,6 +736,1036 @@
     </ul>
   
 </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../decisions/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Decisions
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0000-record-architecture-decisions-as-madr-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Record architectural decisions as MADR files
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0001-verify-every-protocol-claim-against-device-captures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Verify every protocol claim against device captures before documenting or implementing it
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0002-speak-to-the-device-through-hidraw-without-a-usb-library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Speak to the device through /dev/hidraw without a USB library
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0003-license-under-gpl-3-0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License under GPL-3.0 with an interoperability notice
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0004-keep-this-repository-library-first-and-develop-the-gui-separately/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keep this repository library-first; develop the GUI in a separate repository
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0005-cross-reference-dsp-408-ui-but-trust-only-on-device-verification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-reference dsp-408-ui, but trust only on-device verification
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0006-build-a-dedicated-analysis-package-instead-of-throwaway-scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build a dedicated analysis package (dspanalyze) instead of throwaway scripts
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0007-encode-protocol-knowledge-in-a-declarative-toml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Encode the analyzer's protocol knowledge in a declarative TOML file
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0008-drive-usb-capture-and-parsing-through-tshark-subprocesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Drive USB capture and pcapng parsing through tshark subprocesses
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0009-guard-protocol-knowledge-with-capture-assertions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guard protocol knowledge with an assertion framework over captures
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0010-record-capture-metadata-in-toml-sidecars/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Record per-capture metadata in .meta.toml sidecar files
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0011-make-minidsp-protocol-the-single-source-of-conversions-and-constants/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Make minidsp.protocol the single source of truth for conversions and constants
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0012-serialise-device-access-with-an-exclusive-flock-on-the-hidraw-fd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Serialise device access with an exclusive flock on the hidraw fd
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0013-fail-fast-on-unready-devices-and-retry-the-init-handshake/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Retry the init handshake at open, and fail fast when the device is not ready
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0014-raise-typed-oserror-subclasses-for-device-failures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Raise typed exceptions for device failure states
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0015-validate-every-device-response-instead-of-fire-and-forget/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validate every device response instead of fire-and-forget
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0016-refuse-to-overwrite-the-factory-preset-slot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Refuse to overwrite the factory preset slot in the library
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0017-bundle-factory-defaults-as-a-package-resource-in-raw-protocol-form/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bundle factory defaults as a generated TOML package resource in raw protocol form
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0018-add-observability-with-stdlib-logging-behind-verbosity-flags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add observability with stdlib logging behind -v/-vv, configured only at the entry point
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0019-ship-level-meter-calibration-as-an-editable-package-resource/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ship level-meter calibration as an editable package resource with a fitting workflow
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0020-manage-the-project-with-uv-and-hatchling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manage the project with uv and Hatchling, and commit the lockfile
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0021-drive-the-changelog-from-conventional-commits-with-git-cliff/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Drive the changelog from Conventional Commits with git-cliff, prepending to a hand-curatable file
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0022-publish-docs-as-an-mkdocs-site-that-transcludes-sources-in-place/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publish docs as an MkDocs Material site that transcludes sources in place
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0023-write-release-automation-in-plain-bash-against-the-github-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Write release automation in plain bash against the GitHub API, with defensive preconditions
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0024-support-windows-through-a-hidapi-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Support Windows through a platform-selected hidapi transport
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/adr-template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Short title, naming the problem and the chosen solution
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--proposed"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
       
     </li>
   
@@ -692,7 +1797,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -714,14 +1819,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -775,7 +1880,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_1" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -797,14 +1902,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_1">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_1">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1094,7 +2199,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_10" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_1_10" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -1116,14 +2221,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_6_1_10" id="__nav_6_1_10_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_7_1_10" id="__nav_7_1_10_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_1_10">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_7_1_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_1_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1251,7 +2356,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1_11" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_1_11" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -1273,14 +2378,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_6_1_11" id="__nav_6_1_11_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_7_1_11" id="__nav_7_1_11_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_1_11_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_1_11">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_7_1_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_1_11">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1379,6 +2484,8 @@
       
         
       
+        
+      
     
     
     
@@ -1392,7 +2499,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -1414,14 +2521,14 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_6_2" id="__nav_6_2_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_7_2" id="__nav_7_2_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_2">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1543,6 +2650,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/minidsp/transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    minidsp.transport
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1612,66 +2747,33 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#important" class="md-nav__link">
+  <a href="#requirements" class="md-nav__link">
     <span class="md-ellipsis">
       
-        IMPORTANT
+        Requirements
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#project-goal" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Project Goal
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#repository-layout" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Repository Layout
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#device-info" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Device Info
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#protocol-summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Protocol Summary
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Protocol Summary">
+    <nav class="md-nav" aria-label="Requirements">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#cross-reference" class="md-nav__link">
+  <a href="#linux" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cross-reference
+        Linux
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#windows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Windows
       
     </span>
   </a>
@@ -1684,10 +2786,99 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#workflow-notes" class="md-nav__link">
+  <a href="#development-environment" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Workflow Notes
+        Development environment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development environment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#testing-changes-against-the-qt-gui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing changes against the Qt GUI
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Running tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gnu-make-on-windows-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GNU make on Windows (optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#protocol-analysis-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protocol analysis workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#releasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Releasing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repository-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture decisions
       
     </span>
   </a>
@@ -1711,103 +2902,181 @@
 
 
 
-<h1 id="minidsp-linux">miniDSP-Linux<a class="headerlink" href="#minidsp-linux" title="Permanent link">&para;</a></h1>
-<h2 id="important">IMPORTANT<a class="headerlink" href="#important" title="Permanent link">&para;</a></h2>
+<h1 id="development">Development<a class="headerlink" href="#development" title="Permanent link">&para;</a></h1>
+<p>Setup, testing, the protocol-analysis workflow, and the release workflow for
+contributors.</p>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <ul>
-<li>explain in single sentences what you are doing so we can learn from it.</li>
-<li>commit using conventional commits and commit grouped by topic.</li>
-<li>automatically commit after significant changes.</li>
-<li>you are allowed to use subagents if applicable for tasks. use models that are effective.</li>
-<li>avoid using commands that generate friction and need user input while exploring/researching.</li>
-<li>always use tools that we commited to, e.g. use the analyse tool instead of creating python/bash one-liners.</li>
-<li>if you need complex one-liners to explore/research, suggest adding these to a make file for repeatability.</li>
-<li>suggest additional pre-made tools if it makes things easier or more effective</li>
-<li>remember that claude usage is expensive, try to be economical when processing data. use agents with lower grade modles if bulk processing is needed.</li>
-<li>always feel free to suggest improvements to the code and to the process!</li>
-<li>be more explanative so the humans can learn along the way.</li>
-<li>always remember to update the protocol implementation and documentation as well as the feature list. but always make sure the results are verified before changing docs and code. and always ask. it is curcial to never change protocol docs and code without confirmation!</li>
+<li>Python 3.11+</li>
+<li><a href="https://docs.astral.sh/uv/">uv</a> — manages the virtual environment and
+  dependencies</li>
 </ul>
-<h2 id="project-goal">Project Goal<a class="headerlink" href="#project-goal" title="Permanent link">&para;</a></h2>
-<p>Reverse engineer the USB HID protocol used by the <strong>the t.racks DSP 4x4 Mini</strong> (a Musicrown-based device) by analyzing Wireshark USBPcap captures, then build a Python tool to manage the DSP on Linux.</p>
-<h2 id="repository-layout">Repository Layout<a class="headerlink" href="#repository-layout" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>minidsp/                  # Python package — the runtime control application
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  __init__.py
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  __main__.py             # entry point (CLI)
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  device.py               # USB HID open/close, send/recv, config read
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  protocol.py             # frame encoding/decoding, command builders, parsers
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  factory_defaults.toml   # F00 factory-preset values (raw protocol form); regenerate via `dspanalyze extract-defaults`
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  defaults.py             # load_factory_defaults() — parses the bundled TOML
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  cli.py                  # CLI (dump, mute/unmute)
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>dspanalyze/               # Protocol analysis toolchain
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>  __init__.py
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  __main__.py             # python -m dspanalyze entry
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  cli.py                  # argparse: analyze, check, capture, list-captures, extract-defaults
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>  config.py               # load protocol_config.toml, value format converters
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>  protocol_config.toml    # all protocol knowledge (opcodes, fields, formats)
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>  decode.py               # frame → structured command decoder
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>  capture.py              # tshark-based USB capture with device auto-detect
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>  check.py                # protocol assertion framework (12 assertions)
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>  extract_defaults.py     # stitch F00 config pages → factory_defaults.json
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>  metadata.py             # per-capture .meta.toml sidecar files
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>  readers/
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    __init__.py            # RawPacket dataclass, read_capture() dispatcher
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    pcapng.py              # tshark -T fields based pcapng reader
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    wireshark_text.py      # Wireshark text export parser
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>  output/
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    __init__.py
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    claude.py              # compact structured output for Claude
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    human.py               # terminal table with summary
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>    raw.py                 # raw hex dump
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>tests/
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>  test_protocol.py        # protocol encoding/decoding tests
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>  test_dspanalyze/        # analysis tool tests
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>analysis/                 # Protocol reverse engineering (reference only)
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>  protocol.md             # full protocol specification
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>  feature-list.md         # DSP feature inventory with protocol status
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>  t-racks-dsp-4x4-research.md
-<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>  dsp-408-ui-summary.md   # cross-reference: Aeternitaas/dsp-408-ui
-<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>  extract_hid.py          # legacy analysis script (superseded by dspanalyze)
-<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>  extract_gain_commands.py
-<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>  hid_packets.txt
-<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>  miniDSP USBTree output.txt
-<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>  miniDSP current settings.unt
-<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>  usb_captures/           # Wireshark captures (.txt exports + .pcapng)
-<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>  resources/              # screenshots, manual PDF
-<a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>
-<a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>pyproject.toml            # build system, dependencies, entry points
-<a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>Makefile                  # convenience targets for analysis workflows
+<h3 id="linux">Linux<a class="headerlink" href="#linux" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Kernel HID driver — the library talks to <code>/dev/hidraw*</code> directly, no libusb</li>
+<li>Read/write access to <code>/dev/hidraw*</code> — see the udev rule under
+  <a href="../#permissions">Permissions</a></li>
+</ul>
+<h3 id="windows">Windows<a class="headerlink" href="#windows" title="Permanent link">&para;</a></h3>
+<ul>
+<li>No driver installation and no udev equivalent — Windows binds its built-in
+  HID driver to the DSP automatically</li>
+<li><a href="https://pypi.org/project/hidapi/">hidapi</a> is installed by <code>uv sync</code> through
+  a <code>sys_platform == 'win32'</code> marker, so it lands on Windows only (see
+  <a href="../decisions/0024-support-windows-through-a-hidapi-transport/">ADR-0024</a>)</li>
+<li>Wireshark with USBPcap is needed <strong>only</strong> for <code>dspanalyze capture</code>, not for
+  controlling the device</li>
+</ul>
+<h2 id="development-environment">Development environment<a class="headerlink" href="#development-environment" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/IMBArator/miniDSP-Linux.git
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>miniDSP-Linux
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>uv<span class="w"> </span>sync<span class="w">              </span><span class="c1"># creates .venv, installs core deps</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dev<span class="w">  </span><span class="c1"># also installs pytest for development</span>
 </code></pre></div>
-<h2 id="device-info">Device Info<a class="headerlink" href="#device-info" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>VID/PID:</strong> <code>0x0168</code>:<code>0x0821</code> (Musicrown "Dsp Process")</li>
-<li><strong>USB:</strong> 1.1 Full-Speed, HID class, bus powered (100 mA)</li>
-<li><strong>Communication:</strong> URB_INTERRUPT transfers, 64-byte HID reports</li>
-<li><strong>OUT endpoint:</strong> 0x02 (host → device), <strong>IN endpoint:</strong> 0x81 (device → host)</li>
-</ul>
-<h2 id="protocol-summary">Protocol Summary<a class="headerlink" href="#protocol-summary" title="Permanent link">&para;</a></h2>
-<p>See <code>analysis/protocol.md</code> for the full reverse-engineered specification.</p>
-<ul>
-<li>Frame format: <code>10 02 [SRC] [DST] [LEN] [PAYLOAD] 10 03 [XOR_CHK]</code></li>
-<li>Checksum: XOR of length byte + all payload bytes</li>
-<li>Key commands: <code>0x10</code> init, <code>0x27</code> read config (9 pages × 50 bytes), <code>0x34</code> gain, <code>0x35</code> mute, <code>0x40</code> poll levels, <code>0x12</code> activate</li>
-<li>Level response: 28-byte payload, 8 channels × 3-byte triplets <code>[val_lo, val_hi, instant]</code> (uint16 LE linear amplitude)</li>
-<li>Gain encoding: dual resolution raw 0–400 (0.5 dB/step below −20 dB, 0.1 dB/step above)</li>
-<li>Config pages reconstruct the <code>.unt</code> preset structure byte-for-byte</li>
-</ul>
-<h3 id="cross-reference">Cross-reference<a class="headerlink" href="#cross-reference" title="Permanent link">&para;</a></h3>
-<ul>
-<li><code>dsp-408-ui</code> (Aeternitaas/dsp-408-ui) — same Musicrown protocol over TCP for DSP 408</li>
-<li>Confirmed: PEQ, GEQ, crossover, routing, preset commands from that project apply here</li>
-</ul>
-<h2 id="workflow-notes">Workflow Notes<a class="headerlink" href="#workflow-notes" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Document newly discovered command opcodes in <code>protocol.py</code> with comments showing the raw hex and what it controls.</li>
-<li>Protocol analysis artifacts go in <code>analysis/</code>, application code in <code>minidsp/</code>.</li>
-<li>When decoding HID payloads, note byte offsets and value ranges.</li>
-</ul>
+<p>On Windows the same commands run unchanged in PowerShell — install uv with
+<code>winget install astral-sh.uv</code> first; it provisions Python itself. Prefix
+commands with <code>uv run</code> (<code>uv run minidsp dump</code>, <code>uv run pytest -v</code>).</p>
+<h3 id="testing-changes-against-the-qt-gui">Testing changes against the Qt GUI<a class="headerlink" href="#testing-changes-against-the-qt-gui" title="Permanent link">&para;</a></h3>
+<p><a href="https://github.com/IMBArator/miniDSP-Linux-qt">miniDSP-Linux-qt</a> consumes
+this library as a pinned release wheel. To try local protocol changes in the
+GUI before they are released, override the pin <strong>in the Qt checkout</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>../miniDSP-Linux-qt
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--reinstall<span class="w"> </span>--no-cache<span class="w"> </span>../miniDSP-Linux/
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>uv<span class="w"> </span>run<span class="w"> </span>--no-sync<span class="w"> </span>minidspqt<span class="w">        </span><span class="c1"># --no-sync keeps the override in place</span>
+</code></pre></div>
+<p>The details (why <code>--no-cache</code> matters, how the override is reverted) are in
+the Qt project's own
+<a href="https://imbarator.github.io/miniDSP-Linux-qt/development/">Development page</a>.</p>
+<h2 id="running-tests">Running tests<a class="headerlink" href="#running-tests" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>make<span class="w"> </span>sync<span class="w">            </span><span class="c1"># runs `uv sync --extra dev`</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>make<span class="w"> </span><span class="nb">test</span><span class="w">            </span><span class="c1"># uv run pytest -v</span>
+</code></pre></div>
+<p>No hardware is needed: the device layer is exercised through a <code>FakeTransport</code>
+(the injection seam introduced with
+<a href="../decisions/0024-support-windows-through-a-hidapi-transport/">ADR-0024</a>),
+and the Windows hidapi path runs against a stubbed <code>hid</code> module, so the whole
+suite behaves identically on Linux and Windows. The protocol tests assert
+command builders byte-for-byte against frames from real captures
+(<a href="../decisions/0001-verify-every-protocol-claim-against-device-captures/">ADR-0001</a>).</p>
+<h3 id="gnu-make-on-windows-optional">GNU make on Windows (optional)<a class="headerlink" href="#gnu-make-on-windows-optional" title="Permanent link">&para;</a></h3>
+<p><code>make</code> is not part of a Windows install. It is not required — every target
+that matters day to day is a one-line <code>uv</code> invocation you can type directly
+(<code>uv sync --extra dev</code>, <code>uv run pytest -v</code>, <code>uv build</code>,
+<code>uv run mkdocs build</code>). If you prefer the targets, install GNU make (for
+example <code>winget install ezwinports.make</code>); <code>sync</code>, <code>install</code>, <code>test</code>,
+<code>build</code>, <code>docs</code>, and <code>docs-serve</code> are shell-agnostic and work as-is.</p>
+<p><code>version</code> and <code>publish</code> shell out to bash scripts;
+<code>capture-enable</code>/<code>capture-disable</code> manage usbmon and dumpcap capabilities and
+are Linux-only; <code>clean</code>, <code>docs-clean</code>, and the <code>analyze-all</code>/<code>check-all</code>
+loops need a POSIX shell — or Git Bash, which ships with Git for Windows.</p>
+<h2 id="protocol-analysis-workflow">Protocol analysis workflow<a class="headerlink" href="#protocol-analysis-workflow" title="Permanent link">&para;</a></h2>
+<p>Every protocol claim in this repository is backed by a USB capture
+(<a href="../decisions/0001-verify-every-protocol-claim-against-device-captures/">ADR-0001</a>).
+The loop for discovering or verifying an opcode:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># One-time (Linux): load usbmon and grant non-root capture access</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>make<span class="w"> </span>capture-enable
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Record the manufacturer software performing ONE isolated action</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>uv<span class="w"> </span>run<span class="w"> </span>dspanalyze<span class="w"> </span>capture<span class="w"> </span>--output-dir<span class="w"> </span>analysis/usb_captures
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Decode it (writes a .meta.toml sidecar next to the capture)</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>make<span class="w"> </span>analyze<span class="w"> </span><span class="nv">FILE</span><span class="o">=</span>analysis/usb_captures/capture_....pcapng
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>make<span class="w"> </span>analyze-no-poll<span class="w"> </span><span class="nv">FILE</span><span class="o">=</span>...<span class="w">     </span><span class="c1"># without 0x40 level-poll noise</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="c1"># Compare the config reads inside one capture to find changed bytes</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>make<span class="w"> </span>diff-config<span class="w"> </span><span class="nv">FILE</span><span class="o">=</span>...
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="c1"># Guard existing knowledge: protocol assertions over all captures</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>make<span class="w"> </span>check-all
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="c1"># Revoke capture access again</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>make<span class="w"> </span>capture-disable
+</code></pre></div>
+<p>Findings then travel together in one pass: <code>dspanalyze/protocol_config.toml</code>
+(analyzer knowledge), <code>minidsp/protocol.py</code> + tests (runtime), and
+<a href="../protocol/">protocol.md</a> (the specification). The full CLI reference is on
+the <a href="../dspanalyze-usage/">DSP-Analyze CLI Usage</a> page; capture inventory
+conventions are in
+<a href="../decisions/0010-record-capture-metadata-in-toml-sidecars/">ADR-0010</a>.</p>
+<p>Two generated package resources have their own regeneration tools:
+<code>minidsp/factory_defaults.toml</code> via <code>dspanalyze extract-defaults</code> (from an
+F00-load capture) and <code>minidsp/calibration.toml</code> via <code>dspanalyze calibrate</code>
+(against a known signal source).</p>
+<h2 id="releasing">Releasing<a class="headerlink" href="#releasing" title="Permanent link">&para;</a></h2>
+<p>The release flow uses two helper scripts under
+<a href="https://github.com/IMBArator/miniDSP-Linux/tree/main/scripts"><code>scripts/</code></a>,
+wired into the Makefile:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># 1. Bump version in pyproject.toml + uv.lock, prepend a new CHANGELOG.md</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1">#    section (git-cliff), commit `chore(release): vX.Y.Z`, tag vX.Y.Z,</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1">#    optionally push.</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>make<span class="w"> </span>version<span class="w"> </span><span class="nv">VERSION</span><span class="o">=</span>X.Y.Z
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># 2. Push the commit + tag if you skipped the prompt above.</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>git<span class="w"> </span>push<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>vX.Y.Z
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="c1"># 3. Build the artifacts that publish.sh will attach.</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>make<span class="w"> </span>build<span class="w">           </span><span class="c1"># wheel + sdist into dist/</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="c1"># 4. Create the GitHub Release, upload wheel + sdist, and deploy the docs to</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="c1">#    GitHub Pages. Needs GITHUB_TOKEN (PAT with `repo` scope) in the</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="c1">#    environment.</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="nb">export</span><span class="w"> </span><span class="nv">GITHUB_TOKEN</span><span class="o">=</span>ghp_xxxxxxxxxxxxxxxxxxxx
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>make<span class="w"> </span>publish<span class="w">         </span><span class="c1"># or: make publish VERSION=X.Y.Z</span>
+</code></pre></div>
+<p>Release notes are extracted from the <code>## [X.Y.Z]</code> section of the
+<a href="../changelog/">Changelog</a>, which <code>make version</code> generates from Conventional
+Commits via <code>cliff.toml</code> — a hand-curated section survives later releases and
+flows to the GitHub Release verbatim
+(<a href="../decisions/0021-drive-the-changelog-from-conventional-commits-with-git-cliff/">ADR-0021</a>).
+Tags matching <code>-rc</code>, <code>-beta</code>, or <code>-alpha</code> are auto-flagged as prereleases.
+<code>version.sh</code> refuses to run from a dirty tree, a non-main branch, a duplicate
+tag, or a version regression, and previews the changelog before committing
+(<a href="../decisions/0023-write-release-automation-in-plain-bash-against-the-github-api/">ADR-0023</a>).</p>
+<p>Downstream: the Qt GUI pins this library to a published release wheel (its
+ADR-0003), so after publishing a version its PEP 508 pin can be bumped — its
+Development page currently lists the v1.3.0 wheel (Windows transport) as its
+open release blocker.</p>
+<h2 id="repository-structure">Repository structure<a class="headerlink" href="#repository-structure" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>minidsp/                  Python control package
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  __main__.py             Entry point (delegates to cli.main)
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  device.py               Open/close, send/recv, command methods, config read
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  transport.py            HID I/O backends: hidraw (Linux), hidapi (Windows)
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  protocol.py             Frame encoding/decoding, all command builders
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  calibration.toml        Level meter calibration (REF_LEVEL + anchor points)
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>  factory_defaults.toml   F00 factory-preset parameter values (raw protocol form)
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  defaults.py             load_factory_defaults() — parses the bundled TOML
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  cli.py                  CLI subcommands: dump, levels, mute, unmute
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>dspanalyze/               Protocol analysis toolchain
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>  cli.py                  Entry point: analyze, check, capture, diff-config, list-captures, calibrate, extract-defaults
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>  calibrate.py            Level meter calibration tool (capture, show, apply, reset)
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>  extract_defaults.py     Stitch F00 config pages → factory_defaults.json
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>  protocol_config.toml    All protocol knowledge (opcodes, fields, value formats)
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>  decode.py               Frame → structured command decoder
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>  capture.py              tshark-based USB capture with device auto-detect
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>  check.py                Protocol assertion framework
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>  readers/                pcapng and Wireshark text export parsers
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>  output/                 claude / human / raw output formatters
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>tests/                    Protocol and device-layer unit tests (pytest)
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>docs/                     MkDocs site sources
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a>  decisions/              Architecture decision records (MADR)
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a>analysis/                 Reverse engineering reference
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>  protocol.md             Full protocol specification
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a>  feature-list.md         DSP feature inventory with protocol status
+<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a>  usb_captures/           Wireshark USBPcap captures (.pcapng + .meta.toml)
+<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a>  resources/              Screenshots, manual PDF
+<a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a>
+<a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a>CLAUDE.md                 Agent/contributor working notes
+<a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a>scripts/                  version.sh + publish.sh (release automation)
+<a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a>Makefile                  Targets for test, build, docs, analysis, release
+</code></pre></div>
+<h2 id="architecture-decisions">Architecture decisions<a class="headerlink" href="#architecture-decisions" title="Permanent link">&para;</a></h2>
+<p>Lasting design decisions — and the positions the project abandoned along the
+way — are recorded as MADR files under
+<a href="../decisions/">Architecture Decisions</a>. Read the relevant record before
+proposing a change in an area it covers; several document alternatives that
+were already tried here.</p>
 
 
 
