@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-09-15
+
+### Added
+
+- Extract transport interface and add Windows hidapi backend ([`ff55876`](https://github.com/IMBArator/miniDSP-Linux/commit/ff558767b79c6f3013de10f913a14ff8a9e9ce6f))
+- Raise DeviceBusyError when another process holds the device ([`7f09147`](https://github.com/IMBArator/miniDSP-Linux/commit/7f09147a78bc11c2748b2bfe51cfd3918b32ee0d))
+
+### Documentation
+
+- Add MADR architecture decision log ([`38a1d51`](https://github.com/IMBArator/miniDSP-Linux/commit/38a1d514eb22e8641d89374d0f7ba6d90fa5c1d2))
+- Add working rules and docs/ to repo layout ([`dcd116d`](https://github.com/IMBArator/miniDSP-Linux/commit/dcd116dd37aade71960b3e8c1d0f3fbb373734eb))
+- Record Windows transport decision (ADR-0024) and document Windows install ([`a791f7e`](https://github.com/IMBArator/miniDSP-Linux/commit/a791f7ec5ef74738710c4a878e9701996f660051))
+- Replace development notes stub with a contributor guide ([`2aef99a`](https://github.com/IMBArator/miniDSP-Linux/commit/2aef99a4e189e9fb432636858dd6c40e6f824cef))
+
+### Fixed
+
+- Reuse capture's tshark discovery in the pcapng reader ([`d6de28d`](https://github.com/IMBArator/miniDSP-Linux/commit/d6de28dd98deff45460e295cdb8d3644390b0c39))
+
 ## [1.2.0] - 2026-06-20
 
 ### Added
