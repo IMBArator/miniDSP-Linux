@@ -74,6 +74,7 @@ analysis/                 # Protocol reverse engineering (reference only)
   resources/              # screenshots, manual PDF
 
 docs/                     # MkDocs site sources (transclusion stubs + generators)
+  development.md          # hand-written contributor guide (setup, tests, analysis workflow, releasing)
   decisions/              # architecture decision records (MADR); see decisions/index.md
 
 pyproject.toml            # build system, dependencies, entry points
