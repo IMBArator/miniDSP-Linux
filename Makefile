@@ -5,7 +5,7 @@ CAPTURES := analysis/usb_captures
 
 .PHONY: sync install test analyze analyze-raw analyze-no-poll analyze-human \
         analyze-summary analyze-all diff-config check-all \
-        capture-enable capture-disable build version publish help \
+        capture-enable capture-disable build clean version publish help \
         docs docs-serve docs-clean
 
 help:
@@ -15,6 +15,7 @@ help:
 	@echo "  build                   Build sdist and wheel (default)"
 	@echo "  version VERSION=X.Y.Z   Bump version, generate changelog, tag"
 	@echo "  publish [VERSION=X.Y.Z] Create GitHub Release + deploy docs (prompts if VERSION omitted)"
+	@echo "  clean                   Remove build artifacts (dist/, build/, *.egg-info)"
 	@echo ""
 	@echo "Development"
 	@echo "  sync                    Install all dependencies (incl. dev extras)"
@@ -50,6 +51,10 @@ test:
 
 build:
 	$(UV) build
+
+# Remove build artifacts (sdist/wheel + stale egg-info)
+clean:
+	rm -rf dist build *.egg-info
 
 # Create a release (usage: make version VERSION=X.Y.Z)
 version:
