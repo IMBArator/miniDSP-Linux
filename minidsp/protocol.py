@@ -827,14 +827,21 @@ def parse_levels(payload: bytes) -> dict | None:
             reference). Verified on the bench: InC alone at 261+ sets it,
             at 252 or less clears it; Out3 alone at 285 does not set it. Not
             a per-channel bitmask — a single input clipping yields 0x01.
+        - ``'clipping'``: list[bool] — per-channel clip state for all 8
+            channels (inputs 0–3, outputs 4–7), derived with
+            :func:`level_is_clipping` (``level >= LEVEL_CLIP_UINT16``). This
+            is the rule behind the editor's red "Clip" segments; use it to
+            drive per-channel clip LEDs.
     """
     if len(payload) != 28 or payload[0] != OP_POLL:
         return None
+    inputs = [_ch_level(payload, 1), _ch_level(payload, 4),
+              _ch_level(payload, 7), _ch_level(payload, 10)]
+    outputs = [_ch_level(payload, 13), _ch_level(payload, 16),
+               _ch_level(payload, 19), _ch_level(payload, 22)]
     return {
-        "inputs": [_ch_level(payload, 1), _ch_level(payload, 4),
-                   _ch_level(payload, 7), _ch_level(payload, 10)],
-        "outputs": [_ch_level(payload, 13), _ch_level(payload, 16),
-                    _ch_level(payload, 19), _ch_level(payload, 22)],
+        "inputs": inputs,
+        "outputs": outputs,
         "limiter_mask": payload[25],
         "state": payload[26],
         # Raw hex seen in "clip channel 1+2 in+out" capture while clipping:
@@ -842,6 +849,7 @@ def parse_levels(payload: bytes) -> dict | None:
         #                                        limiter^ state^ clip^
         # Bench 2026-09-20: InC post-gain 248-252 -> 00, 261-265 -> 01.
         "clip": payload[27] != 0,
+        "clipping": [level_is_clipping(v) for v in inputs + outputs],
     }
 
 
@@ -1291,6 +1299,31 @@ def delay_samples_to_ms(raw: int) -> float:
 # manufacturer's LED meter layout.  0 dBu → uint16 ~188, -30 dBu → uint16 ~5.
 LEVEL_REF_UINT16_FACTORY = 1153
 LEVEL_REF_UINT16 = LEVEL_REF_UINT16_FACTORY
+
+# Clip threshold of the manufacturer's meters: a channel is "clipping" once
+# its uint16 level reaches 256, i.e. the 8-bit pre-gain level overflows
+# (≈ +10 dBu with the bench-calibrated reference of 80).  Bench-verified
+# 2026-09-20 with a gain sweep on InC: 248–252 → device clip flag clear,
+# 261–265 → set.  The device's own flag (0x40 byte 27) is the OR of this
+# test over the four inputs only; the editor derives every channel's red
+# "Clip" segment (inputs and outputs) from the level itself.
+LEVEL_CLIP_UINT16 = 256
+
+
+def level_is_clipping(raw: int | float) -> bool:
+    """Return ``True`` when a uint16 level is at or above the clip threshold.
+
+    Applies the manufacturer's per-channel rule ``raw >= LEVEL_CLIP_UINT16``
+    to a single channel value from :func:`parse_levels`. Evaluate it on the
+    unsmoothed sample; averaging first hides one-frame transients.
+
+    Args:
+        raw: Linear uint16 amplitude from the device level response.
+
+    Returns:
+        ``True`` if the channel is clipping, else ``False``.
+    """
+    return raw >= LEVEL_CLIP_UINT16
 
 _CALIBRATION_LOADED = False
 

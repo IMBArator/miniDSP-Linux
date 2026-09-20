@@ -623,6 +623,16 @@ Consistent with the earlier captures: the sine sweep peaked at 264 on Out2
 but only 255 on In1 (`0x00`); the clip capture and both startup captures had
 In1 ≥ 323 (`0x01` throughout).
 
+**Per-channel clip (how the editor lights its red segments):** byte 27 is
+only a summary over the inputs, yet the editor shows a Clip segment on every
+channel including outputs. It derives them from the level itself with the same
+threshold: a channel is clipping when `uint16 >= 256`. This is one more step
+on the LED ladder `raw >= 80 × 10^(label/20)` that drives the other segments
+(−5 ≈ 45, +0 = 80, +5 ≈ 142). The library exposes the rule as
+`LEVEL_CLIP_UINT16` / `level_is_clipping()` and `parse_levels()` returns it
+per channel as `clipping`. Evaluate it on the raw sample, not on a smoothed
+value, or one-frame transients are missed.
+
 ---
 
 ## Communication Pattern

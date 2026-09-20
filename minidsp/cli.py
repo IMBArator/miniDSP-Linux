@@ -263,7 +263,8 @@ def cmd_levels(args: argparse.Namespace) -> None:
         csv_file = open(csv_path, "w", newline="")
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(["timestamp"] + [f"{n}_raw" for n in ch_names]
-                            + [f"{n}_dB" for n in ch_names] + ["clip"])
+                            + [f"{n}_dB" for n in ch_names]
+                            + [f"{n}_clip" for n in ch_names] + ["clip_flag"])
 
     count = args.count or 0
     interval = args.interval or 0.3
@@ -308,6 +309,7 @@ def cmd_levels(args: argparse.Namespace) -> None:
                 db_vals = [level_uint16_to_dbu(v) for v in all_vals]
                 db_strs = [f"{v:.2f}" if v != float("-inf") else "-inf" for v in db_vals]
                 csv_writer.writerow([ts] + all_vals + db_strs
+                                    + [int(c) for c in levels["clipping"]]
                                     + [int(levels["clip"])])
                 csv_file.flush()
 
@@ -316,13 +318,15 @@ def cmd_levels(args: argparse.Namespace) -> None:
                 t.add_column("Ch", style="bold", min_width=4)
                 t.add_column("Raw", justify="right", min_width=5)
                 t.add_column("dBu", justify="right", min_width=8)
-                for name, val in zip(ch_names, all_vals):
+                t.add_column("Clip", min_width=4)
+                for name, val, clipping in zip(ch_names, all_vals, levels["clipping"]):
                     db = level_uint16_to_dbu(val)
                     db_str = f"{db:+.1f}" if db != float("-inf") else " -inf"
-                    t.add_row(name, str(val), db_str)
+                    t.add_row(name, str(val), db_str,
+                              "[bold red]CLIP[/bold red]" if clipping else "")
                 console.print(t)
-                clip_str = "[bold red]CLIP[/bold red]" if levels["clip"] else "no"
-                console.print(f"  Clip: {clip_str}")
+                flag_str = "[bold red]set[/bold red]" if levels["clip"] else "clear"
+                console.print(f"  Device input clip flag: {flag_str}")
 
             n += 1
             if count and n >= count:

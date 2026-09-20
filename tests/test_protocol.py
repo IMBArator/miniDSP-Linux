@@ -44,6 +44,8 @@ from minidsp.protocol import (
     freq_raw_to_hz,
     freq_hz_to_raw,
     level_uint16_to_dbu,
+    level_is_clipping,
+    LEVEL_CLIP_UINT16,
     LEVEL_REF_UINT16,
     LEVEL_REF_UINT16_FACTORY,
     _ensure_ref_level,
@@ -328,6 +330,7 @@ def test_parse_levels_normal_mode():
     assert result["limiter_mask"] == 0x00
     assert result["state"] == 0x00
     assert result["clip"] is False
+    assert result["clipping"] == [False] * 8
 
 
 def test_parse_levels_clip_flag():
@@ -344,10 +347,26 @@ def test_parse_levels_clip_flag():
     assert result["limiter_mask"] == 0x00
     assert result["state"] == 0x01
     assert result["clip"] is True
+    # Per-channel rule level >= 256: In1, In2, Out1, Out2 clip
+    assert result["clipping"] == [True, True, False, False,
+                                  True, True, False, False]
 
     # Same frame with the flag cleared → clip False, everything else equal
     cleared = payload[:27] + b"\x00"
     assert parse_levels(cleared)["clip"] is False
+    assert parse_levels(cleared)["clipping"] == result["clipping"]
+
+
+def test_level_is_clipping_threshold():
+    """Bench 2026-09-20: 248–252 → flag clear, 261–265 → set; rule is >= 256."""
+    assert LEVEL_CLIP_UINT16 == 256
+    assert level_is_clipping(255) is False
+    assert level_is_clipping(256) is True
+    assert level_is_clipping(0) is False
+    assert level_is_clipping(2084) is True
+    # An output just under the threshold must not count (Out3 at 286 did
+    # not set the device flag, but 286 >= 256 is a per-channel clip).
+    assert level_is_clipping(286) is True
 
 
 def test_parse_levels_highres_mode():
