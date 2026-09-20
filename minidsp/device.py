@@ -267,7 +267,8 @@ class DSPmini:
         Returns:
             Dict with keys ``'inputs'`` (list[int], 4 channels),
             ``'outputs'`` (list[int], 4 channels), ``'limiter_mask'`` (int),
-            and ``'state'`` (int). Returns ``None`` on error or timeout.
+            ``'state'`` (int) and ``'clip'`` (bool, any-input clip flag).
+            Returns ``None`` on error or timeout.
         """
         payload = self._send_recv(cmd_poll())
         if payload is None:

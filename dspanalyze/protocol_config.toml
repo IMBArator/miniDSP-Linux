@@ -366,6 +366,7 @@ out3 = { offset = 19, size = 2, format = "level_uint16" }
 out4 = { offset = 22, size = 2, format = "level_uint16" }
 limiter_mask = { offset = 25, size = 1, format = "limiter_bitmask" }
 state = { offset = 26, size = 1, format = "uint8", note = "0x00=normal, 0x01=high-res" }
+clip = { offset = 27, size = 1, format = "uint8", note = "input clip flag: 0x01 while any input meter (post-gain) >= 256 (~+10 dBu), else 0x00; outputs do not set it" }
 
 # NOTE: 0x48 (GEQ) is NOT present on the 4x4 Mini — it is a DSP 408-only feature.
 

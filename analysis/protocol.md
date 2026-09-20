@@ -537,7 +537,7 @@ Offset  Size  Field
  ── Tail ──────────────────────────────────────────────
  25      1    Limiter active channel bitmask (see below)
  26      1    State flag (see below)
- 27      1    Reserved (0x00)
+ 27      1    Clip flag (see below)
 ```
 
 #### Level decoding
@@ -586,6 +586,42 @@ each event, `0x00` otherwise. Exactly 3 transitions from `0x00` to `0x08`.
 
 - `0x00` = normal metering mode (uint16=0, levels in instant byte of each triplet).
 - `0x01` = high-res mode (levels in uint16 LE of each triplet) or init/processing active.
+
+#### Clip flag (offset 27)
+
+Input clip indicator, mirroring the red "Clip" segment of the manufacturer's
+input meters. Observed values `0x00` / `0x01` only.
+
+**Bench verification (2026-09-20, 1 kHz sine at 0 dBu into InC, input gain
+stepped with `0x34`, everything else silent):**
+
+| InC gain | InC uint16 (post-gain) | Out3 uint16 | Byte 27 |
+|---|---|---|---|
+| +9.5 dB | 234–236 | 233–235 | `0x00` |
+| +10.0 dB | 248–252 | 248–250 | `0x00` |
+| +10.5 dB | 261–265 | 262–265 | `0x01` |
+| +11.0 dB | 277–281 | 278–282 | `0x01` |
+| +12.0 dB | 311–316 | 313–316 | `0x01` |
+
+With InC back at 0 dB and only the **Out3** gain raised to +12 dB
+(Out3 = 283–286, InC = 71–72) the byte stayed `0x00`.
+
+Conclusions:
+
+- **Threshold = 256**: the flag is set while any input meter reads ≥ 256,
+  i.e. when the post-gain input level overflows 8 bits. With the calibrated
+  reference this is ≈ +10 dBu.
+- **Inputs only**: an output above the threshold does not set it (tested up
+  to 286; higher output levels untested). Output overload is presumably
+  signalled elsewhere (limiter bitmask at byte 25 covers the compressor).
+- **Not a bitmask**: a single clipping input (InC) yields `0x01`, not `0x04`.
+  The value therefore means "at least one input is clipping".
+- **Post-gain**: the flag follows the input gain fader, so it reflects the
+  digital level after the `0x34` gain stage.
+
+Consistent with the earlier captures: the sine sweep peaked at 264 on Out2
+but only 255 on In1 (`0x00`); the clip capture and both startup captures had
+In1 ≥ 323 (`0x01` throughout).
 
 ---
 
@@ -1092,6 +1128,10 @@ analog input disable). Sine wave sweep confirmed all 31 frequency indices 0x00�
       ch1–3). Higher values were from a mic on ch4 picking up keyboard noise.
 - [ ] **Status flags (offsets 10, 22):** Not clip indicators (disproven). Only appear
       during init phase. Exact meaning unknown — startup artifact?
+- [x] **Clip flag (0x40 byte 27):** Any-input clip flag, set while an input meter
+      (post-gain) reads ≥ 256. Verified on the bench with a gain sweep (see "Clip flag").
+- [ ] **Output clip indication:** Byte 27 ignores outputs (tested to 286). Whether
+      outputs report clip at a higher level or through another field is unknown.
 - [ ] **Firmware version:** Is the footer `0x000abc8d` a version number?
 - [x] **Delay command:** Opcode `0x38` — `38 [ch] [samples_lo] [samples_hi]`, uint16 LE samples at 48 kHz.
       Config stored at output block bytes 70–71. First known implementation (not in dsp-408-ui).

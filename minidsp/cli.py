@@ -263,7 +263,7 @@ def cmd_levels(args: argparse.Namespace) -> None:
         csv_file = open(csv_path, "w", newline="")
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(["timestamp"] + [f"{n}_raw" for n in ch_names]
-                            + [f"{n}_dB" for n in ch_names])
+                            + [f"{n}_dB" for n in ch_names] + ["clip"])
 
     count = args.count or 0
     interval = args.interval or 0.3
@@ -307,7 +307,8 @@ def cmd_levels(args: argparse.Namespace) -> None:
                 ts = f"{time.time():.3f}"
                 db_vals = [level_uint16_to_dbu(v) for v in all_vals]
                 db_strs = [f"{v:.2f}" if v != float("-inf") else "-inf" for v in db_vals]
-                csv_writer.writerow([ts] + all_vals + db_strs)
+                csv_writer.writerow([ts] + all_vals + db_strs
+                                    + [int(levels["clip"])])
                 csv_file.flush()
 
             if not args.csv_only:
@@ -320,6 +321,8 @@ def cmd_levels(args: argparse.Namespace) -> None:
                     db_str = f"{db:+.1f}" if db != float("-inf") else " -inf"
                     t.add_row(name, str(val), db_str)
                 console.print(t)
+                clip_str = "[bold red]CLIP[/bold red]" if levels["clip"] else "no"
+                console.print(f"  Clip: {clip_str}")
 
             n += 1
             if count and n >= count:

@@ -327,6 +327,27 @@ def test_parse_levels_normal_mode():
     assert result["outputs"] == [0, 0, 0, 0]
     assert result["limiter_mask"] == 0x00
     assert result["state"] == 0x00
+    assert result["clip"] is False
+
+
+def test_parse_levels_clip_flag():
+    """Byte 27 is the any-input clip flag (frame from the 'clip channel 1+2
+    in+out' capture: In1=726, In2=700, Out1=561, Out2=916, clip=0x01)."""
+    payload = bytes.fromhex(
+        "40" "d6023c" "bc0242" "000054" "000000"
+        "3102e4" "94031d" "000035" "00000a" "00" "01" "01"
+    )
+    result = parse_levels(payload)
+    assert result is not None
+    assert result["inputs"] == [726, 700, 0, 0]
+    assert result["outputs"] == [561, 916, 0, 0]
+    assert result["limiter_mask"] == 0x00
+    assert result["state"] == 0x01
+    assert result["clip"] is True
+
+    # Same frame with the flag cleared → clip False, everything else equal
+    cleared = payload[:27] + b"\x00"
+    assert parse_levels(cleared)["clip"] is False
 
 
 def test_parse_levels_highres_mode():
@@ -356,6 +377,7 @@ def test_parse_levels_highres_mode():
     assert result is not None
     assert result["inputs"] == [134, 141, 0, 0]
     assert result["outputs"] == [93, 264, 0, 0]
+    assert result["clip"] is False
 
 
 def test_ch_level_uint16_le():
@@ -627,7 +649,9 @@ def test_level_uint16_to_dbu():
     assert level_uint16_to_dbu(current_ref) == 0.0
     assert level_uint16_to_dbu(0) == float("-inf")
     assert level_uint16_to_dbu(0.009) == float("-inf")
-    assert level_uint16_to_dbu(1) < level_uint16_to_dbu(100) < level_uint16_to_dbu(current_ref)
+    # Monotonic and independent of the calibrated reference value
+    assert level_uint16_to_dbu(1) < level_uint16_to_dbu(current_ref / 2) < level_uint16_to_dbu(current_ref)
+    assert abs(level_uint16_to_dbu(current_ref * 2) - 6.02) < 0.01
 
 
 def test_ensure_ref_level_returns_factory_without_user_config():

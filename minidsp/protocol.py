@@ -802,7 +802,8 @@ def _ch_level(payload: bytes, group_start: int) -> int:
 def parse_levels(payload: bytes) -> dict | None:
     """Parse a 28-byte level monitoring response (opcode 0x40).
 
-    Payload layout: opcode + 8 × 3-byte channel triplets + 3-byte tail.
+    Payload layout: opcode + 8 × 3-byte channel triplets + 3-byte tail
+    ``[limiter_mask, state, clip]``.
     Each triplet: ``[val_lo, val_hi, instant]`` — uint16 LE + instant sample.
     Input channels at offsets 1, 4, 7, 10; output channels at 13, 16, 19, 22.
 
@@ -820,6 +821,12 @@ def parse_levels(payload: bytes) -> dict | None:
             actively clamping (gain reduction engaged).
         - ``'state'``: int — device state byte at payload[26]; semantics not
             fully decoded.
+        - ``'clip'``: bool — input clip flag from payload[27]. ``True`` while
+            any *input* meter (post input gain) reads 256 or more, i.e. the
+            8-bit level range overflows (about +10 dBu with the calibrated
+            reference). Verified on the bench: InC alone at 261+ sets it,
+            at 252 or less clears it; Out3 alone at 285 does not set it. Not
+            a per-channel bitmask — a single input clipping yields 0x01.
     """
     if len(payload) != 28 or payload[0] != OP_POLL:
         return None
@@ -830,6 +837,11 @@ def parse_levels(payload: bytes) -> dict | None:
                     _ch_level(payload, 19), _ch_level(payload, 22)],
         "limiter_mask": payload[25],
         "state": payload[26],
+        # Raw hex seen in "clip channel 1+2 in+out" capture while clipping:
+        #   40 d6 02 3c bc 02 42 .. 31 02 e4 94 03 1d .. 00 01 01
+        #                                        limiter^ state^ clip^
+        # Bench 2026-09-20: InC post-gain 248-252 -> 00, 261-265 -> 01.
+        "clip": payload[27] != 0,
     }
 
 

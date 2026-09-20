@@ -28,7 +28,7 @@ Compiled from: manufacturer tool screenshots (`analysis/resources/`), PDF user m
 | **Mute** | Per-channel on/off | **Captured & implemented** (`0x35`) |
 | **Phase Invert** | 180 degree polarity flip ("Normal" / "Inverse" button) | **Captured & implemented** (`0x36`) |
 | **Noise Gate** | Per-input: Threshold, Attack, Hold, Release | **Captured & implemented** (`0x3E`) |
-| **Level Meter** | Real-time level with clip indicator | **Captured & implemented** (`0x40`) |
+| **Level Meter** | Real-time level with clip indicator | **Captured & implemented** (`0x40`, any-input clip flag at byte 27, threshold uint16 ≥ 256) |
 
 **Gate parameters:**
 - Threshold: -90.0 to 0.0 dB
@@ -47,7 +47,7 @@ Compiled from: manufacturer tool screenshots (`analysis/resources/`), PDF user m
 | **Phase Invert** | 180 degree polarity flip | **Captured & implemented** (`0x36`) |
 | **Compressor** | Per-output: Threshold, Attack, Ratio, Release, Knee | **Captured & implemented** (`0x30`, all 5 params in one frame) |
 | **Output Delay** | Per-output, 0–680 ms in sample steps | **Captured & implemented** (`0x38`; unit selector `0x15`) |
-| **Level Meter** | Real-time level with clip + limiter active indicators | **Captured & implemented** (`0x40`, limiter bitmask at byte 25) |
+| **Level Meter** | Real-time level with clip + limiter active indicators | **Captured & implemented** (`0x40`, limiter bitmask at byte 25; byte 27 clip flag covers inputs only) |
 
 **Compressor parameters (all sent together in one `0x30` frame):**
 - Threshold (bytes 8–9): −90.0 to +20.0 dB — `raw = 2 × (dB + 90)`, uint16 LE, range 0–220, 0.5 dB/step
