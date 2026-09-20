@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2026-09-20
+
+### Added
+
+- Expose the 0x40 input clip flag (payload byte 27) ([`5c7793a`](https://github.com/IMBArator/miniDSP-Linux/commit/5c7793a526876429ea39eebc02d6051cdfe1f096))
+- Add per-channel clip rule (level >= 256) and expose it ([`4b67af2`](https://github.com/IMBArator/miniDSP-Linux/commit/4b67af2590549edc3f561ad9a52728efc4c2d04f))
+- Decode 24-bit levels, add editor dB scale, clip at editor threshold ([`1aa5e1f`](https://github.com/IMBArator/miniDSP-Linux/commit/1aa5e1fe120608c800ea73f2b81d9fd71707e912))
+
+### Fixed
+
+- Re-anchor level meter to a voltmeter-verified 0 dBu ([`3e8cc16`](https://github.com/IMBArator/miniDSP-Linux/commit/3e8cc160f35db2d68fd959a85c6dbf935ba21ac6))
+- Refit reference from three 24-bit points on InC ([`df1bf4c`](https://github.com/IMBArator/miniDSP-Linux/commit/df1bf4c1c854df97b8d4f4f873a859a160abf357))
+
 ## [1.3.0] - 2026-09-15
 
 ### Added
