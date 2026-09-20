@@ -1,22 +1,36 @@
-ref_level24 = 20477.4
-ref_level = 79.99
+ref_level24 = 20205.5
+ref_level = 78.93
+ref_level24_computed = 20205.5
 
 [[points]]
 dbu = 6.0
 channel = "InC"
 channel_index = 2
-mean_uint16 = 161.4
-min_uint16 = 160
-max_uint16 = 163
+mean_level24 = 40127.4
+min_level24 = 39732
+max_level24 = 40675
+mean_uint16 = 156.75
 samples = 20
-timestamp = "2026-09-20T13:13:05"
+timestamp = "2026-09-20T17:26:33"
 
 [[points]]
 dbu = 0.0
 channel = "InC"
 channel_index = 2
-mean_uint16 = 78.15
-min_uint16 = 77
-max_uint16 = 79
+mean_level24 = 20136.1
+min_level24 = 19891
+max_level24 = 20436
+mean_uint16 = 78.66
 samples = 20
-timestamp = "2026-09-20T13:08:41"
+timestamp = "2026-09-20T17:25:19"
+
+[[points]]
+dbu = -10.0
+channel = "InC"
+channel_index = 2
+mean_level24 = 6641.4
+min_level24 = 6405
+max_level24 = 6911
+mean_uint16 = 25.94
+samples = 20
+timestamp = "2026-09-20T17:27:50"
