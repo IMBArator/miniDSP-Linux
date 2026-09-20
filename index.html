@@ -3240,7 +3240,7 @@
 <h3 id="cli-minidsp">CLI (<code>minidsp</code>)<a class="headerlink" href="#cli-minidsp" title="Permanent link">&para;</a></h3>
 <p>A command-line utility for quick access to common operations — additional commands are added on demand:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>dump                    Dump all DSP configuration parameters as tables
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>levels [--watch]        Snapshot live level meters (raw uint16 + dBu)
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>levels [--watch]        Snapshot live level meters (raw level + dBu + clip)
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>mute    [channel ...]   Mute input channel(s)
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>unmute  [channel ...]   Unmute input channel(s)
 </code></pre></div>
@@ -3302,7 +3302,7 @@ PowerShell — uv provisions Python itself, so nothing else is needed:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Dump all DSP parameters (presets, gains, EQ, crossover, compressor, …)</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>minidsp<span class="w"> </span>dump
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Snapshot live level meters (all 8 channels: raw uint16 + dBu)</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Snapshot live level meters (all 8 channels: raw 24-bit level + dBu + clip)</span>
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>minidsp<span class="w"> </span>levels
 <a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># Continuous level monitoring (Ctrl+C to stop)</span>

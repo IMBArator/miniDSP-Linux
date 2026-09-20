@@ -2,230 +2,230 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/changelog/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/development/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/dspanalyze-usage/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/feature-list/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/protocol/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/calibrate/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/capture/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/check/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/cli/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/config/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/decode/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/diff_config/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/extract_defaults/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/metadata/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/output/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/output/claude/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/output/human/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/output/raw/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/readers/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/readers/pcapng/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/dspanalyze/readers/wireshark_text/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/minidsp/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/minidsp/cli/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/minidsp/defaults/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/minidsp/device/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/minidsp/protocol/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/api/minidsp/transport/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0000-record-architecture-decisions-as-madr-files/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0001-verify-every-protocol-claim-against-device-captures/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0002-speak-to-the-device-through-hidraw-without-a-usb-library/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0003-license-under-gpl-3-0/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0004-keep-this-repository-library-first-and-develop-the-gui-separately/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0005-cross-reference-dsp-408-ui-but-trust-only-on-device-verification/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0006-build-a-dedicated-analysis-package-instead-of-throwaway-scripts/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0007-encode-protocol-knowledge-in-a-declarative-toml/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0008-drive-usb-capture-and-parsing-through-tshark-subprocesses/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0009-guard-protocol-knowledge-with-capture-assertions/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0010-record-capture-metadata-in-toml-sidecars/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0011-make-minidsp-protocol-the-single-source-of-conversions-and-constants/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0012-serialise-device-access-with-an-exclusive-flock-on-the-hidraw-fd/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0013-fail-fast-on-unready-devices-and-retry-the-init-handshake/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0014-raise-typed-oserror-subclasses-for-device-failures/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0015-validate-every-device-response-instead-of-fire-and-forget/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0016-refuse-to-overwrite-the-factory-preset-slot/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0017-bundle-factory-defaults-as-a-package-resource-in-raw-protocol-form/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0018-add-observability-with-stdlib-logging-behind-verbosity-flags/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0019-ship-level-meter-calibration-as-an-editable-package-resource/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0020-manage-the-project-with-uv-and-hatchling/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0021-drive-the-changelog-from-conventional-commits-with-git-cliff/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0022-publish-docs-as-an-mkdocs-site-that-transcludes-sources-in-place/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0023-write-release-automation-in-plain-bash-against-the-github-api/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/0024-support-windows-through-a-hidapi-transport/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
     <url>
          <loc>https://imbarator.github.io/miniDSP-Linux/decisions/adr-template/</loc>
-         <lastmod>2026-09-15</lastmod>
+         <lastmod>2026-09-20</lastmod>
     </url>
 </urlset>

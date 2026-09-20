@@ -3029,7 +3029,7 @@
 <tr>
 <td><strong>Level Meter</strong></td>
 <td>Real-time level with clip indicator</td>
-<td><strong>Captured &amp; implemented</strong> (<code>0x40</code>)</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x40</code>, 24-bit levels; per-channel clip rule from the editor, plus device any-input clip flag at byte 27)</td>
 </tr>
 </tbody>
 </table>
@@ -3077,7 +3077,7 @@
 <tr>
 <td><strong>Level Meter</strong></td>
 <td>Real-time level with clip + limiter active indicators</td>
-<td><strong>Captured &amp; implemented</strong> (<code>0x40</code>, limiter bitmask at byte 25)</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x40</code>, limiter bitmask at byte 25; byte 27 clip flag covers inputs only)</td>
 </tr>
 </tbody>
 </table>

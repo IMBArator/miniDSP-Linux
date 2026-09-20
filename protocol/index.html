@@ -819,6 +819,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#clip-flag-offset-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clip flag (offset 27)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3544,6 +3555,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#clip-flag-offset-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clip flag (offset 27)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -4552,112 +4574,269 @@ and outputs.</p>
 <a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>Full frame header: 10 02 01 00 1c 40 ...
 </code></pre></div>
 <h4 id="payload-layout-3-byte-channel-triplets">Payload layout — 3-byte channel triplets<a class="headerlink" href="#payload-layout-3-byte-channel-triplets" title="Permanent link">&para;</a></h4>
-<p>Each channel is encoded as a <strong>3-byte triplet: <code>[val_lo] [val_hi] [instant]</code></strong>.</p>
-<p>The first two bytes form a <strong>uint16 LE</strong> filtered/peak level (range 0–~264,
-observed Out2 reaching 264 at max analog input). The third byte is a noisy
-instantaneous sample (0–255).</p>
-<p>The device autonomously switches between two reporting modes:
-- <strong>Normal mode (state=0x00):</strong> uint16=0, <code>instant</code> has the level — use instant byte
-- <strong>High-res mode (state=0x01):</strong> uint16&gt;0, smooth firmware-filtered value — use uint16</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>Offset  Size  Field
-<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>──────  ────  ─────────────────────────────────────────
-<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>  0      1    Sub-type: always 0x40
-<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>
-<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a> ── Input channel triplets ────────────────────────────
-<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>  1–3    3    Input 1: [val_lo, val_hi, instant]
-<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>  4–6    3    Input 2: [val_lo, val_hi, instant]
-<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>  7–9    3    Input 3: [val_lo, val_hi, instant]
-<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a> 10–12   3    Input 4: [val_lo, val_hi, instant]
-<a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a>
-<a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a> ── Output channel triplets ───────────────────────────
-<a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a> 13–15   3    Output 1: [val_lo, val_hi, instant]
-<a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a> 16–18   3    Output 2: [val_lo, val_hi, instant]
-<a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a> 19–21   3    Output 3: [val_lo, val_hi, instant]
-<a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a> 22–24   3    Output 4: [val_lo, val_hi, instant]
-<a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a>
-<a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a> ── Tail ──────────────────────────────────────────────
-<a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a> 25      1    Limiter active channel bitmask (see below)
-<a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a> 26      1    State flag (see below)
-<a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a> 27      1    Reserved (0x00)
+<p>Each channel is a <strong>24-bit linear level</strong> sent as a 3-byte triplet
+<strong><code>[mid] [high] [low]</code></strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>level24 = low | mid &lt;&lt; 8 | high &lt;&lt; 16
+</code></pre></div>
+<p>This is exactly how the manufacturer's editor assembles it (reverse-engineered
+from its meter routine with Ghidra, 2026-09-20: it reads bytes 3ch+2, 3ch,
+3ch+1 and builds a 32-bit integer <code>low&lt;&lt;8 | mid&lt;&lt;16 | high&lt;&lt;24</code>, i.e.
+<code>level24 × 256</code>). Earlier revisions of this document treated the first two
+bytes as a uint16 and the third as a "noisy instant sample"; the third byte
+is simply the least-significant byte, which jitters by a few counts on a
+steady signal. The legacy uint16 value is <code>level24 &gt;&gt; 8</code>. A triplet of
+<code>ff ff ff</code> is treated as 0 by the editor.</p>
+<p>Evidence: in the sine-sweep capture the triplet ramps monotonically as a
+24-bit value while the upper 16 bits are still 0 or 1
+(<code>00 00 14</code> → 20, <code>00 00 bf</code> → 191, <code>01 00 0c</code> → 268, <code>01 00 23</code> → 291,
+<code>07 00 b7</code> → 1975, <code>0b 00 09</code> → 2825 …).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>Offset  Size  Field
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>──────  ────  ─────────────────────────────────────────
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>  0      1    Sub-type: always 0x40
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a> ── Input channel triplets ────────────────────────────
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>  1–3    3    Input 1: [mid, high, low]
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>  4–6    3    Input 2: [mid, high, low]
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>  7–9    3    Input 3: [mid, high, low]
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a> 10–12   3    Input 4: [mid, high, low]
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a>
+<a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a> ── Output channel triplets ───────────────────────────
+<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a> 13–15   3    Output 1: [mid, high, low]
+<a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a> 16–18   3    Output 2: [mid, high, low]
+<a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a> 19–21   3    Output 3: [mid, high, low]
+<a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a> 22–24   3    Output 4: [mid, high, low]
+<a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a>
+<a id="__codelineno-23-17" name="__codelineno-23-17" href="#__codelineno-23-17"></a> ── Tail ──────────────────────────────────────────────
+<a id="__codelineno-23-18" name="__codelineno-23-18" href="#__codelineno-23-18"></a> 25      1    Limiter active channel bitmask (see below)
+<a id="__codelineno-23-19" name="__codelineno-23-19" href="#__codelineno-23-19"></a> 26      1    State flag (see below)
+<a id="__codelineno-23-20" name="__codelineno-23-20" href="#__codelineno-23-20"></a> 27      1    Clip flag (see below)
 </code></pre></div>
 <h4 id="level-decoding">Level decoding<a class="headerlink" href="#level-decoding" title="Permanent link">&para;</a></h4>
-<p>Use only the uint16 LE value for metering:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>level = val_lo + val_hi * 256
-</code></pre></div></p>
-<p>The uint16 is a <strong>linear amplitude</strong> value. When uint16 = 0, the signal is
-below the display threshold (including noise floor). The instant byte is on an
-incompatible scale and should be ignored for metering purposes.</p>
-<p><strong>Calibration</strong> (verified from captures at known analog levels):</p>
+<p><code>level24</code> is a <strong>linear amplitude</strong>. Two dB scales are in use:</p>
+<p><strong>Editor scale</strong> (exact formula of the manufacturer's meter routine):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>dB_editor = 20 * log10(level24 / 2^19) + 28
+</code></pre></div>
+<p>The routine computes <code>20*log10((level24*256 + 1e-6) * 2^-27)</code> and lights LED
+segment <em>i</em> when the result exceeds <code>T_i − 28</code>, where <code>T</code> is a fixed table:</p>
 <table>
 <thead>
 <tr>
-<th>Analog level</th>
-<th>uint16 (In1)</th>
-<th>Manufacturer display</th>
+<th>Bar</th>
+<th>Table <code>T</code></th>
+<th>Segment labels</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>-30 dBu</td>
-<td>~5</td>
-<td>2 green LEDs</td>
+<td>inputs</td>
+<td>−40, −30, −20, −10, −5, 0, 5, 10, 11</td>
+<td>−50, −30, −20, −10, −5, +0, +5, +12, Clip</td>
 </tr>
 <tr>
-<td>0 dBu</td>
-<td>~188</td>
-<td>1 yellow LED (green/yellow boundary)</td>
-</tr>
-<tr>
-<td>Max console out</td>
-<td>~264</td>
-<td>Well into yellow</td>
+<td>outputs</td>
+<td>−40, −30, −10, −5, 0, 5, 10, 11</td>
+<td>−50, −30, −10, −5, +0, +5, +12, Clip (+ Limit)</td>
 </tr>
 </tbody>
 </table>
-<p>The 30 dB difference between 188 and 5 confirms linear amplitude encoding:
-188 / 5 = 37.6 ≈ 10^(31.5/20) = 37.6. The small deviation from the expected
-ratio of 31.6 is due to integer quantization at low values.</p>
-<p><strong>Display scaling</strong>: dB conversion with <code>20*log10(level / 1153)</code> and a 63 dB
-range places -30 dBu at 25% and 0 dBu at 75% of the meter, matching the
-manufacturer's LED meter layout.</p>
+<p>So the printed labels are cosmetic: the "−50" segment lights at −40 dB, "+12"
+at +10 dB and "Clip" at +11 dB on the editor scale. Thresholds in raw units,
+<code>level24 = 2^19 · 10^((T−28)/20)</code>:</p>
+<table>
+<thead>
+<tr>
+<th><code>T</code> (label)</th>
+<th>level24</th>
+<th>uint16 equiv.</th>
+<th>Bench / capture check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>−40 ("−50")</td>
+<td>209</td>
+<td>0.8</td>
+<td>first LED visible at low byte 253, dark at 186</td>
+</tr>
+<tr>
+<td>−30</td>
+<td>660</td>
+<td>2.6</td>
+<td>−30 dBu capture (uint16 5): lit</td>
+</tr>
+<tr>
+<td>−20</td>
+<td>2087</td>
+<td>8.2</td>
+<td>not lit at uint16 5</td>
+</tr>
+<tr>
+<td>−5</td>
+<td>11 738</td>
+<td>45.9</td>
+<td></td>
+</tr>
+<tr>
+<td>0 ("+0")</td>
+<td>20 872</td>
+<td>81.5</td>
+<td>blinks at uint16 80–81</td>
+</tr>
+<tr>
+<td>5</td>
+<td>37 113</td>
+<td>145.0</td>
+<td>yellow starts at uint16 ~145</td>
+</tr>
+<tr>
+<td>10 ("+12")</td>
+<td>66 004</td>
+<td>257.8</td>
+<td>dark at uint16 254–256</td>
+</tr>
+<tr>
+<td>11 ("Clip")</td>
+<td>74 058</td>
+<td>289.3</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Calibrated dBu scale</strong> (<code>minidsp levels</code>, <code>level24_to_dbu()</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>dBu = 20 * log10(level24 / REF_LEVEL24)
+</code></pre></div>
+<p><code>REF_LEVEL24</code> is measured with a voltmeter via <code>dspanalyze calibrate</code> and
+stored in <code>minidsp/calibration.toml</code>. Bench 2026-09-20 on InC, input gain
+0 dB: 0.775 Vrms (0 dBu) → uint16 78.2, 1.55 Vrms (+6 dBu) → uint16 161.4,
+best fit <code>REF ≈ 80 × 256</code>. The editor's own 0 dB point (uint16 81.5) is
+therefore about 0.3 dB above true dBu; without a calibration file the
+library uses the editor's point as factory default.</p>
+<p><strong>Input ceiling:</strong> at 0 dB input gain the input level tops out at
+<code>level24 ≈ 65 536</code> (uint16 255–256), seen in the sine sweep, the saturated
++4 dBu calibration attempt and the clip capture (max 1019 = 255 × 10^(12/20)
+at +12 dB gain). The meter is post-gain: <code>level = 8-bit ADC level × gain</code>.
+Consequently "+12" and "Clip" can only light on inputs with positive input
+gain.</p>
+<p><strong>Per-channel clip:</strong> the editor derives every channel's red segment from the
+level alone: <code>level24 ≥ 74 058</code> (uint16 ≈ 289.3). The library exposes this as
+<code>LEVEL_CLIP_LEVEL24</code> / <code>level24_is_clipping()</code> and <code>parse_levels()</code> returns
+it per channel as <code>clipping</code>. Evaluate it on the raw sample, not on a
+smoothed value, or one-frame transients are missed. This differs from the
+device's own byte-27 flag (below), which trips at uint16 256 and covers
+inputs only.</p>
 <h4 id="limiter-active-channel-bitmask-offset-25">Limiter active channel bitmask (offset 25)<a class="headerlink" href="#limiter-active-channel-bitmask-offset-25" title="Permanent link">&para;</a></h4>
 <p>Reports <strong>which output channel(s)</strong> have their compressor/limiter currently
 triggered. Same bitmask scheme as the channel link flags:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>Bit 0 (0x01) = Out1
-<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>Bit 1 (0x02) = Out2
-<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>Bit 2 (0x04) = Out3
-<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>Bit 3 (0x08) = Out4
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>Bit 0 (0x01) = Out1
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>Bit 1 (0x02) = Out2
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>Bit 2 (0x04) = Out3
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>Bit 3 (0x08) = Out4
 </code></pre></div>
 <p>In the limiter capture (output ch4 triggered 3 times): byte 25 = <code>0x08</code> during
 each event, <code>0x00</code> otherwise. Exactly 3 transitions from <code>0x00</code> to <code>0x08</code>.</p>
 <h4 id="state-flag-offset-26">State flag (offset 26)<a class="headerlink" href="#state-flag-offset-26" title="Permanent link">&para;</a></h4>
 <ul>
-<li><code>0x00</code> = normal metering mode (uint16=0, levels in instant byte of each triplet).</li>
-<li><code>0x01</code> = high-res mode (levels in uint16 LE of each triplet) or init/processing active.</li>
+<li><code>0x00</code> = observed while all channel levels are below <code>level24 = 256</code>
+  (upper 16 bits zero) and during idle/init.</li>
+<li><code>0x01</code> = observed as soon as any channel's upper 16 bits are non-zero, and
+  during init/processing. The editor does not read this byte; exact
+  semantics unconfirmed.</li>
 </ul>
+<h4 id="clip-flag-offset-27">Clip flag (offset 27)<a class="headerlink" href="#clip-flag-offset-27" title="Permanent link">&para;</a></h4>
+<p>Input clip indicator, mirroring the red "Clip" segment of the manufacturer's
+input meters. Observed values <code>0x00</code> / <code>0x01</code> only.</p>
+<p><strong>Bench verification (2026-09-20, 1 kHz sine at 0 dBu into InC, input gain
+stepped with <code>0x34</code>, everything else silent):</strong></p>
+<table>
+<thead>
+<tr>
+<th>InC gain</th>
+<th>InC uint16 (post-gain)</th>
+<th>Out3 uint16</th>
+<th>Byte 27</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+9.5 dB</td>
+<td>234–236</td>
+<td>233–235</td>
+<td><code>0x00</code></td>
+</tr>
+<tr>
+<td>+10.0 dB</td>
+<td>248–252</td>
+<td>248–250</td>
+<td><code>0x00</code></td>
+</tr>
+<tr>
+<td>+10.5 dB</td>
+<td>261–265</td>
+<td>262–265</td>
+<td><code>0x01</code></td>
+</tr>
+<tr>
+<td>+11.0 dB</td>
+<td>277–281</td>
+<td>278–282</td>
+<td><code>0x01</code></td>
+</tr>
+<tr>
+<td>+12.0 dB</td>
+<td>311–316</td>
+<td>313–316</td>
+<td><code>0x01</code></td>
+</tr>
+</tbody>
+</table>
+<p>With InC back at 0 dB and only the <strong>Out3</strong> gain raised to +12 dB
+(Out3 = 283–286, InC = 71–72) the byte stayed <code>0x00</code>.</p>
+<p>Conclusions:</p>
+<ul>
+<li><strong>Threshold = 256</strong>: the flag is set while any input meter reads ≥ 256,
+  i.e. when the post-gain input level overflows 8 bits. With the calibrated
+  reference this is ≈ +10 dBu.</li>
+<li><strong>Inputs only</strong>: an output above the threshold does not set it (tested up
+  to 286; higher output levels untested). Output overload is presumably
+  signalled elsewhere (limiter bitmask at byte 25 covers the compressor).</li>
+<li><strong>Not a bitmask</strong>: a single clipping input (InC) yields <code>0x01</code>, not <code>0x04</code>.
+  The value therefore means "at least one input is clipping".</li>
+<li><strong>Post-gain</strong>: the flag follows the input gain fader, so it reflects the
+  digital level after the <code>0x34</code> gain stage.</li>
+</ul>
+<p>Consistent with the earlier captures: the sine sweep peaked at 264 on Out2
+but only 255 on In1 (<code>0x00</code>); the clip capture and both startup captures had
+In1 ≥ 323 (<code>0x01</code> throughout).</p>
+<p><strong>Relation to the editor's Clip segment:</strong> the editor never reads byte 27
+(its meter routine consumes data bytes 0–24 only: eight triplets plus the
+limiter mask). Its per-channel Clip segments come from the level itself at
+<code>level24 ≥ 74 058</code> (uint16 ≈ 289), see "Level decoding". The device flag
+trips earlier, at uint16 256 (the 8-bit ADC-level overflow after gain), and
+only for inputs — so between uint16 256 and 289 the flag is set while the
+editor shows "+12" but not yet "Clip".</p>
 <hr />
 <h2 id="communication-pattern">Communication Pattern<a class="headerlink" href="#communication-pattern" title="Permanent link">&para;</a></h2>
 <p>Normal monitoring loop (~6–7 packets/second):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>Host  ──[POLL 0x40]──►  Device
-<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>Host  ◄──[LEVEL 0x40]──  Device
-<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>Host  ──[POLL 0x40]──►  Device
-<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>Host  ◄──[LEVEL 0x40]──  Device
-<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>  ...repeats...
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>Host  ──[POLL 0x40]──►  Device
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>Host  ◄──[LEVEL 0x40]──  Device
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>Host  ──[POLL 0x40]──►  Device
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>Host  ◄──[LEVEL 0x40]──  Device
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a>  ...repeats...
 </code></pre></div>
 <p>Parameter change (mute, gain, etc.):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>Host  ──[CMD 0x35/0x34/...]──►  Device
-<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>Host  ◄──[ACK 0x01]────────────  Device
-<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>Host  ──[POLL 0x40]────────────►  Device     (resumes normal polling)
-<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>Host  ◄──[LEVEL 0x40]──────────  Device
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>Host  ──[CMD 0x35/0x34/...]──►  Device
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>Host  ◄──[ACK 0x01]────────────  Device
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>Host  ──[POLL 0x40]────────────►  Device     (resumes normal polling)
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>Host  ◄──[LEVEL 0x40]──────────  Device
 </code></pre></div>
 <p>During rapid fader movement, commands are interleaved with polling:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>Host  ──[GAIN 0x34 val1]──►  Device
-<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>Host  ◄──[ACK]──────────────  Device
-<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>Host  ──[GAIN 0x34 val2]──►  Device
-<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>Host  ◄──[ACK]──────────────  Device
-<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a>  ...burst of gain updates...
-<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>Host  ──[POLL 0x40]────────►  Device       (when fader stops moving)
-<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a>Host  ◄──[LEVEL 0x40]──────  Device
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>Host  ──[GAIN 0x34 val1]──►  Device
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>Host  ◄──[ACK]──────────────  Device
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>Host  ──[GAIN 0x34 val2]──►  Device
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>Host  ◄──[ACK]──────────────  Device
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>  ...burst of gain updates...
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>Host  ──[POLL 0x40]────────►  Device       (when fader stops moving)
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a>Host  ◄──[LEVEL 0x40]──────  Device
 </code></pre></div>
 <hr />
 <h2 id="known-register-map">Known Register Map<a class="headerlink" href="#known-register-map" title="Permanent link">&para;</a></h2>
@@ -4900,7 +5079,7 @@ reverse-engineered the same Musicrown protocol for the DSP 408 over TCP/Ethernet
 The binary protocol is transport-agnostic — these should work identically over USB HID.</p>
 <h3 id="0x33-peq-parametric-eq">0x33 — PEQ (Parametric EQ)<a class="headerlink" href="#0x33-peq-parametric-eq" title="Permanent link">&para;</a></h3>
 <p>Verified from 7 captures on 4x4 Mini (output channel 1, all parameters swept independently).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>Payload (10 bytes): 33 [ch] [band] [gain_lo] [gain_hi] [freq_lo] [freq_hi] [Q] [type] [bypass]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>Payload (10 bytes): 33 [ch] [band] [gain_lo] [gain_hi] [freq_lo] [freq_hi] [Q] [type] [bypass]
 </code></pre></div>
 <ul>
 <li><strong>Channel:</strong> output channels only verified: Out1=0x04, Out2=0x05, Out3=0x06, Out4=0x07</li>
@@ -4978,7 +5157,7 @@ Band bypass is NOT stored in the band data — see footer (offset 412–415).</p
 - <code>33 04 00 78 00 00 00 0a 01 01</code> → gain=0dB, freq=min, Q=10(≈0.8), Low Shelf, bypassed</p>
 <h3 id="0x3c-peq-channel-bypass">0x3c — PEQ Channel Bypass<a class="headerlink" href="#0x3c-peq-channel-bypass" title="Permanent link">&para;</a></h3>
 <p>Discovered from <code>capture_20260409_091811_output_peq_channel_1_bypass.pcapng</code>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>Payload (3 bytes): 3c [ch] [state]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>Payload (3 bytes): 3c [ch] [state]
 </code></pre></div>
 <ul>
 <li><strong>Channel:</strong> same unified numbering — Out1=0x04 … Out4=0x07</li>
@@ -4988,7 +5167,7 @@ Band bypass is NOT stored in the band data — see footer (offset 412–415).</p
 <p>Device responds with <code>0x01</code> ACK.</p>
 <p><strong>Captured:</strong> <code>3c 04 01</code> (Out1 all bypassed) → config offset 428: 0x00→0x01</p>
 <h3 id="0x31-lo-pass-crossover-filter">0x31 — Lo-Pass Crossover Filter<a class="headerlink" href="#0x31-lo-pass-crossover-filter" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>Payload (5 bytes): 31 [ch] [freq_lo] [freq_hi] [slope]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>Payload (5 bytes): 31 [ch] [freq_lo] [freq_hi] [slope]
 </code></pre></div>
 <ul>
 <li><strong>Channel:</strong> output channels 0x04–0x07</li>
@@ -4999,7 +5178,7 @@ Band bypass is NOT stored in the band data — see footer (offset 412–415).</p
 </ul>
 <p><strong>Capture-verified:</strong> Out3 freq swept raw 300→0→300→0; bypass toggled; slope sweep on hi-pass (same encoding).</p>
 <h3 id="0x32-hi-pass-crossover-filter">0x32 — Hi-Pass Crossover Filter<a class="headerlink" href="#0x32-hi-pass-crossover-filter" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>Payload (5 bytes): 32 [ch] [freq_lo] [freq_hi] [slope]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>Payload (5 bytes): 32 [ch] [freq_lo] [freq_hi] [slope]
 </code></pre></div>
 <ul>
 <li><strong>Channel:</strong> output channels 0x04–0x07</li>
@@ -5085,7 +5264,7 @@ LR-24 (0x0a, the default).</p>
 <p>Pattern: grouped by filter order (6→12→18→24 dB/oct), within each order: BW, BL, then
 LR (LR only at even orders 12/24, which is physically correct for Linkwitz-Riley filters).</p>
 <h3 id="0x3a-matrix-routing">0x3a — Matrix Routing<a class="headerlink" href="#0x3a-matrix-routing" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>Payload (3 bytes): 3a [output_ch] [input_bitmask]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>Payload (3 bytes): 3a [output_ch] [input_bitmask]
 </code></pre></div>
 <ul>
 <li><strong>Output channel:</strong> Out1=0x04, Out2=0x05, Out3=0x06, Out4=0x07</li>
@@ -5099,18 +5278,18 @@ LR (LR only at even orders 12/24, which is physically correct for Linkwitz-Riley
 - <code>capture_20260407_192739_matrix_remove_source_of_Out1.pcapng</code> — Out1 mask 0x00 (no input)</p>
 <h3 id="0x3b-channel-link">0x3b — Channel Link<a class="headerlink" href="#0x3b-channel-link" title="Permanent link">&para;</a></h3>
 <p>Discovered from input link/unlink captures and output link/unlink captures.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>Payload (3 bytes): 3b [channel] [link_flags]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>Payload (3 bytes): 3b [channel] [link_flags]
 </code></pre></div>
 <p>Sets the link/pairing state for any channel (input or output). When linking,
 both channels in the pair must be updated. After changing link state, the
 software sends <code>0x12</code> (activate) and performs a full config re-read.</p>
 <p><strong>Channel byte:</strong> unified numbering — inputs 0x00–0x03, outputs 0x04–0x07.</p>
 <p><strong>Link flags are a bitmask</strong> within each 4-channel group (inputs or outputs):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>Inputs:                     Outputs:
-<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>  Bit 0 (0x01) = InA          Bit 0 (0x01) = Out1
-<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>  Bit 1 (0x02) = InB          Bit 1 (0x02) = Out2
-<a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a>  Bit 2 (0x04) = InC          Bit 2 (0x04) = Out3
-<a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a>  Bit 3 (0x08) = InD          Bit 3 (0x08) = Out4
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>Inputs:                     Outputs:
+<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>  Bit 0 (0x01) = InA          Bit 0 (0x01) = Out1
+<a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a>  Bit 1 (0x02) = InB          Bit 1 (0x02) = Out2
+<a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a>  Bit 2 (0x04) = InC          Bit 2 (0x04) = Out3
+<a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a>  Bit 3 (0x08) = InD          Bit 3 (0x08) = Out4
 </code></pre></div>
 <p>When linked, the master gets the OR of all linked channel bits; slaves get <code>0x00</code>:</p>
 <table>
@@ -5231,7 +5410,7 @@ software sends <code>0x12</code> (activate) and performs a full config re-read.<
 <p>The link flags byte corresponds to offset 22 in input blocks and offset 72
 in output blocks of the <code>.unt</code> config / <code>0x24</code> config page response.</p>
 <h3 id="0x2a-prepare-link">0x2a — Prepare Link<a class="headerlink" href="#0x2a-prepare-link" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>Payload (3 bytes): 2a [master_channel] [slave_channel]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>Payload (3 bytes): 2a [master_channel] [slave_channel]
 </code></pre></div>
 <p>Sent <strong>only when linking</strong> (not when unlinking), immediately before the <code>0x3b</code>
 commands. One <code>0x2a</code> is sent per master↔slave pair. For multi-channel links
@@ -5272,10 +5451,10 @@ commands. One <code>0x2a</code> is sent per master↔slave pair. For multi-chann
 </table>
 <h3 id="0x3d-set-channel-name">0x3d — Set Channel Name<a class="headerlink" href="#0x3d-set-channel-name" title="Permanent link">&para;</a></h3>
 <p>Discovered from <code>capture_20260407_233926_change_name_of_out_3.pcapng</code> — renaming Out3 from "Out3" to "AUSGANG3".</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>Payload (10 bytes): 3d [channel] [name_byte_0] … [name_byte_7]
-<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>
-<a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a>Captured: 3d 06 41 55 53 47 41 4e 47 33
-<a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a>           op ch  A  U  S  G  A  N  G  3
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>Payload (10 bytes): 3d [channel] [name_byte_0] … [name_byte_7]
+<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>
+<a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a>Captured: 3d 06 41 55 53 47 41 4e 47 33
+<a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a>           op ch  A  U  S  G  A  N  G  3
 </code></pre></div>
 <p><strong>Channel byte:</strong> unified numbering — inputs 0x00–0x03, outputs 0x04–0x07 (Out3 = 0x06).</p>
 <p><strong>Name field:</strong> 8-byte ASCII, zero-padded. Up to 8 characters. The same 8 bytes are stored at output block bytes 0–7 and input block bytes 0–7 in the <code>.unt</code> config. Default input names ("InA"–"InD") are 3 chars zero-padded to 8 bytes, but the full 8 bytes are writable.</p>
@@ -5284,7 +5463,7 @@ commands. One <code>0x2a</code> is sent per master↔slave pair. For multi-chann
 - <code>capture_20260407_234815_change_name_of_in_c.pcapng</code> — InC (ch 0x02): <code>3d 02 45 49 4e 47 41 4e 47 43</code> ("InC"→"EINGANGC")</p>
 <p>Device responds with <code>0x01</code> ACK.</p>
 <h3 id="0x20-load-preset">0x20 — Load Preset<a class="headerlink" href="#0x20-load-preset" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>Payload (2 bytes): 20 [slot]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>Payload (2 bytes): 20 [slot]
 </code></pre></div>
 <p>Uses a <strong>direct slot index</strong>: 0=F00, 1=U01, 2=U02, …, 30=U30.
 Previous documentation (from DSP 408 cross-reference) incorrectly stated 1-based — our
@@ -5319,7 +5498,7 @@ prevents this.</p>
 - <code>ff ff</code> — user preset with customised content (U01, U02)
 - <code>ff 00</code> — factory/default state (F00, or an empty user slot that was never modified)</p>
 <h3 id="0x21-store-preset">0x21 — Store Preset<a class="headerlink" href="#0x21-store-preset" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>Payload (2 bytes): 21 [slot]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a>Payload (2 bytes): 21 [slot]
 </code></pre></div>
 <p>Stores the current active config to the specified slot. Same direct slot index as <code>0x20</code>
 (1=U01 … 30=U30).</p>
@@ -5334,7 +5513,7 @@ wait for ACK before proceeding.</p>
 2. <code>0x21 [slot]</code> → ACK  (~2 s delay while device writes flash)
 3. <code>0x12</code> activate → ACK</p>
 <h3 id="0x26-store-preset-name">0x26 — Store Preset Name<a class="headerlink" href="#0x26-store-preset-name" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>Payload (15 bytes): 26 [14 chars ASCII, space-padded]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a>Payload (15 bytes): 26 [14 chars ASCII, space-padded]
 </code></pre></div>
 <p>Sets the name for the currently active preset slot. Must be sent <strong>before</strong> <code>0x21</code>.
 Maximum name length is <strong>14 characters</strong> — space-pad shorter names to fill 14 bytes.</p>
@@ -5343,7 +5522,7 @@ Maximum name length is <strong>14 characters</strong> — space-pad shorter name
 the DSP firmware and may require a power cycle to recover.</p>
 </blockquote>
 <h3 id="0x38-output-delay">0x38 — Output Delay<a class="headerlink" href="#0x38-output-delay" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a>Payload (4 bytes): 38 [ch] [samples_lo] [samples_hi]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a>Payload (4 bytes): 38 [ch] [samples_lo] [samples_hi]
 </code></pre></div>
 <p>Sets the per-output delay in samples at the 48 kHz sample rate.</p>
 <table>
@@ -5379,7 +5558,7 @@ the DSP firmware and may require a power cycle to recover.</p>
 offset 70–71 changed to 0x80,0x7f = 32640.</p>
 <p><strong>Note:</strong> This opcode was not previously known even in the <code>dsp-408-ui</code> project.</p>
 <h3 id="0x3e-noise-gate-input-channels">0x3E — Noise Gate (Input Channels)<a class="headerlink" href="#0x3e-noise-gate-input-channels" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a>Payload (10 bytes): 3e [ch] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [hold_lo] [hold_hi] [thr_lo] [thr_hi]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a>Payload (10 bytes): 3e [ch] [atk_lo] [atk_hi] [rel_lo] [rel_hi] [hold_lo] [hold_hi] [thr_lo] [thr_hi]
 </code></pre></div>
 <p>Sets all 4 noise gate parameters for an input channel in a single command.
 All parameters are uint16 LE.</p>
@@ -5436,7 +5615,7 @@ Confirmed by diff-config comparing config page reads before/after:
 - Hold → config bytes 14–15 (e.g. max 998 = 0xe6,0x03)
 - Threshold → config bytes 16–17 (e.g. max 180 = 0xb4,0x00)</p>
 <h3 id="0x39-test-tone-generator">0x39 — Test Tone Generator<a class="headerlink" href="#0x39-test-tone-generator" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a>Payload (3 bytes): 39 [mode] [freq_idx]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a>Payload (3 bytes): 39 [mode] [freq_idx]
 </code></pre></div>
 <p>Enables or disables the internal test signal generator. The device ACKs with <code>0x01</code>.</p>
 <table>
@@ -5593,6 +5772,10 @@ analog input disable). Sine wave sweep confirmed all 31 frequency indices 0x00�
       ch1–3). Higher values were from a mic on ch4 picking up keyboard noise.</li>
 <li>[ ] <strong>Status flags (offsets 10, 22):</strong> Not clip indicators (disproven). Only appear
       during init phase. Exact meaning unknown — startup artifact?</li>
+<li>[x] <strong>Clip flag (0x40 byte 27):</strong> Any-input clip flag, set while an input meter
+      (post-gain) reads ≥ 256. Verified on the bench with a gain sweep (see "Clip flag").</li>
+<li>[ ] <strong>Output clip indication:</strong> Byte 27 ignores outputs (tested to 286). Whether
+      outputs report clip at a higher level or through another field is unknown.</li>
 <li>[ ] <strong>Firmware version:</strong> Is the footer <code>0x000abc8d</code> a version number?</li>
 <li>[x] <strong>Delay command:</strong> Opcode <code>0x38</code> — <code>38 [ch] [samples_lo] [samples_hi]</code>, uint16 LE samples at 48 kHz.
       Config stored at output block bytes 70–71. First known implementation (not in dsp-408-ui).</li>
@@ -5621,13 +5804,13 @@ analog input disable). Sine wave sweep confirmed all 31 frequency indices 0x00�
 <p>Reverse-engineered from <code>miniDSP current settings.unt</code> and <code>miniDSP current settings 260409.unt</code>.
 Both files are exactly <strong>13010 bytes</strong>.</p>
 <h3 id="file-structure-overview">File Structure Overview<a class="headerlink" href="#file-structure-overview" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a>Offset    Size   Content
-<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a>────────  ─────  ─────────────────────────────────────────────
-<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a>0x000       50   File header
-<a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a>0x032      432   Slot 0 = U01 (prefix byte + 429 config bytes + CRLF)
-<a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a>0x1E2      432   Slot 1 = U02
-<a id="__codelineno-43-6" name="__codelineno-43-6" href="#__codelineno-43-6"></a>  ...
-<a id="__codelineno-43-7" name="__codelineno-43-7" href="#__codelineno-43-7"></a>0x3112     432   Slot 29 = U30
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>Offset    Size   Content
+<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a>────────  ─────  ─────────────────────────────────────────────
+<a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a>0x000       50   File header
+<a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a>0x032      432   Slot 0 = U01 (prefix byte + 429 config bytes + CRLF)
+<a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a>0x1E2      432   Slot 1 = U02
+<a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a>  ...
+<a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a>0x3112     432   Slot 29 = U30
 </code></pre></div>
 <p>The file stores <strong>30 user preset slots</strong> (U01–U30). The factory preset F00 is read-only in device firmware and is NOT stored in the .unt file.</p>
 <p><strong>Slot structure (432 bytes each):</strong>
@@ -5636,21 +5819,21 @@ Both files are exactly <strong>13010 bytes</strong>.</p>
 - Bytes 430–431: <code>0x0D 0x0A</code> (CRLF — Windows text-mode record terminator)</p>
 <p>Empty/unused slots are filled with <code>0x64</code> (<code>'d'</code>) repeated for all 432 bytes.</p>
 <h3 id="file-header-50-bytes-offset-0x000x31">File Header (50 bytes, offset 0x00–0x31)<a class="headerlink" href="#file-header-50-bytes-offset-0x000x31" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a>Offset  Size  Field
-<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a>──────  ────  ─────────────────────────────────────────────────────────────
-<a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a>0x00    16    Magic: &quot;***4x4MINIV010**&quot;
-<a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a>0x10     1    Device address (always 0x01)
-<a id="__codelineno-44-5" name="__codelineno-44-5" href="#__codelineno-44-5"></a>0x11     1    Active preset slot (1=U01, 2=U02, ..., 30=U30)
-<a id="__codelineno-44-6" name="__codelineno-44-6" href="#__codelineno-44-6"></a>0x12     1    Max user presets (always 0x1E = 30)
-<a id="__codelineno-44-7" name="__codelineno-44-7" href="#__codelineno-44-7"></a>0x13     4    ASCII &quot;0000&quot; — purpose unknown
-<a id="__codelineno-44-8" name="__codelineno-44-8" href="#__codelineno-44-8"></a>0x17     2    Always 0x00 0x00
-<a id="__codelineno-44-9" name="__codelineno-44-9" href="#__codelineno-44-9"></a>0x19     2    Device counter: 0x270F (same value as 0x2C USB response bytes 2–3)
-<a id="__codelineno-44-10" name="__codelineno-44-10" href="#__codelineno-44-10"></a>0x1B     2    Always 0x00 0x00
-<a id="__codelineno-44-11" name="__codelineno-44-11" href="#__codelineno-44-11"></a>0x1D     4    Device lock PIN (4 ASCII digits, e.g. &quot;7654&quot; = 37 36 35 34; &quot;0000&quot; = default/no-PIN)
-<a id="__codelineno-44-12" name="__codelineno-44-12" href="#__codelineno-44-12"></a>0x21     1    Always 0x00
-<a id="__codelineno-44-13" name="__codelineno-44-13" href="#__codelineno-44-13"></a>0x22     1    Firmware version? (0x0A = 10, matches &quot;V010&quot; from 0x13 USB response)
-<a id="__codelineno-44-14" name="__codelineno-44-14" href="#__codelineno-44-14"></a>0x23     1    Always 0x00
-<a id="__codelineno-44-15" name="__codelineno-44-15" href="#__codelineno-44-15"></a>0x24    14    Product name: &quot;4x4D Amplifier&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>Offset  Size  Field
+<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a>──────  ────  ─────────────────────────────────────────────────────────────
+<a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a>0x00    16    Magic: &quot;***4x4MINIV010**&quot;
+<a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a>0x10     1    Device address (always 0x01)
+<a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a>0x11     1    Active preset slot (1=U01, 2=U02, ..., 30=U30)
+<a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a>0x12     1    Max user presets (always 0x1E = 30)
+<a id="__codelineno-46-7" name="__codelineno-46-7" href="#__codelineno-46-7"></a>0x13     4    ASCII &quot;0000&quot; — purpose unknown
+<a id="__codelineno-46-8" name="__codelineno-46-8" href="#__codelineno-46-8"></a>0x17     2    Always 0x00 0x00
+<a id="__codelineno-46-9" name="__codelineno-46-9" href="#__codelineno-46-9"></a>0x19     2    Device counter: 0x270F (same value as 0x2C USB response bytes 2–3)
+<a id="__codelineno-46-10" name="__codelineno-46-10" href="#__codelineno-46-10"></a>0x1B     2    Always 0x00 0x00
+<a id="__codelineno-46-11" name="__codelineno-46-11" href="#__codelineno-46-11"></a>0x1D     4    Device lock PIN (4 ASCII digits, e.g. &quot;7654&quot; = 37 36 35 34; &quot;0000&quot; = default/no-PIN)
+<a id="__codelineno-46-12" name="__codelineno-46-12" href="#__codelineno-46-12"></a>0x21     1    Always 0x00
+<a id="__codelineno-46-13" name="__codelineno-46-13" href="#__codelineno-46-13"></a>0x22     1    Firmware version? (0x0A = 10, matches &quot;V010&quot; from 0x13 USB response)
+<a id="__codelineno-46-14" name="__codelineno-46-14" href="#__codelineno-46-14"></a>0x23     1    Always 0x00
+<a id="__codelineno-46-15" name="__codelineno-46-15" href="#__codelineno-46-15"></a>0x24    14    Product name: &quot;4x4D Amplifier&quot;
 </code></pre></div>
 <p><strong>Key header discoveries (verified from 2 files):</strong>
 - <code>0x11</code> changes between files: old file=0x02 (U02 was active), new file=0x1E=30 (U30 was active)
@@ -5660,42 +5843,42 @@ Both files are exactly <strong>13010 bytes</strong>.</p>
 <p>The 429-byte config blob stored per slot is a partial view of the 450-byte USB config.
 The last 21 bytes (USB config offsets 429–449) are <strong>not stored</strong> in the .unt file —
 they are consistently zero and include the CRLF record separator at the slot boundary.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>Offset  Size  Field
-<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a>──────  ────  ─────────────────────────────────────
-<a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a>  0      2    Marker: 0xFF 0xFF
-<a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a>  2     14    Preset name (ASCII, space-padded to 14 chars)
-<a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a> 16    4×24   Input channel blocks (InA, InB, InC, InD)
-<a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a>112   4×74    Output channel blocks (Out1, Out2, Out3, Out4)
-<a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a>408      2    Input mute bitmask, LE uint16 (bit 0=In1 .. bit 3=In4)
-<a id="__codelineno-45-8" name="__codelineno-45-8" href="#__codelineno-45-8"></a>410      2    Output mute bitmask, LE uint16 (bit 0=Out1 .. bit 3=Out4)
-<a id="__codelineno-45-9" name="__codelineno-45-9" href="#__codelineno-45-9"></a>412      1    Out1 PEQ band bypass bitmask (bit 0=band1 .. bit 6=band7; 0x00=all active)
-<a id="__codelineno-45-10" name="__codelineno-45-10" href="#__codelineno-45-10"></a>413      1    Out2 PEQ band bypass bitmask
-<a id="__codelineno-45-11" name="__codelineno-45-11" href="#__codelineno-45-11"></a>414      1    Out3 PEQ band bypass bitmask
-<a id="__codelineno-45-12" name="__codelineno-45-12" href="#__codelineno-45-12"></a>415      1    Out4 PEQ band bypass bitmask
-<a id="__codelineno-45-13" name="__codelineno-45-13" href="#__codelineno-45-13"></a>416      4    Always 0x00 — reserved (padding)
-<a id="__codelineno-45-14" name="__codelineno-45-14" href="#__codelineno-45-14"></a>420      1    **Test tone mode**: 0x00=off, 0x01=pink noise, 0x02=white noise, 0x03=sine wave (set by `0x39` command)
-<a id="__codelineno-45-15" name="__codelineno-45-15" href="#__codelineno-45-15"></a>421      1    Always 0x00 — reserved
-<a id="__codelineno-45-16" name="__codelineno-45-16" href="#__codelineno-45-16"></a>422      1    **Sine wave frequency index**: last used sine freq (0x00=20Hz … 0x1E=20kHz); persists across mode changes
-<a id="__codelineno-45-17" name="__codelineno-45-17" href="#__codelineno-45-17"></a>423      1    Always 0x00 — reserved (padding)
-<a id="__codelineno-45-18" name="__codelineno-45-18" href="#__codelineno-45-18"></a>424      1    **Delay display unit**: 0x00=ms, 0x01=m, 0x02=ft (set by `0x15` command)
-<a id="__codelineno-45-19" name="__codelineno-45-19" href="#__codelineno-45-19"></a>425      3    Always 0x00 — reserved (padding)
-<a id="__codelineno-45-20" name="__codelineno-45-20" href="#__codelineno-45-20"></a>428      1    Out1 PEQ channel bypass (0x00=active, 0x01=all bands bypassed)
-<a id="__codelineno-45-21" name="__codelineno-45-21" href="#__codelineno-45-21"></a>[429–449 NOT stored — slot ends with CRLF at absolute position 430–431]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a>Offset  Size  Field
+<a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a>──────  ────  ─────────────────────────────────────
+<a id="__codelineno-47-3" name="__codelineno-47-3" href="#__codelineno-47-3"></a>  0      2    Marker: 0xFF 0xFF
+<a id="__codelineno-47-4" name="__codelineno-47-4" href="#__codelineno-47-4"></a>  2     14    Preset name (ASCII, space-padded to 14 chars)
+<a id="__codelineno-47-5" name="__codelineno-47-5" href="#__codelineno-47-5"></a> 16    4×24   Input channel blocks (InA, InB, InC, InD)
+<a id="__codelineno-47-6" name="__codelineno-47-6" href="#__codelineno-47-6"></a>112   4×74    Output channel blocks (Out1, Out2, Out3, Out4)
+<a id="__codelineno-47-7" name="__codelineno-47-7" href="#__codelineno-47-7"></a>408      2    Input mute bitmask, LE uint16 (bit 0=In1 .. bit 3=In4)
+<a id="__codelineno-47-8" name="__codelineno-47-8" href="#__codelineno-47-8"></a>410      2    Output mute bitmask, LE uint16 (bit 0=Out1 .. bit 3=Out4)
+<a id="__codelineno-47-9" name="__codelineno-47-9" href="#__codelineno-47-9"></a>412      1    Out1 PEQ band bypass bitmask (bit 0=band1 .. bit 6=band7; 0x00=all active)
+<a id="__codelineno-47-10" name="__codelineno-47-10" href="#__codelineno-47-10"></a>413      1    Out2 PEQ band bypass bitmask
+<a id="__codelineno-47-11" name="__codelineno-47-11" href="#__codelineno-47-11"></a>414      1    Out3 PEQ band bypass bitmask
+<a id="__codelineno-47-12" name="__codelineno-47-12" href="#__codelineno-47-12"></a>415      1    Out4 PEQ band bypass bitmask
+<a id="__codelineno-47-13" name="__codelineno-47-13" href="#__codelineno-47-13"></a>416      4    Always 0x00 — reserved (padding)
+<a id="__codelineno-47-14" name="__codelineno-47-14" href="#__codelineno-47-14"></a>420      1    **Test tone mode**: 0x00=off, 0x01=pink noise, 0x02=white noise, 0x03=sine wave (set by `0x39` command)
+<a id="__codelineno-47-15" name="__codelineno-47-15" href="#__codelineno-47-15"></a>421      1    Always 0x00 — reserved
+<a id="__codelineno-47-16" name="__codelineno-47-16" href="#__codelineno-47-16"></a>422      1    **Sine wave frequency index**: last used sine freq (0x00=20Hz … 0x1E=20kHz); persists across mode changes
+<a id="__codelineno-47-17" name="__codelineno-47-17" href="#__codelineno-47-17"></a>423      1    Always 0x00 — reserved (padding)
+<a id="__codelineno-47-18" name="__codelineno-47-18" href="#__codelineno-47-18"></a>424      1    **Delay display unit**: 0x00=ms, 0x01=m, 0x02=ft (set by `0x15` command)
+<a id="__codelineno-47-19" name="__codelineno-47-19" href="#__codelineno-47-19"></a>425      3    Always 0x00 — reserved (padding)
+<a id="__codelineno-47-20" name="__codelineno-47-20" href="#__codelineno-47-20"></a>428      1    Out1 PEQ channel bypass (0x00=active, 0x01=all bands bypassed)
+<a id="__codelineno-47-21" name="__codelineno-47-21" href="#__codelineno-47-21"></a>[429–449 NOT stored — slot ends with CRLF at absolute position 430–431]
 </code></pre></div>
 <p>Preset names found across both .unt files: <code>"DIY Mon"</code>, <code>"DIY Mon offset"</code>, <code>"test preset"</code>.</p>
 <h3 id="input-channel-block-24-bytes">Input Channel Block (24 bytes)<a class="headerlink" href="#input-channel-block-24-bytes" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>Offset  Size  Field
-<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a>──────  ────  ─────────────────────────────────────
-<a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a> 0–7     8    Channel name (ASCII, zero-padded; default 3-char &quot;InA&quot;/&quot;InB&quot;/&quot;InC&quot;/&quot;InD&quot;, up to 8 chars e.g. &quot;EINGANGC&quot;)
-<a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a>10–11    2    **Gate attack**, LE uint16, raw 0–998 (ms = raw + 1 → 1–999 ms)
-<a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a>12–13    2    **Gate release**, LE uint16, raw 0–2999 (ms = raw + 1 → 1–3000 ms)
-<a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a>14–15    2    **Gate hold**, LE uint16, raw 9–998 (ms = raw + 1 → 10–999 ms)
-<a id="__codelineno-46-7" name="__codelineno-46-7" href="#__codelineno-46-7"></a>16–17    2    **Gate threshold**, LE uint16, raw 0–180 (−90.0 to 0.0 dB, 0.5 dB/step)
-<a id="__codelineno-46-8" name="__codelineno-46-8" href="#__codelineno-46-8"></a>18–19    2    **Input gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
-<a id="__codelineno-46-9" name="__codelineno-46-9" href="#__codelineno-46-9"></a>20       1    **Phase invert**: 0x00=normal, 0x01=inverted (same as 0x36 command)
-<a id="__codelineno-46-10" name="__codelineno-46-10" href="#__codelineno-46-10"></a>21       1    Always 0x00 (mute state is NOT here — see footer bitmasks)
-<a id="__codelineno-46-11" name="__codelineno-46-11" href="#__codelineno-46-11"></a>22       1    Routing/link flags (see below)
-<a id="__codelineno-46-12" name="__codelineno-46-12" href="#__codelineno-46-12"></a>23       1    Always 0x00
+<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a>Offset  Size  Field
+<a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a>──────  ────  ─────────────────────────────────────
+<a id="__codelineno-48-3" name="__codelineno-48-3" href="#__codelineno-48-3"></a> 0–7     8    Channel name (ASCII, zero-padded; default 3-char &quot;InA&quot;/&quot;InB&quot;/&quot;InC&quot;/&quot;InD&quot;, up to 8 chars e.g. &quot;EINGANGC&quot;)
+<a id="__codelineno-48-4" name="__codelineno-48-4" href="#__codelineno-48-4"></a>10–11    2    **Gate attack**, LE uint16, raw 0–998 (ms = raw + 1 → 1–999 ms)
+<a id="__codelineno-48-5" name="__codelineno-48-5" href="#__codelineno-48-5"></a>12–13    2    **Gate release**, LE uint16, raw 0–2999 (ms = raw + 1 → 1–3000 ms)
+<a id="__codelineno-48-6" name="__codelineno-48-6" href="#__codelineno-48-6"></a>14–15    2    **Gate hold**, LE uint16, raw 9–998 (ms = raw + 1 → 10–999 ms)
+<a id="__codelineno-48-7" name="__codelineno-48-7" href="#__codelineno-48-7"></a>16–17    2    **Gate threshold**, LE uint16, raw 0–180 (−90.0 to 0.0 dB, 0.5 dB/step)
+<a id="__codelineno-48-8" name="__codelineno-48-8" href="#__codelineno-48-8"></a>18–19    2    **Input gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
+<a id="__codelineno-48-9" name="__codelineno-48-9" href="#__codelineno-48-9"></a>20       1    **Phase invert**: 0x00=normal, 0x01=inverted (same as 0x36 command)
+<a id="__codelineno-48-10" name="__codelineno-48-10" href="#__codelineno-48-10"></a>21       1    Always 0x00 (mute state is NOT here — see footer bitmasks)
+<a id="__codelineno-48-11" name="__codelineno-48-11" href="#__codelineno-48-11"></a>22       1    Routing/link flags (see below)
+<a id="__codelineno-48-12" name="__codelineno-48-12" href="#__codelineno-48-12"></a>23       1    Always 0x00
 </code></pre></div>
 <p><strong>Routing flags (byte 22):</strong></p>
 <table>
@@ -5741,27 +5924,27 @@ Preset 2's InD has different values at bytes 10, 12–14, and 15–16 compared t
 suggesting these bytes contain per-channel gain/EQ parameters that were adjusted for the
 "DIY Mon offset" preset.</p>
 <h3 id="output-channel-block-74-bytes">Output Channel Block (74 bytes)<a class="headerlink" href="#output-channel-block-74-bytes" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a>Offset  Size  Field
-<a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a>──────  ────  ─────────────────────────────────────
-<a id="__codelineno-47-3" name="__codelineno-47-3" href="#__codelineno-47-3"></a> 0–7     8    Channel name (8-byte ASCII, zero-padded: &quot;Out1&quot;–&quot;Out4&quot;; up to 8 chars e.g. &quot;AUSGANG3&quot;)
-<a id="__codelineno-47-4" name="__codelineno-47-4" href="#__codelineno-47-4"></a> 8       1    **Input routing mask** — bitmask of sources feeding this output (InA=0x01, InB=0x02, InC=0x04, InD=0x08). Default diagonal routing makes this look like a channel ID, but it&#39;s the `0x3a` input bitmask.
-<a id="__codelineno-47-5" name="__codelineno-47-5" href="#__codelineno-47-5"></a> 9       1    Always 0x00
-<a id="__codelineno-47-6" name="__codelineno-47-6" href="#__codelineno-47-6"></a>10–11    2    **Crossover hi-pass freq**, LE uint16, raw 0–300 (same as 0x32 command)
-<a id="__codelineno-47-7" name="__codelineno-47-7" href="#__codelineno-47-7"></a>12–13    2    **Crossover lo-pass freq**, LE uint16, raw 0–300 (same as 0x31 command, default 300 = 20.16 kHz)
-<a id="__codelineno-47-8" name="__codelineno-47-8" href="#__codelineno-47-8"></a>14       1    **Crossover hi-pass slope**, 0x00=bypassed, 0x01–0x0a=active slope type (see slope table)
-<a id="__codelineno-47-9" name="__codelineno-47-9" href="#__codelineno-47-9"></a>15       1    **Crossover lo-pass slope**, 0x00=bypassed, 0x01–0x0a=active slope type (see slope table)
-<a id="__codelineno-47-10" name="__codelineno-47-10" href="#__codelineno-47-10"></a>16–57   42    **PEQ band data** — 7 bands × 6 bytes each (verified)
-<a id="__codelineno-47-11" name="__codelineno-47-11" href="#__codelineno-47-11"></a>58       1    **Compressor ratio**, uint8 enum 0–15 (see COMP_RATIO_* constants; 0=1:1.0, 15=Limit)
-<a id="__codelineno-47-12" name="__codelineno-47-12" href="#__codelineno-47-12"></a>59       1    **Compressor knee**, uint8 0–12 (direct dB, 0=hard knee, 12=softest)
-<a id="__codelineno-47-13" name="__codelineno-47-13" href="#__codelineno-47-13"></a>60–61    2    **Compressor attack**, LE uint16, raw 0–998 (ms = raw + 1, range 1–999 ms)
-<a id="__codelineno-47-14" name="__codelineno-47-14" href="#__codelineno-47-14"></a>62–63    2    **Compressor release**, LE uint16, raw 9–2999 (ms = raw + 1, range 10–3000 ms)
-<a id="__codelineno-47-15" name="__codelineno-47-15" href="#__codelineno-47-15"></a>64–65    2    **Compressor threshold**, LE uint16, raw 0–220 (dB = raw/2 − 90, range −90 to +20 dB)
-<a id="__codelineno-47-16" name="__codelineno-47-16" href="#__codelineno-47-16"></a>66–67    2    **Output gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
-<a id="__codelineno-47-17" name="__codelineno-47-17" href="#__codelineno-47-17"></a>68       1    **Phase invert**: 0x00=normal, 0x01=inverted (same as 0x36 command)
-<a id="__codelineno-47-18" name="__codelineno-47-18" href="#__codelineno-47-18"></a>69       1    Always 0x00 (mute state is NOT here — see footer bitmasks)
-<a id="__codelineno-47-19" name="__codelineno-47-19" href="#__codelineno-47-19"></a>70–71    2    **Output delay**, LE uint16, samples at 48 kHz (0–32640 = 0–680 ms, same as 0x38 command)
-<a id="__codelineno-47-20" name="__codelineno-47-20" href="#__codelineno-47-20"></a>72       1    Routing/link flags (same scheme as input)
-<a id="__codelineno-47-21" name="__codelineno-47-21" href="#__codelineno-47-21"></a>73       1    Always 0x00
+<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a>Offset  Size  Field
+<a id="__codelineno-49-2" name="__codelineno-49-2" href="#__codelineno-49-2"></a>──────  ────  ─────────────────────────────────────
+<a id="__codelineno-49-3" name="__codelineno-49-3" href="#__codelineno-49-3"></a> 0–7     8    Channel name (8-byte ASCII, zero-padded: &quot;Out1&quot;–&quot;Out4&quot;; up to 8 chars e.g. &quot;AUSGANG3&quot;)
+<a id="__codelineno-49-4" name="__codelineno-49-4" href="#__codelineno-49-4"></a> 8       1    **Input routing mask** — bitmask of sources feeding this output (InA=0x01, InB=0x02, InC=0x04, InD=0x08). Default diagonal routing makes this look like a channel ID, but it&#39;s the `0x3a` input bitmask.
+<a id="__codelineno-49-5" name="__codelineno-49-5" href="#__codelineno-49-5"></a> 9       1    Always 0x00
+<a id="__codelineno-49-6" name="__codelineno-49-6" href="#__codelineno-49-6"></a>10–11    2    **Crossover hi-pass freq**, LE uint16, raw 0–300 (same as 0x32 command)
+<a id="__codelineno-49-7" name="__codelineno-49-7" href="#__codelineno-49-7"></a>12–13    2    **Crossover lo-pass freq**, LE uint16, raw 0–300 (same as 0x31 command, default 300 = 20.16 kHz)
+<a id="__codelineno-49-8" name="__codelineno-49-8" href="#__codelineno-49-8"></a>14       1    **Crossover hi-pass slope**, 0x00=bypassed, 0x01–0x0a=active slope type (see slope table)
+<a id="__codelineno-49-9" name="__codelineno-49-9" href="#__codelineno-49-9"></a>15       1    **Crossover lo-pass slope**, 0x00=bypassed, 0x01–0x0a=active slope type (see slope table)
+<a id="__codelineno-49-10" name="__codelineno-49-10" href="#__codelineno-49-10"></a>16–57   42    **PEQ band data** — 7 bands × 6 bytes each (verified)
+<a id="__codelineno-49-11" name="__codelineno-49-11" href="#__codelineno-49-11"></a>58       1    **Compressor ratio**, uint8 enum 0–15 (see COMP_RATIO_* constants; 0=1:1.0, 15=Limit)
+<a id="__codelineno-49-12" name="__codelineno-49-12" href="#__codelineno-49-12"></a>59       1    **Compressor knee**, uint8 0–12 (direct dB, 0=hard knee, 12=softest)
+<a id="__codelineno-49-13" name="__codelineno-49-13" href="#__codelineno-49-13"></a>60–61    2    **Compressor attack**, LE uint16, raw 0–998 (ms = raw + 1, range 1–999 ms)
+<a id="__codelineno-49-14" name="__codelineno-49-14" href="#__codelineno-49-14"></a>62–63    2    **Compressor release**, LE uint16, raw 9–2999 (ms = raw + 1, range 10–3000 ms)
+<a id="__codelineno-49-15" name="__codelineno-49-15" href="#__codelineno-49-15"></a>64–65    2    **Compressor threshold**, LE uint16, raw 0–220 (dB = raw/2 − 90, range −90 to +20 dB)
+<a id="__codelineno-49-16" name="__codelineno-49-16" href="#__codelineno-49-16"></a>66–67    2    **Output gain**, LE uint16, raw 0–400 (same scale as 0x34 command)
+<a id="__codelineno-49-17" name="__codelineno-49-17" href="#__codelineno-49-17"></a>68       1    **Phase invert**: 0x00=normal, 0x01=inverted (same as 0x36 command)
+<a id="__codelineno-49-18" name="__codelineno-49-18" href="#__codelineno-49-18"></a>69       1    Always 0x00 (mute state is NOT here — see footer bitmasks)
+<a id="__codelineno-49-19" name="__codelineno-49-19" href="#__codelineno-49-19"></a>70–71    2    **Output delay**, LE uint16, samples at 48 kHz (0–32640 = 0–680 ms, same as 0x38 command)
+<a id="__codelineno-49-20" name="__codelineno-49-20" href="#__codelineno-49-20"></a>72       1    Routing/link flags (same scheme as input)
+<a id="__codelineno-49-21" name="__codelineno-49-21" href="#__codelineno-49-21"></a>73       1    Always 0x00
 </code></pre></div>
 <p><strong>PEQ band data (bytes 16–57, 42 bytes, verified):</strong></p>
 <p>7 bands × 6 bytes per band. Each band: <code>[gain_lo] [gain_hi] [freq_lo] [freq_hi] [Q] [type]</code>

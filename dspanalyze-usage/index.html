@@ -3309,7 +3309,7 @@
 </code></pre></div>
 <p>Default directory: <code>analysis/usb_captures</code>. Scans for <code>.txt</code>, <code>.pcapng</code>, <code>.pcap</code> files and shows metadata summaries.</p>
 <h3 id="calibrate-level-meter-calibration"><code>calibrate</code> — Level meter calibration<a class="headerlink" href="#calibrate-level-meter-calibration" title="Permanent link">&para;</a></h3>
-<p>Calibrates the level meter dBu conversion by capturing raw uint16 values at known analog levels and computing a best-fit REF_LEVEL. The result is written to <code>minidsp/calibration.toml</code> (shipped as a package resource).</p>
+<p>Calibrates the level meter dBu conversion by capturing the raw 24-bit level values at known analog levels and computing a best-fit 0 dBu reference. The result is written to <code>minidsp/calibration.toml</code> (shipped as a package resource).</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>dspanalyze calibrate &lt;action&gt; [options]
 </code></pre></div>
 <p><strong>Actions:</strong></p>
@@ -3331,11 +3331,11 @@
 </tr>
 <tr>
 <td><code>apply</code></td>
-<td>Compute best-fit REF_LEVEL from points and write to <code>calibration.toml</code></td>
+<td>Compute the best-fit reference from points and write it to <code>calibration.toml</code></td>
 </tr>
 <tr>
 <td><code>reset</code></td>
-<td>Revert <code>calibration.toml</code> to factory defaults</td>
+<td>Revert <code>calibration.toml</code> to the factory default (the editor's own 0 dB point) and drop all points</td>
 </tr>
 </tbody>
 </table>
@@ -3359,10 +3359,10 @@
 </tbody>
 </table>
 <p><strong>How it works:</strong></p>
-<p>The DSP reports linear amplitude as a uint16 value. The conversion to dBu uses the formula:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>dBu = 20 * log10(uint16 / REF_LEVEL)
+<p>The DSP reports each channel as a 24-bit linear amplitude (<code>level24</code>; the historical uint16 value is its upper 16 bits). The conversion to dBu uses the formula:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>dBu = 20 * log10(level24 / REF_LEVEL24)
 </code></pre></div>
-<p>The factory <code>REF_LEVEL = 1153</code> is designed for display scaling (63 dB range matching the manufacturer's LED meter), not accurate dBu. The calibration tool lets you measure actual uint16 values at known analog levels and compute the correct REF_LEVEL.</p>
+<p>The factory default is the manufacturer editor's own 0 dB point, <code>REF_LEVEL24 = 2^19 · 10^(−28/20) ≈ 20 872</code> (uint16 ≈ 81.5), which sits about 0.3 dB above true dBu on the bench. The calibration tool lets you measure actual levels against a voltmeter (0 dBu = 0.775 Vrms) and compute the exact reference. The file stores <code>ref_level24</code> plus the same value in uint16 units as <code>ref_level</code>; older files with only <code>ref_level</code> are still read.</p>
 <p><strong>Calibration workflow:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># 1. Connect a calibrated signal generator to an input (e.g. InA)</span>
 <a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="c1"># 2. Set a known output level (e.g. 0 dBu sine wave at 1 kHz)</span>
@@ -3384,20 +3384,19 @@
 <a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="c1"># 7. Verify with the live level display</span>
 <a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a>minidsp<span class="w"> </span>levels<span class="w"> </span>--watch
 </code></pre></div>
-<p>The <code>apply</code> step computes a weighted least-squares fit: each calibration point implies a REF_LEVEL (<code>uint16 / 10^(dBu/20)</code>), and the final value is the geometric mean weighted by uint16 magnitude (higher values have less quantization error). At least 2 points are required.</p>
+<p>The <code>apply</code> step computes a weighted least-squares fit: each calibration point implies a reference (<code>level24 / 10^(dBu/20)</code>), and the final value is the geometric mean weighted by level magnitude (higher values have less quantization error). At least 2 points are required.</p>
+<p>Keep the signal below the input ceiling: at 0 dB input gain the input level saturates around uint16 255 (about +10 dBu), so a +6 dBu point is the practical upper anchor.</p>
 <p><strong><code>show</code> output example:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>Calibration file: /path/to/minidsp/calibration.toml
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>Current REF_LEVEL: 187.16 (factory: 1153)
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>Calibration points: 4
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>Current reference (0 dBu): 20477.4 (level24) = 79.99 (uint16)
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>Calibration points: 2
 <a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
-<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>                              Mean                        Measured
-<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>  #     dBu  Channel       uint16   Min   Max  Samples         dBu   Error
-<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>  1   +6.0     InA          375.2   370   381       20      +6.04  +0.04
-<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>  2    0.0     InA          187.1   185   190       20     -0.01  -0.01
-<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>  3  -10.0     InA           18.8    18    20       20     -9.96  +0.04
-<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>  4  -30.0     InA            5.0     5     5       20    -31.46  -1.46
-<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>
-<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>Best-fit REF_LEVEL: 187.16
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>                                 Mean                                  Measured
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>  #     dBu  Channel        level24  ≈ uint16     Min     Max  Samples      dBu   Error
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>  1   +6.0     InC          41318.4     161.4   40960   41728       20    +6.10  +0.10
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>  2   +0.0     InC          20019.2      78.2   19712   20224       20    -0.20  -0.20
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>Best-fit reference: 20477.4 (level24) = 79.99 (uint16)
 </code></pre></div>
 <h2 id="output-formats">Output Formats<a class="headerlink" href="#output-formats" title="Permanent link">&para;</a></h2>
 <h3 id="claude-default"><code>claude</code> (default)<a class="headerlink" href="#claude-default" title="Permanent link">&para;</a></h3>
@@ -3553,8 +3552,12 @@
 <td>Crossover slope types</td>
 </tr>
 <tr>
+<td><code>level24</code></td>
+<td>24-bit metering level (triplet <code>[mid, high, low]</code>) → dBu</td>
+</tr>
+<tr>
 <td><code>level_uint16</code></td>
-<td>Metering level → dB conversion</td>
+<td>Legacy 16-bit metering level → dBu</td>
 </tr>
 </tbody>
 </table>

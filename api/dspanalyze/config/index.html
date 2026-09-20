@@ -3317,8 +3317,7 @@ alongside this module (<code>dspanalyze/protocol_config.toml</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>dspanalyze/config.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-81"> 81</a></span>
-<span class="normal"><a href="#__codelineno-0-82"> 82</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-82"> 82</a></span>
 <span class="normal"><a href="#__codelineno-0-83"> 83</a></span>
 <span class="normal"><a href="#__codelineno-0-84"> 84</a></span>
 <span class="normal"><a href="#__codelineno-0-85"> 85</a></span>
@@ -3359,49 +3358,50 @@ alongside this module (<code>dspanalyze/protocol_config.toml</code>).</p>
 <span class="normal"><a href="#__codelineno-0-120">120</a></span>
 <span class="normal"><a href="#__codelineno-0-121">121</a></span>
 <span class="normal"><a href="#__codelineno-0-122">122</a></span>
-<span class="normal"><a href="#__codelineno-0-123">123</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-81" name="__codelineno-0-81"></a><span class="k">def</span><span class="w"> </span><span class="nf">load_config</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ProtocolConfig</span><span class="p">:</span>
-<a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Load and parse the protocol config TOML file.</span>
-<a id="__codelineno-0-83" name="__codelineno-0-83"></a>
-<a id="__codelineno-0-84" name="__codelineno-0-84"></a><span class="sd">    Args:</span>
-<a id="__codelineno-0-85" name="__codelineno-0-85"></a><span class="sd">        path: Path to ``protocol_config.toml``. Defaults to the file bundled</span>
-<a id="__codelineno-0-86" name="__codelineno-0-86"></a><span class="sd">            alongside this module (``dspanalyze/protocol_config.toml``).</span>
-<a id="__codelineno-0-87" name="__codelineno-0-87"></a>
-<a id="__codelineno-0-88" name="__codelineno-0-88"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-89" name="__codelineno-0-89"></a><span class="sd">        Populated :class:`ProtocolConfig` with all opcodes and formats parsed.</span>
-<a id="__codelineno-0-90" name="__codelineno-0-90"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-91" name="__codelineno-0-91"></a>    <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-92" name="__codelineno-0-92"></a>        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;protocol_config.toml&quot;</span>
-<a id="__codelineno-0-93" name="__codelineno-0-93"></a>
-<a id="__codelineno-0-94" name="__codelineno-0-94"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-<a id="__codelineno-0-95" name="__codelineno-0-95"></a>        <span class="n">raw</span> <span class="o">=</span> <span class="n">tomllib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-<a id="__codelineno-0-96" name="__codelineno-0-96"></a>
-<a id="__codelineno-0-97" name="__codelineno-0-97"></a>    <span class="n">opcodes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">OpcodeDef</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-<a id="__codelineno-0-98" name="__codelineno-0-98"></a>    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;opcodes&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-<a id="__codelineno-0-99" name="__codelineno-0-99"></a>        <span class="n">code</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
-<a id="__codelineno-0-100" name="__codelineno-0-100"></a>        <span class="n">odef</span> <span class="o">=</span> <span class="n">OpcodeDef</span><span class="p">(</span>
-<a id="__codelineno-0-101" name="__codelineno-0-101"></a>            <span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">,</span>
-<a id="__codelineno-0-102" name="__codelineno-0-102"></a>            <span class="n">name</span><span class="o">=</span><span class="n">val</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;unknown_</span><span class="si">{</span><span class="n">code</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
-<a id="__codelineno-0-103" name="__codelineno-0-103"></a>            <span class="n">direction</span><span class="o">=</span><span class="n">val</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;direction&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">),</span>
-<a id="__codelineno-0-104" name="__codelineno-0-104"></a>            <span class="n">description</span><span class="o">=</span><span class="n">val</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
-<a id="__codelineno-0-105" name="__codelineno-0-105"></a>            <span class="n">verified</span><span class="o">=</span><span class="n">val</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;verified&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
-<a id="__codelineno-0-106" name="__codelineno-0-106"></a>        <span class="p">)</span>
-<a id="__codelineno-0-107" name="__codelineno-0-107"></a>        <span class="c1"># Parse field definitions from nested tables</span>
-<a id="__codelineno-0-108" name="__codelineno-0-108"></a>        <span class="n">fields_section</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fields&quot;</span><span class="p">,</span> <span class="p">{})</span>
-<a id="__codelineno-0-109" name="__codelineno-0-109"></a>        <span class="k">for</span> <span class="n">group_name</span><span class="p">,</span> <span class="n">group_fields</span> <span class="ow">in</span> <span class="n">fields_section</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-<a id="__codelineno-0-110" name="__codelineno-0-110"></a>            <span class="n">parsed</span> <span class="o">=</span> <span class="n">_parse_fields</span><span class="p">(</span><span class="n">group_fields</span><span class="p">)</span>
-<a id="__codelineno-0-111" name="__codelineno-0-111"></a>            <span class="k">if</span> <span class="n">group_name</span> <span class="o">==</span> <span class="s2">&quot;request&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-112" name="__codelineno-0-112"></a>                <span class="n">odef</span><span class="o">.</span><span class="n">request_fields</span> <span class="o">=</span> <span class="n">parsed</span>
-<a id="__codelineno-0-113" name="__codelineno-0-113"></a>            <span class="k">elif</span> <span class="n">group_name</span> <span class="o">==</span> <span class="s2">&quot;response&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-114" name="__codelineno-0-114"></a>                <span class="n">odef</span><span class="o">.</span><span class="n">response_fields</span> <span class="o">=</span> <span class="n">parsed</span>
-<a id="__codelineno-0-115" name="__codelineno-0-115"></a>        <span class="n">opcodes</span><span class="p">[</span><span class="n">code</span><span class="p">]</span> <span class="o">=</span> <span class="n">odef</span>
-<a id="__codelineno-0-116" name="__codelineno-0-116"></a>
-<a id="__codelineno-0-117" name="__codelineno-0-117"></a>    <span class="k">return</span> <span class="n">ProtocolConfig</span><span class="p">(</span>
-<a id="__codelineno-0-118" name="__codelineno-0-118"></a>        <span class="n">device</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;device&quot;</span><span class="p">,</span> <span class="p">{}),</span>
-<a id="__codelineno-0-119" name="__codelineno-0-119"></a>        <span class="n">frame</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;frame&quot;</span><span class="p">,</span> <span class="p">{}),</span>
-<a id="__codelineno-0-120" name="__codelineno-0-120"></a>        <span class="n">noise</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;noise&quot;</span><span class="p">,</span> <span class="p">{}),</span>
-<a id="__codelineno-0-121" name="__codelineno-0-121"></a>        <span class="n">opcodes</span><span class="o">=</span><span class="n">opcodes</span><span class="p">,</span>
-<a id="__codelineno-0-122" name="__codelineno-0-122"></a>        <span class="n">formats</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;formats&quot;</span><span class="p">,</span> <span class="p">{}),</span>
-<a id="__codelineno-0-123" name="__codelineno-0-123"></a>    <span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-123">123</a></span>
+<span class="normal"><a href="#__codelineno-0-124">124</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="k">def</span><span class="w"> </span><span class="nf">load_config</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ProtocolConfig</span><span class="p">:</span>
+<a id="__codelineno-0-83" name="__codelineno-0-83"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Load and parse the protocol config TOML file.</span>
+<a id="__codelineno-0-84" name="__codelineno-0-84"></a>
+<a id="__codelineno-0-85" name="__codelineno-0-85"></a><span class="sd">    Args:</span>
+<a id="__codelineno-0-86" name="__codelineno-0-86"></a><span class="sd">        path: Path to ``protocol_config.toml``. Defaults to the file bundled</span>
+<a id="__codelineno-0-87" name="__codelineno-0-87"></a><span class="sd">            alongside this module (``dspanalyze/protocol_config.toml``).</span>
+<a id="__codelineno-0-88" name="__codelineno-0-88"></a>
+<a id="__codelineno-0-89" name="__codelineno-0-89"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-90" name="__codelineno-0-90"></a><span class="sd">        Populated :class:`ProtocolConfig` with all opcodes and formats parsed.</span>
+<a id="__codelineno-0-91" name="__codelineno-0-91"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-92" name="__codelineno-0-92"></a>    <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-93" name="__codelineno-0-93"></a>        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;protocol_config.toml&quot;</span>
+<a id="__codelineno-0-94" name="__codelineno-0-94"></a>
+<a id="__codelineno-0-95" name="__codelineno-0-95"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<a id="__codelineno-0-96" name="__codelineno-0-96"></a>        <span class="n">raw</span> <span class="o">=</span> <span class="n">tomllib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<a id="__codelineno-0-97" name="__codelineno-0-97"></a>
+<a id="__codelineno-0-98" name="__codelineno-0-98"></a>    <span class="n">opcodes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">OpcodeDef</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<a id="__codelineno-0-99" name="__codelineno-0-99"></a>    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;opcodes&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<a id="__codelineno-0-100" name="__codelineno-0-100"></a>        <span class="n">code</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+<a id="__codelineno-0-101" name="__codelineno-0-101"></a>        <span class="n">odef</span> <span class="o">=</span> <span class="n">OpcodeDef</span><span class="p">(</span>
+<a id="__codelineno-0-102" name="__codelineno-0-102"></a>            <span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">,</span>
+<a id="__codelineno-0-103" name="__codelineno-0-103"></a>            <span class="n">name</span><span class="o">=</span><span class="n">val</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;unknown_</span><span class="si">{</span><span class="n">code</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+<a id="__codelineno-0-104" name="__codelineno-0-104"></a>            <span class="n">direction</span><span class="o">=</span><span class="n">val</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;direction&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">),</span>
+<a id="__codelineno-0-105" name="__codelineno-0-105"></a>            <span class="n">description</span><span class="o">=</span><span class="n">val</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+<a id="__codelineno-0-106" name="__codelineno-0-106"></a>            <span class="n">verified</span><span class="o">=</span><span class="n">val</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;verified&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+<a id="__codelineno-0-107" name="__codelineno-0-107"></a>        <span class="p">)</span>
+<a id="__codelineno-0-108" name="__codelineno-0-108"></a>        <span class="c1"># Parse field definitions from nested tables</span>
+<a id="__codelineno-0-109" name="__codelineno-0-109"></a>        <span class="n">fields_section</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fields&quot;</span><span class="p">,</span> <span class="p">{})</span>
+<a id="__codelineno-0-110" name="__codelineno-0-110"></a>        <span class="k">for</span> <span class="n">group_name</span><span class="p">,</span> <span class="n">group_fields</span> <span class="ow">in</span> <span class="n">fields_section</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<a id="__codelineno-0-111" name="__codelineno-0-111"></a>            <span class="n">parsed</span> <span class="o">=</span> <span class="n">_parse_fields</span><span class="p">(</span><span class="n">group_fields</span><span class="p">)</span>
+<a id="__codelineno-0-112" name="__codelineno-0-112"></a>            <span class="k">if</span> <span class="n">group_name</span> <span class="o">==</span> <span class="s2">&quot;request&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-113" name="__codelineno-0-113"></a>                <span class="n">odef</span><span class="o">.</span><span class="n">request_fields</span> <span class="o">=</span> <span class="n">parsed</span>
+<a id="__codelineno-0-114" name="__codelineno-0-114"></a>            <span class="k">elif</span> <span class="n">group_name</span> <span class="o">==</span> <span class="s2">&quot;response&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-115" name="__codelineno-0-115"></a>                <span class="n">odef</span><span class="o">.</span><span class="n">response_fields</span> <span class="o">=</span> <span class="n">parsed</span>
+<a id="__codelineno-0-116" name="__codelineno-0-116"></a>        <span class="n">opcodes</span><span class="p">[</span><span class="n">code</span><span class="p">]</span> <span class="o">=</span> <span class="n">odef</span>
+<a id="__codelineno-0-117" name="__codelineno-0-117"></a>
+<a id="__codelineno-0-118" name="__codelineno-0-118"></a>    <span class="k">return</span> <span class="n">ProtocolConfig</span><span class="p">(</span>
+<a id="__codelineno-0-119" name="__codelineno-0-119"></a>        <span class="n">device</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;device&quot;</span><span class="p">,</span> <span class="p">{}),</span>
+<a id="__codelineno-0-120" name="__codelineno-0-120"></a>        <span class="n">frame</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;frame&quot;</span><span class="p">,</span> <span class="p">{}),</span>
+<a id="__codelineno-0-121" name="__codelineno-0-121"></a>        <span class="n">noise</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;noise&quot;</span><span class="p">,</span> <span class="p">{}),</span>
+<a id="__codelineno-0-122" name="__codelineno-0-122"></a>        <span class="n">opcodes</span><span class="o">=</span><span class="n">opcodes</span><span class="p">,</span>
+<a id="__codelineno-0-123" name="__codelineno-0-123"></a>        <span class="n">formats</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;formats&quot;</span><span class="p">,</span> <span class="p">{}),</span>
+<a id="__codelineno-0-124" name="__codelineno-0-124"></a>    <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3428,7 +3428,8 @@ alongside this module (<code>dspanalyze/protocol_config.toml</code>).</p>
 
         <p>Convert a raw integer value to a human-readable string using a named format.</p>
 <p>Format dispatch order: hard-coded formats first (<code>channel</code>,
-<code>gain_raw</code>, <code>peq_gain</code>, <code>freq_log</code>, <code>q_log</code>, <code>level_uint16</code>),
+<code>gain_raw</code>, <code>peq_gain</code>, <code>freq_log</code>, <code>q_log</code>, <code>level_uint16</code>,
+<code>level24</code>),
 then TOML-defined enum/bitmask formats, then generic types
 (<code>uint8</code>, <code>uint16le</code>, <code>ascii</code>, <code>hex</code>).</p>
 
@@ -3537,8 +3538,7 @@ enum and bitmask lookups.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>dspanalyze/config.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-168">168</a></span>
-<span class="normal"><a href="#__codelineno-0-169">169</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-169">169</a></span>
 <span class="normal"><a href="#__codelineno-0-170">170</a></span>
 <span class="normal"><a href="#__codelineno-0-171">171</a></span>
 <span class="normal"><a href="#__codelineno-0-172">172</a></span>
@@ -3599,69 +3599,84 @@ enum and bitmask lookups.</p>
 <span class="normal"><a href="#__codelineno-0-227">227</a></span>
 <span class="normal"><a href="#__codelineno-0-228">228</a></span>
 <span class="normal"><a href="#__codelineno-0-229">229</a></span>
-<span class="normal"><a href="#__codelineno-0-230">230</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-168" name="__codelineno-0-168"></a><span class="k">def</span><span class="w"> </span><span class="nf">convert_value</span><span class="p">(</span><span class="n">raw_value</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fmt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">ProtocolConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-0-169" name="__codelineno-0-169"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a raw integer value to a human-readable string using a named format.</span>
-<a id="__codelineno-0-170" name="__codelineno-0-170"></a>
-<a id="__codelineno-0-171" name="__codelineno-0-171"></a><span class="sd">    Format dispatch order: hard-coded formats first (``channel``,</span>
-<a id="__codelineno-0-172" name="__codelineno-0-172"></a><span class="sd">    ``gain_raw``, ``peq_gain``, ``freq_log``, ``q_log``, ``level_uint16``),</span>
-<a id="__codelineno-0-173" name="__codelineno-0-173"></a><span class="sd">    then TOML-defined enum/bitmask formats, then generic types</span>
-<a id="__codelineno-0-174" name="__codelineno-0-174"></a><span class="sd">    (``uint8``, ``uint16le``, ``ascii``, ``hex``).</span>
-<a id="__codelineno-0-175" name="__codelineno-0-175"></a>
-<a id="__codelineno-0-176" name="__codelineno-0-176"></a><span class="sd">    Args:</span>
-<a id="__codelineno-0-177" name="__codelineno-0-177"></a><span class="sd">        raw_value: Raw integer (or bytes for ``hex``/``ascii`` formats).</span>
-<a id="__codelineno-0-178" name="__codelineno-0-178"></a><span class="sd">        fmt: Format name string from the :class:`FieldDef` or caller.</span>
-<a id="__codelineno-0-179" name="__codelineno-0-179"></a><span class="sd">        config: Loaded protocol config — provides the ``formats`` table for</span>
-<a id="__codelineno-0-180" name="__codelineno-0-180"></a><span class="sd">            enum and bitmask lookups.</span>
-<a id="__codelineno-0-181" name="__codelineno-0-181"></a>
-<a id="__codelineno-0-182" name="__codelineno-0-182"></a><span class="sd">    Returns:</span>
-<a id="__codelineno-0-183" name="__codelineno-0-183"></a><span class="sd">        Human-readable string representation. Falls back to ``str(raw_value)``</span>
-<a id="__codelineno-0-184" name="__codelineno-0-184"></a><span class="sd">        for unrecognised format names.</span>
-<a id="__codelineno-0-185" name="__codelineno-0-185"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-186" name="__codelineno-0-186"></a>    <span class="n">fmt_def</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">formats</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="p">{})</span>
-<a id="__codelineno-0-187" name="__codelineno-0-187"></a>    <span class="n">fmt_type</span> <span class="o">=</span> <span class="n">fmt_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-188" name="__codelineno-0-188"></a>
-<a id="__codelineno-0-189" name="__codelineno-0-189"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;channel&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-190" name="__codelineno-0-190"></a>        <span class="k">return</span> <span class="n">CHANNEL_NAMES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">raw_value</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;ch</span><span class="si">{</span><span class="n">raw_value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-191" name="__codelineno-0-191"></a>
-<a id="__codelineno-0-192" name="__codelineno-0-192"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;gain_raw&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-193" name="__codelineno-0-193"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">raw_to_db</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> dB (raw </span><span class="si">{</span><span class="n">raw_value</span><span class="si">}</span><span class="s2">)&quot;</span>
-<a id="__codelineno-0-194" name="__codelineno-0-194"></a>
-<a id="__codelineno-0-195" name="__codelineno-0-195"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;peq_gain&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-196" name="__codelineno-0-196"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">peq_raw_to_gain</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2"> dB&quot;</span>
-<a id="__codelineno-0-197" name="__codelineno-0-197"></a>
-<a id="__codelineno-0-198" name="__codelineno-0-198"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;freq_log&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-199" name="__codelineno-0-199"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">freq_raw_to_hz</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> Hz (raw </span><span class="si">{</span><span class="n">raw_value</span><span class="si">}</span><span class="s2">)&quot;</span>
-<a id="__codelineno-0-200" name="__codelineno-0-200"></a>
-<a id="__codelineno-0-201" name="__codelineno-0-201"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;q_log&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-202" name="__codelineno-0-202"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Q=</span><span class="si">{</span><span class="n">peq_raw_to_q</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> (raw </span><span class="si">{</span><span class="n">raw_value</span><span class="si">}</span><span class="s2">)&quot;</span>
-<a id="__codelineno-0-203" name="__codelineno-0-203"></a>
-<a id="__codelineno-0-204" name="__codelineno-0-204"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;level_uint16&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-205" name="__codelineno-0-205"></a>        <span class="k">if</span> <span class="n">raw_value</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-0-206" name="__codelineno-0-206"></a>            <span class="k">return</span> <span class="s2">&quot;silent&quot;</span>
-<a id="__codelineno-0-207" name="__codelineno-0-207"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">level_uint16_to_dbu</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> dBu (raw </span><span class="si">{</span><span class="n">raw_value</span><span class="si">}</span><span class="s2">)&quot;</span>
-<a id="__codelineno-0-208" name="__codelineno-0-208"></a>
-<a id="__codelineno-0-209" name="__codelineno-0-209"></a>    <span class="k">if</span> <span class="n">fmt_type</span> <span class="o">==</span> <span class="s2">&quot;enum&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-210" name="__codelineno-0-210"></a>        <span class="n">values</span> <span class="o">=</span> <span class="n">fmt_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;values&quot;</span><span class="p">,</span> <span class="p">{})</span>
-<a id="__codelineno-0-211" name="__codelineno-0-211"></a>        <span class="k">return</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">raw_value</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;0x</span><span class="si">{</span><span class="n">raw_value</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-212" name="__codelineno-0-212"></a>
-<a id="__codelineno-0-213" name="__codelineno-0-213"></a>    <span class="k">if</span> <span class="n">fmt_type</span> <span class="o">==</span> <span class="s2">&quot;bitmask&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-214" name="__codelineno-0-214"></a>        <span class="n">bits</span> <span class="o">=</span> <span class="n">fmt_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bits&quot;</span><span class="p">,</span> <span class="p">{})</span>
-<a id="__codelineno-0-215" name="__codelineno-0-215"></a>        <span class="n">active</span> <span class="o">=</span> <span class="p">[</span><span class="n">label</span> <span class="k">for</span> <span class="n">bit_str</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">bits</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-<a id="__codelineno-0-216" name="__codelineno-0-216"></a>                  <span class="k">if</span> <span class="n">raw_value</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="nb">int</span><span class="p">(</span><span class="n">bit_str</span><span class="p">))]</span>
-<a id="__codelineno-0-217" name="__codelineno-0-217"></a>        <span class="k">return</span> <span class="s2">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">active</span><span class="p">)</span> <span class="k">if</span> <span class="n">active</span> <span class="k">else</span> <span class="s2">&quot;none&quot;</span>
-<a id="__codelineno-0-218" name="__codelineno-0-218"></a>
-<a id="__codelineno-0-219" name="__codelineno-0-219"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;uint8&quot;</span><span class="p">,</span> <span class="s2">&quot;uint16le&quot;</span><span class="p">):</span>
-<a id="__codelineno-0-220" name="__codelineno-0-220"></a>        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span>
-<a id="__codelineno-0-221" name="__codelineno-0-221"></a>
-<a id="__codelineno-0-222" name="__codelineno-0-222"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;ascii&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-223" name="__codelineno-0-223"></a>        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw_value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span>
-<a id="__codelineno-0-224" name="__codelineno-0-224"></a>
-<a id="__codelineno-0-225" name="__codelineno-0-225"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;hex&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-226" name="__codelineno-0-226"></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw_value</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
-<a id="__codelineno-0-227" name="__codelineno-0-227"></a>            <span class="k">return</span> <span class="n">raw_value</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
-<a id="__codelineno-0-228" name="__codelineno-0-228"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;0x</span><span class="si">{</span><span class="n">raw_value</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="normal"><a href="#__codelineno-0-230">230</a></span>
+<span class="normal"><a href="#__codelineno-0-231">231</a></span>
+<span class="normal"><a href="#__codelineno-0-232">232</a></span>
+<span class="normal"><a href="#__codelineno-0-233">233</a></span>
+<span class="normal"><a href="#__codelineno-0-234">234</a></span>
+<span class="normal"><a href="#__codelineno-0-235">235</a></span>
+<span class="normal"><a href="#__codelineno-0-236">236</a></span>
+<span class="normal"><a href="#__codelineno-0-237">237</a></span>
+<span class="normal"><a href="#__codelineno-0-238">238</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-169" name="__codelineno-0-169"></a><span class="k">def</span><span class="w"> </span><span class="nf">convert_value</span><span class="p">(</span><span class="n">raw_value</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fmt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">ProtocolConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-0-170" name="__codelineno-0-170"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a raw integer value to a human-readable string using a named format.</span>
+<a id="__codelineno-0-171" name="__codelineno-0-171"></a>
+<a id="__codelineno-0-172" name="__codelineno-0-172"></a><span class="sd">    Format dispatch order: hard-coded formats first (``channel``,</span>
+<a id="__codelineno-0-173" name="__codelineno-0-173"></a><span class="sd">    ``gain_raw``, ``peq_gain``, ``freq_log``, ``q_log``, ``level_uint16``,</span>
+<a id="__codelineno-0-174" name="__codelineno-0-174"></a><span class="sd">    ``level24``),</span>
+<a id="__codelineno-0-175" name="__codelineno-0-175"></a><span class="sd">    then TOML-defined enum/bitmask formats, then generic types</span>
+<a id="__codelineno-0-176" name="__codelineno-0-176"></a><span class="sd">    (``uint8``, ``uint16le``, ``ascii``, ``hex``).</span>
+<a id="__codelineno-0-177" name="__codelineno-0-177"></a>
+<a id="__codelineno-0-178" name="__codelineno-0-178"></a><span class="sd">    Args:</span>
+<a id="__codelineno-0-179" name="__codelineno-0-179"></a><span class="sd">        raw_value: Raw integer (or bytes for ``hex``/``ascii`` formats).</span>
+<a id="__codelineno-0-180" name="__codelineno-0-180"></a><span class="sd">        fmt: Format name string from the :class:`FieldDef` or caller.</span>
+<a id="__codelineno-0-181" name="__codelineno-0-181"></a><span class="sd">        config: Loaded protocol config — provides the ``formats`` table for</span>
+<a id="__codelineno-0-182" name="__codelineno-0-182"></a><span class="sd">            enum and bitmask lookups.</span>
+<a id="__codelineno-0-183" name="__codelineno-0-183"></a>
+<a id="__codelineno-0-184" name="__codelineno-0-184"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-0-185" name="__codelineno-0-185"></a><span class="sd">        Human-readable string representation. Falls back to ``str(raw_value)``</span>
+<a id="__codelineno-0-186" name="__codelineno-0-186"></a><span class="sd">        for unrecognised format names.</span>
+<a id="__codelineno-0-187" name="__codelineno-0-187"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-188" name="__codelineno-0-188"></a>    <span class="n">fmt_def</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">formats</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="p">{})</span>
+<a id="__codelineno-0-189" name="__codelineno-0-189"></a>    <span class="n">fmt_type</span> <span class="o">=</span> <span class="n">fmt_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-190" name="__codelineno-0-190"></a>
+<a id="__codelineno-0-191" name="__codelineno-0-191"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;channel&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-192" name="__codelineno-0-192"></a>        <span class="k">return</span> <span class="n">CHANNEL_NAMES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">raw_value</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;ch</span><span class="si">{</span><span class="n">raw_value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-193" name="__codelineno-0-193"></a>
+<a id="__codelineno-0-194" name="__codelineno-0-194"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;gain_raw&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-195" name="__codelineno-0-195"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">raw_to_db</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> dB (raw </span><span class="si">{</span><span class="n">raw_value</span><span class="si">}</span><span class="s2">)&quot;</span>
+<a id="__codelineno-0-196" name="__codelineno-0-196"></a>
+<a id="__codelineno-0-197" name="__codelineno-0-197"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;peq_gain&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-198" name="__codelineno-0-198"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">peq_raw_to_gain</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2"> dB&quot;</span>
+<a id="__codelineno-0-199" name="__codelineno-0-199"></a>
+<a id="__codelineno-0-200" name="__codelineno-0-200"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;freq_log&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-201" name="__codelineno-0-201"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">freq_raw_to_hz</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> Hz (raw </span><span class="si">{</span><span class="n">raw_value</span><span class="si">}</span><span class="s2">)&quot;</span>
+<a id="__codelineno-0-202" name="__codelineno-0-202"></a>
+<a id="__codelineno-0-203" name="__codelineno-0-203"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;q_log&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-204" name="__codelineno-0-204"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Q=</span><span class="si">{</span><span class="n">peq_raw_to_q</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> (raw </span><span class="si">{</span><span class="n">raw_value</span><span class="si">}</span><span class="s2">)&quot;</span>
+<a id="__codelineno-0-205" name="__codelineno-0-205"></a>
+<a id="__codelineno-0-206" name="__codelineno-0-206"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;level_uint16&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-207" name="__codelineno-0-207"></a>        <span class="k">if</span> <span class="n">raw_value</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-0-208" name="__codelineno-0-208"></a>            <span class="k">return</span> <span class="s2">&quot;silent&quot;</span>
+<a id="__codelineno-0-209" name="__codelineno-0-209"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">level_uint16_to_dbu</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> dBu (raw </span><span class="si">{</span><span class="n">raw_value</span><span class="si">}</span><span class="s2">)&quot;</span>
+<a id="__codelineno-0-210" name="__codelineno-0-210"></a>
+<a id="__codelineno-0-211" name="__codelineno-0-211"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;level24&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-212" name="__codelineno-0-212"></a>        <span class="k">if</span> <span class="n">raw_value</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-0-213" name="__codelineno-0-213"></a>            <span class="k">return</span> <span class="s2">&quot;silent&quot;</span>
+<a id="__codelineno-0-214" name="__codelineno-0-214"></a>        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">level24_to_dbu</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> dBu &quot;</span>
+<a id="__codelineno-0-215" name="__codelineno-0-215"></a>                <span class="sa">f</span><span class="s2">&quot;(raw24 </span><span class="si">{</span><span class="n">raw_value</span><span class="si">}</span><span class="s2">, uint16 </span><span class="si">{</span><span class="n">raw_value</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">8</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-216" name="__codelineno-0-216"></a>
+<a id="__codelineno-0-217" name="__codelineno-0-217"></a>    <span class="k">if</span> <span class="n">fmt_type</span> <span class="o">==</span> <span class="s2">&quot;enum&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-218" name="__codelineno-0-218"></a>        <span class="n">values</span> <span class="o">=</span> <span class="n">fmt_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;values&quot;</span><span class="p">,</span> <span class="p">{})</span>
+<a id="__codelineno-0-219" name="__codelineno-0-219"></a>        <span class="k">return</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">raw_value</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;0x</span><span class="si">{</span><span class="n">raw_value</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-220" name="__codelineno-0-220"></a>
+<a id="__codelineno-0-221" name="__codelineno-0-221"></a>    <span class="k">if</span> <span class="n">fmt_type</span> <span class="o">==</span> <span class="s2">&quot;bitmask&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-222" name="__codelineno-0-222"></a>        <span class="n">bits</span> <span class="o">=</span> <span class="n">fmt_def</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bits&quot;</span><span class="p">,</span> <span class="p">{})</span>
+<a id="__codelineno-0-223" name="__codelineno-0-223"></a>        <span class="n">active</span> <span class="o">=</span> <span class="p">[</span><span class="n">label</span> <span class="k">for</span> <span class="n">bit_str</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">bits</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+<a id="__codelineno-0-224" name="__codelineno-0-224"></a>                  <span class="k">if</span> <span class="n">raw_value</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="nb">int</span><span class="p">(</span><span class="n">bit_str</span><span class="p">))]</span>
+<a id="__codelineno-0-225" name="__codelineno-0-225"></a>        <span class="k">return</span> <span class="s2">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">active</span><span class="p">)</span> <span class="k">if</span> <span class="n">active</span> <span class="k">else</span> <span class="s2">&quot;none&quot;</span>
+<a id="__codelineno-0-226" name="__codelineno-0-226"></a>
+<a id="__codelineno-0-227" name="__codelineno-0-227"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;uint8&quot;</span><span class="p">,</span> <span class="s2">&quot;uint16le&quot;</span><span class="p">):</span>
+<a id="__codelineno-0-228" name="__codelineno-0-228"></a>        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span>
 <a id="__codelineno-0-229" name="__codelineno-0-229"></a>
-<a id="__codelineno-0-230" name="__codelineno-0-230"></a>    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span>
+<a id="__codelineno-0-230" name="__codelineno-0-230"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;ascii&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-231" name="__codelineno-0-231"></a>        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw_value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span>
+<a id="__codelineno-0-232" name="__codelineno-0-232"></a>
+<a id="__codelineno-0-233" name="__codelineno-0-233"></a>    <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s2">&quot;hex&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-234" name="__codelineno-0-234"></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw_value</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+<a id="__codelineno-0-235" name="__codelineno-0-235"></a>            <span class="k">return</span> <span class="n">raw_value</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<a id="__codelineno-0-236" name="__codelineno-0-236"></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;0x</span><span class="si">{</span><span class="n">raw_value</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-237" name="__codelineno-0-237"></a>
+<a id="__codelineno-0-238" name="__codelineno-0-238"></a>    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">raw_value</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
