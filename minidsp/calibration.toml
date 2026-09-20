@@ -1,32 +1,22 @@
-ref_level = 169.92
-ref_level_computed = 169.92
+ref_level = 79.99
+ref_level_computed = 79.99
 
 [[points]]
-dbu = 4.0
-channel = "InA"
-channel_index = 0
-mean_uint16 = 254.1
-min_uint16 = 251
-max_uint16 = 255
+dbu = 6.0
+channel = "InC"
+channel_index = 2
+mean_uint16 = 161.4
+min_uint16 = 160
+max_uint16 = 163
 samples = 20
-timestamp = "2026-04-22T23:06:12"
+timestamp = "2026-09-20T13:13:05"
 
 [[points]]
 dbu = 0.0
-channel = "InA"
-channel_index = 0
-mean_uint16 = 180.8
-min_uint16 = 179
-max_uint16 = 182
+channel = "InC"
+channel_index = 2
+mean_uint16 = 78.15
+min_uint16 = 77
+max_uint16 = 79
 samples = 20
-timestamp = "2026-04-22T23:07:20"
-
-[[points]]
-dbu = -7.78
-channel = "InA"
-channel_index = 0
-mean_uint16 = 72.85
-min_uint16 = 72
-max_uint16 = 74
-samples = 20
-timestamp = "2026-04-22T23:08:29"
+timestamp = "2026-09-20T13:08:41"
