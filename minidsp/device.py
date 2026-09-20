@@ -265,11 +265,13 @@ class DSPmini:
         """Poll the device for current input/output level meter values.
 
         Returns:
-            Dict with keys ``'inputs'`` (list[int], 4 channels),
-            ``'outputs'`` (list[int], 4 channels), ``'limiter_mask'`` (int),
-            ``'state'`` (int), ``'clip'`` (bool, any-input clip flag) and
-            ``'clipping'`` (list[bool], per-channel ``level >= 256`` for
-            inputs 0–3 and outputs 4–7). Returns ``None`` on error or timeout.
+            Dict with keys ``'inputs'`` / ``'outputs'`` (list[int], legacy
+            uint16 units), ``'inputs24'`` / ``'outputs24'`` (list[int], full
+            24-bit levels), ``'limiter_mask'`` (int), ``'state'`` (int),
+            ``'clip'`` (bool, device any-input clip flag) and ``'clipping'``
+            (list[bool], per-channel editor clip rule for inputs 0–3 and
+            outputs 4–7). See :func:`~minidsp.protocol.parse_levels`.
+            Returns ``None`` on error or timeout.
         """
         payload = self._send_recv(cmd_poll())
         if payload is None:

@@ -26,8 +26,9 @@ value = "0010033d000abc8d"
 description = "Device identifier / firmware version (0x000abc8d = 703629)"
 
 [noise]
-# Byte positions within level response payload to mask (noisy instant bytes)
-# These are payload-relative offsets for 0x40 responses
+# Byte positions within level response payload to mask when comparing frames:
+# the low byte of each 24-bit channel level, which jitters by a few counts
+# even on a steady signal. Payload-relative offsets for 0x40 responses.
 level_instant_offsets = [3, 6, 9, 12, 15, 18, 21, 24]
 # HID report positions to ignore during comparison
 footer_offset = 56
@@ -356,17 +357,17 @@ description = "Level poll (out: 1 byte) / Level response (in: 28 bytes with 8ch 
 verified = true
 
 [opcodes.0x40.fields.response]
-in1 = { offset = 1, size = 2, format = "level_uint16" }
-in2 = { offset = 4, size = 2, format = "level_uint16" }
-in3 = { offset = 7, size = 2, format = "level_uint16" }
-in4 = { offset = 10, size = 2, format = "level_uint16" }
-out1 = { offset = 13, size = 2, format = "level_uint16" }
-out2 = { offset = 16, size = 2, format = "level_uint16" }
-out3 = { offset = 19, size = 2, format = "level_uint16" }
-out4 = { offset = 22, size = 2, format = "level_uint16" }
+in1 = { offset = 1, size = 3, format = "level24" }
+in2 = { offset = 4, size = 3, format = "level24" }
+in3 = { offset = 7, size = 3, format = "level24" }
+in4 = { offset = 10, size = 3, format = "level24" }
+out1 = { offset = 13, size = 3, format = "level24" }
+out2 = { offset = 16, size = 3, format = "level24" }
+out3 = { offset = 19, size = 3, format = "level24" }
+out4 = { offset = 22, size = 3, format = "level24" }
 limiter_mask = { offset = 25, size = 1, format = "limiter_bitmask" }
 state = { offset = 26, size = 1, format = "uint8", note = "0x00=normal, 0x01=high-res" }
-clip = { offset = 27, size = 1, format = "uint8", note = "input clip flag: 0x01 while any input meter (post-gain) >= 256 (~+10 dBu), else 0x00; outputs do not set it" }
+clip = { offset = 27, size = 1, format = "uint8", note = "device input clip flag: 0x01 while any input level24 >= 65536 (uint16 256, ~+10 dBu), else 0x00; outputs do not set it. The editor ignores this byte and derives its Clip LEDs from the level (>= 74058)" }
 
 # NOTE: 0x48 (GEQ) is NOT present on the 4x4 Mini — it is a DSP 408-only feature.
 
@@ -451,7 +452,12 @@ note = "dB = raw * 0.5 - 90.0, range -90.0 to 0.0 dB (0.5 dB/step)"
 [formats.level_uint16]
 type = "uint16le"
 unit = "linear"
-note = "dB = 20*log10(level/1153), 63 dB range. 0dBu~188, -30dBu~5"
+note = "legacy: upper 16 bits of the 24-bit level; dBu = 20*log10(level*256/REF_LEVEL24)"
+
+[formats.level24]
+type = "level24"
+unit = "linear"
+note = "24-bit level from triplet [mid, high, low]; editor dB = 20*log10(level24/2^19)+28; calibrated dBu = 20*log10(level24/REF_LEVEL24). 0 dBu ~ 20500, editor Clip >= 74058"
 
 [formats.slope_index]
 type = "enum"

@@ -28,7 +28,7 @@ Compiled from: manufacturer tool screenshots (`analysis/resources/`), PDF user m
 | **Mute** | Per-channel on/off | **Captured & implemented** (`0x35`) |
 | **Phase Invert** | 180 degree polarity flip ("Normal" / "Inverse" button) | **Captured & implemented** (`0x36`) |
 | **Noise Gate** | Per-input: Threshold, Attack, Hold, Release | **Captured & implemented** (`0x3E`) |
-| **Level Meter** | Real-time level with clip indicator | **Captured & implemented** (`0x40`, any-input clip flag at byte 27, threshold uint16 ≥ 256) |
+| **Level Meter** | Real-time level with clip indicator | **Captured & implemented** (`0x40`, 24-bit levels; per-channel clip rule from the editor, plus device any-input clip flag at byte 27) |
 
 **Gate parameters:**
 - Threshold: -90.0 to 0.0 dB

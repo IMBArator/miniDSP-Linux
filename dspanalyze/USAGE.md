@@ -166,7 +166,7 @@ Default directory: `analysis/usb_captures`. Scans for `.txt`, `.pcapng`, `.pcap`
 
 ### `calibrate` — Level meter calibration
 
-Calibrates the level meter dBu conversion by capturing raw uint16 values at known analog levels and computing a best-fit REF_LEVEL. The result is written to `minidsp/calibration.toml` (shipped as a package resource).
+Calibrates the level meter dBu conversion by capturing the raw 24-bit level values at known analog levels and computing a best-fit 0 dBu reference. The result is written to `minidsp/calibration.toml` (shipped as a package resource).
 
 ```
 dspanalyze calibrate <action> [options]
@@ -178,8 +178,8 @@ dspanalyze calibrate <action> [options]
 |--------|-------------|
 | `capture <dBu>` | Poll the device and record raw levels at a known analog level |
 | `show` | Display all stored calibration points, measured dBu, and errors |
-| `apply` | Compute best-fit REF_LEVEL from points and write to `calibration.toml` |
-| `reset` | Revert `calibration.toml` to factory defaults |
+| `apply` | Compute the best-fit reference from points and write it to `calibration.toml` |
+| `reset` | Revert `calibration.toml` to the factory default (the editor's own 0 dB point) and drop all points |
 
 **`capture` options:**
 
@@ -190,13 +190,13 @@ dspanalyze calibrate <action> [options]
 
 **How it works:**
 
-The DSP reports linear amplitude as a uint16 value. The conversion to dBu uses the formula:
+The DSP reports each channel as a 24-bit linear amplitude (`level24`; the historical uint16 value is its upper 16 bits). The conversion to dBu uses the formula:
 
 ```
-dBu = 20 * log10(uint16 / REF_LEVEL)
+dBu = 20 * log10(level24 / REF_LEVEL24)
 ```
 
-The factory `REF_LEVEL = 1153` is designed for display scaling (63 dB range matching the manufacturer's LED meter), not accurate dBu. The calibration tool lets you measure actual uint16 values at known analog levels and compute the correct REF_LEVEL.
+The factory default is the manufacturer editor's own 0 dB point, `REF_LEVEL24 = 2^19 · 10^(−28/20) ≈ 20 872` (uint16 ≈ 81.5), which sits about 0.3 dB above true dBu on the bench. The calibration tool lets you measure actual levels against a voltmeter (0 dBu = 0.775 Vrms) and compute the exact reference. The file stores `ref_level24` plus the same value in uint16 units as `ref_level`; older files with only `ref_level` are still read.
 
 **Calibration workflow:**
 
@@ -222,23 +222,23 @@ dspanalyze calibrate apply
 minidsp levels --watch
 ```
 
-The `apply` step computes a weighted least-squares fit: each calibration point implies a REF_LEVEL (`uint16 / 10^(dBu/20)`), and the final value is the geometric mean weighted by uint16 magnitude (higher values have less quantization error). At least 2 points are required.
+The `apply` step computes a weighted least-squares fit: each calibration point implies a reference (`level24 / 10^(dBu/20)`), and the final value is the geometric mean weighted by level magnitude (higher values have less quantization error). At least 2 points are required.
+
+Keep the signal below the input ceiling: at 0 dB input gain the input level saturates around uint16 255 (about +10 dBu), so a +6 dBu point is the practical upper anchor.
 
 **`show` output example:**
 
 ```
 Calibration file: /path/to/minidsp/calibration.toml
-Current REF_LEVEL: 187.16 (factory: 1153)
-Calibration points: 4
+Current reference (0 dBu): 20477.4 (level24) = 79.99 (uint16)
+Calibration points: 2
 
-                              Mean                        Measured
-  #     dBu  Channel       uint16   Min   Max  Samples         dBu   Error
-  1   +6.0     InA          375.2   370   381       20      +6.04  +0.04
-  2    0.0     InA          187.1   185   190       20     -0.01  -0.01
-  3  -10.0     InA           18.8    18    20       20     -9.96  +0.04
-  4  -30.0     InA            5.0     5     5       20    -31.46  -1.46
+                                 Mean                                  Measured
+  #     dBu  Channel        level24  ≈ uint16     Min     Max  Samples      dBu   Error
+  1   +6.0     InC          41318.4     161.4   40960   41728       20    +6.10  +0.10
+  2   +0.0     InC          20019.2      78.2   19712   20224       20    -0.20  -0.20
 
-Best-fit REF_LEVEL: 187.16
+Best-fit reference: 20477.4 (level24) = 79.99 (uint16)
 ```
 
 ## Output Formats
@@ -317,7 +317,8 @@ Formats define how raw bytes convert to human-readable values. Key formats:
 | `peq_gain` | PEQ gain in dB |
 | `delay_samples` | Delay in samples at 48 kHz |
 | `slope_index` | Crossover slope types |
-| `level_uint16` | Metering level → dB conversion |
+| `level24` | 24-bit metering level (triplet `[mid, high, low]`) → dBu |
+| `level_uint16` | Legacy 16-bit metering level → dBu |
 
 ## Typical Workflow
 

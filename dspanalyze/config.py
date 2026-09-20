@@ -9,6 +9,7 @@ from pathlib import Path
 from minidsp.protocol import (
     CHANNEL_NAMES,
     freq_raw_to_hz,
+    level24_to_dbu,
     level_uint16_to_dbu,
     peq_raw_to_gain,
     peq_raw_to_q,
@@ -169,7 +170,8 @@ def convert_value(raw_value: int, fmt: str, config: ProtocolConfig) -> str:
     """Convert a raw integer value to a human-readable string using a named format.
 
     Format dispatch order: hard-coded formats first (``channel``,
-    ``gain_raw``, ``peq_gain``, ``freq_log``, ``q_log``, ``level_uint16``),
+    ``gain_raw``, ``peq_gain``, ``freq_log``, ``q_log``, ``level_uint16``,
+    ``level24``),
     then TOML-defined enum/bitmask formats, then generic types
     (``uint8``, ``uint16le``, ``ascii``, ``hex``).
 
@@ -205,6 +207,12 @@ def convert_value(raw_value: int, fmt: str, config: ProtocolConfig) -> str:
         if raw_value == 0:
             return "silent"
         return f"{level_uint16_to_dbu(raw_value):.1f} dBu (raw {raw_value})"
+
+    if fmt == "level24":
+        if raw_value == 0:
+            return "silent"
+        return (f"{level24_to_dbu(raw_value):.1f} dBu "
+                f"(raw24 {raw_value}, uint16 {raw_value >> 8})")
 
     if fmt_type == "enum":
         values = fmt_def.get("values", {})

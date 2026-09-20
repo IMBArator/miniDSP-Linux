@@ -507,15 +507,26 @@ Full frame header: 10 02 01 00 1c 40 ...
 
 #### Payload layout — 3-byte channel triplets
 
-Each channel is encoded as a **3-byte triplet: `[val_lo] [val_hi] [instant]`**.
+Each channel is a **24-bit linear level** sent as a 3-byte triplet
+**`[mid] [high] [low]`**:
 
-The first two bytes form a **uint16 LE** filtered/peak level (range 0–~264,
-observed Out2 reaching 264 at max analog input). The third byte is a noisy
-instantaneous sample (0–255).
+```
+level24 = low | mid << 8 | high << 16
+```
 
-The device autonomously switches between two reporting modes:
-- **Normal mode (state=0x00):** uint16=0, `instant` has the level — use instant byte
-- **High-res mode (state=0x01):** uint16>0, smooth firmware-filtered value — use uint16
+This is exactly how the manufacturer's editor assembles it (reverse-engineered
+from its meter routine with Ghidra, 2026-09-20: it reads bytes 3ch+2, 3ch,
+3ch+1 and builds a 32-bit integer `low<<8 | mid<<16 | high<<24`, i.e.
+`level24 × 256`). Earlier revisions of this document treated the first two
+bytes as a uint16 and the third as a "noisy instant sample"; the third byte
+is simply the least-significant byte, which jitters by a few counts on a
+steady signal. The legacy uint16 value is `level24 >> 8`. A triplet of
+`ff ff ff` is treated as 0 by the editor.
+
+Evidence: in the sine-sweep capture the triplet ramps monotonically as a
+24-bit value while the upper 16 bits are still 0 or 1
+(`00 00 14` → 20, `00 00 bf` → 191, `01 00 0c` → 268, `01 00 23` → 291,
+`07 00 b7` → 1975, `0b 00 09` → 2825 …).
 
 ```
 Offset  Size  Field
@@ -523,16 +534,16 @@ Offset  Size  Field
   0      1    Sub-type: always 0x40
 
  ── Input channel triplets ────────────────────────────
-  1–3    3    Input 1: [val_lo, val_hi, instant]
-  4–6    3    Input 2: [val_lo, val_hi, instant]
-  7–9    3    Input 3: [val_lo, val_hi, instant]
- 10–12   3    Input 4: [val_lo, val_hi, instant]
+  1–3    3    Input 1: [mid, high, low]
+  4–6    3    Input 2: [mid, high, low]
+  7–9    3    Input 3: [mid, high, low]
+ 10–12   3    Input 4: [mid, high, low]
 
  ── Output channel triplets ───────────────────────────
- 13–15   3    Output 1: [val_lo, val_hi, instant]
- 16–18   3    Output 2: [val_lo, val_hi, instant]
- 19–21   3    Output 3: [val_lo, val_hi, instant]
- 22–24   3    Output 4: [val_lo, val_hi, instant]
+ 13–15   3    Output 1: [mid, high, low]
+ 16–18   3    Output 2: [mid, high, low]
+ 19–21   3    Output 3: [mid, high, low]
+ 22–24   3    Output 4: [mid, high, low]
 
  ── Tail ──────────────────────────────────────────────
  25      1    Limiter active channel bitmask (see below)
@@ -542,30 +553,64 @@ Offset  Size  Field
 
 #### Level decoding
 
-Use only the uint16 LE value for metering:
+`level24` is a **linear amplitude**. Two dB scales are in use:
+
+**Editor scale** (exact formula of the manufacturer's meter routine):
+
 ```
-level = val_lo + val_hi * 256
+dB_editor = 20 * log10(level24 / 2^19) + 28
 ```
 
-The uint16 is a **linear amplitude** value. When uint16 = 0, the signal is
-below the display threshold (including noise floor). The instant byte is on an
-incompatible scale and should be ignored for metering purposes.
+The routine computes `20*log10((level24*256 + 1e-6) * 2^-27)` and lights LED
+segment *i* when the result exceeds `T_i − 28`, where `T` is a fixed table:
 
-**Calibration** (verified from captures at known analog levels):
-
-| Analog level | uint16 (In1) | Manufacturer display |
+| Bar | Table `T` | Segment labels |
 |---|---|---|
-| -30 dBu | ~5 | 2 green LEDs |
-| 0 dBu | ~188 | 1 yellow LED (green/yellow boundary) |
-| Max console out | ~264 | Well into yellow |
+| inputs | −40, −30, −20, −10, −5, 0, 5, 10, 11 | −50, −30, −20, −10, −5, +0, +5, +12, Clip |
+| outputs | −40, −30, −10, −5, 0, 5, 10, 11 | −50, −30, −10, −5, +0, +5, +12, Clip (+ Limit) |
 
-The 30 dB difference between 188 and 5 confirms linear amplitude encoding:
-188 / 5 = 37.6 ≈ 10^(31.5/20) = 37.6. The small deviation from the expected
-ratio of 31.6 is due to integer quantization at low values.
+So the printed labels are cosmetic: the "−50" segment lights at −40 dB, "+12"
+at +10 dB and "Clip" at +11 dB on the editor scale. Thresholds in raw units,
+`level24 = 2^19 · 10^((T−28)/20)`:
 
-**Display scaling**: dB conversion with `20*log10(level / 1153)` and a 63 dB
-range places -30 dBu at 25% and 0 dBu at 75% of the meter, matching the
-manufacturer's LED meter layout.
+| `T` (label) | level24 | uint16 equiv. | Bench / capture check |
+|---|---|---|---|
+| −40 ("−50") | 209 | 0.8 | first LED visible at low byte 253, dark at 186 |
+| −30 | 660 | 2.6 | −30 dBu capture (uint16 5): lit |
+| −20 | 2087 | 8.2 | not lit at uint16 5 |
+| −5 | 11 738 | 45.9 | |
+| 0 ("+0") | 20 872 | 81.5 | blinks at uint16 80–81 |
+| 5 | 37 113 | 145.0 | yellow starts at uint16 ~145 |
+| 10 ("+12") | 66 004 | 257.8 | dark at uint16 254–256 |
+| 11 ("Clip") | 74 058 | 289.3 | |
+
+**Calibrated dBu scale** (`minidsp levels`, `level24_to_dbu()`):
+
+```
+dBu = 20 * log10(level24 / REF_LEVEL24)
+```
+
+`REF_LEVEL24` is measured with a voltmeter via `dspanalyze calibrate` and
+stored in `minidsp/calibration.toml`. Bench 2026-09-20 on InC, input gain
+0 dB: 0.775 Vrms (0 dBu) → uint16 78.2, 1.55 Vrms (+6 dBu) → uint16 161.4,
+best fit `REF ≈ 80 × 256`. The editor's own 0 dB point (uint16 81.5) is
+therefore about 0.3 dB above true dBu; without a calibration file the
+library uses the editor's point as factory default.
+
+**Input ceiling:** at 0 dB input gain the input level tops out at
+`level24 ≈ 65 536` (uint16 255–256), seen in the sine sweep, the saturated
++4 dBu calibration attempt and the clip capture (max 1019 = 255 × 10^(12/20)
+at +12 dB gain). The meter is post-gain: `level = 8-bit ADC level × gain`.
+Consequently "+12" and "Clip" can only light on inputs with positive input
+gain.
+
+**Per-channel clip:** the editor derives every channel's red segment from the
+level alone: `level24 ≥ 74 058` (uint16 ≈ 289.3). The library exposes this as
+`LEVEL_CLIP_LEVEL24` / `level24_is_clipping()` and `parse_levels()` returns
+it per channel as `clipping`. Evaluate it on the raw sample, not on a
+smoothed value, or one-frame transients are missed. This differs from the
+device's own byte-27 flag (below), which trips at uint16 256 and covers
+inputs only.
 
 #### Limiter active channel bitmask (offset 25)
 
@@ -584,8 +629,11 @@ each event, `0x00` otherwise. Exactly 3 transitions from `0x00` to `0x08`.
 
 #### State flag (offset 26)
 
-- `0x00` = normal metering mode (uint16=0, levels in instant byte of each triplet).
-- `0x01` = high-res mode (levels in uint16 LE of each triplet) or init/processing active.
+- `0x00` = observed while all channel levels are below `level24 = 256`
+  (upper 16 bits zero) and during idle/init.
+- `0x01` = observed as soon as any channel's upper 16 bits are non-zero, and
+  during init/processing. The editor does not read this byte; exact
+  semantics unconfirmed.
 
 #### Clip flag (offset 27)
 
@@ -623,15 +671,13 @@ Consistent with the earlier captures: the sine sweep peaked at 264 on Out2
 but only 255 on In1 (`0x00`); the clip capture and both startup captures had
 In1 ≥ 323 (`0x01` throughout).
 
-**Per-channel clip (how the editor lights its red segments):** byte 27 is
-only a summary over the inputs, yet the editor shows a Clip segment on every
-channel including outputs. It derives them from the level itself with the same
-threshold: a channel is clipping when `uint16 >= 256`. This is one more step
-on the LED ladder `raw >= 80 × 10^(label/20)` that drives the other segments
-(−5 ≈ 45, +0 = 80, +5 ≈ 142). The library exposes the rule as
-`LEVEL_CLIP_UINT16` / `level_is_clipping()` and `parse_levels()` returns it
-per channel as `clipping`. Evaluate it on the raw sample, not on a smoothed
-value, or one-frame transients are missed.
+**Relation to the editor's Clip segment:** the editor never reads byte 27
+(its meter routine consumes data bytes 0–24 only: eight triplets plus the
+limiter mask). Its per-channel Clip segments come from the level itself at
+`level24 ≥ 74 058` (uint16 ≈ 289), see "Level decoding". The device flag
+trips earlier, at uint16 256 (the 8-bit ADC-level overflow after gain), and
+only for inputs — so between uint16 256 and 289 the flag is set while the
+editor shows "+12" but not yet "Clip".
 
 ---
 

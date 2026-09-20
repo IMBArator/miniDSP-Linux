@@ -239,7 +239,7 @@ def cmd_dump(args: argparse.Namespace) -> None:
 
 
 def cmd_levels(args: argparse.Namespace) -> None:
-    """Poll device levels and display raw uint16 + dBu for all 8 channels.
+    """Poll device levels and display raw levels + dBu for all 8 channels.
 
     Args:
         args: Parsed CLI arguments — ``watch``, ``count``, ``interval``,
@@ -249,7 +249,7 @@ def cmd_levels(args: argparse.Namespace) -> None:
     from rich.table import Table
     from rich import box as rich_box
     from .protocol import (
-        level_uint16_to_dbu,
+        level24_to_dbu,
         INPUT_CHANNEL_NAMES, OUTPUT_CHANNEL_NAMES,
     )
 
@@ -263,6 +263,7 @@ def cmd_levels(args: argparse.Namespace) -> None:
         csv_file = open(csv_path, "w", newline="")
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(["timestamp"] + [f"{n}_raw" for n in ch_names]
+                            + [f"{n}_raw24" for n in ch_names]
                             + [f"{n}_dB" for n in ch_names]
                             + [f"{n}_clip" for n in ch_names] + ["clip_flag"])
 
@@ -300,15 +301,14 @@ def cmd_levels(args: argparse.Namespace) -> None:
                 time.sleep(interval)
                 continue
 
-            inputs = levels["inputs"]
-            outputs = levels["outputs"]
-            all_vals = inputs + outputs
+            all_vals = levels["inputs"] + levels["outputs"]          # legacy uint16
+            all_vals24 = levels["inputs24"] + levels["outputs24"]    # full 24-bit
+            db_vals = [level24_to_dbu(v) for v in all_vals24]
 
             if csv_writer:
                 ts = f"{time.time():.3f}"
-                db_vals = [level_uint16_to_dbu(v) for v in all_vals]
                 db_strs = [f"{v:.2f}" if v != float("-inf") else "-inf" for v in db_vals]
-                csv_writer.writerow([ts] + all_vals + db_strs
+                csv_writer.writerow([ts] + all_vals + all_vals24 + db_strs
                                     + [int(c) for c in levels["clipping"]]
                                     + [int(levels["clip"])])
                 csv_file.flush()
@@ -316,13 +316,14 @@ def cmd_levels(args: argparse.Namespace) -> None:
             if not args.csv_only:
                 t = Table(box=rich_box.SIMPLE, show_header=True)
                 t.add_column("Ch", style="bold", min_width=4)
-                t.add_column("Raw", justify="right", min_width=5)
+                t.add_column("Raw16", justify="right", min_width=5)
+                t.add_column("Raw24", justify="right", min_width=7)
                 t.add_column("dBu", justify="right", min_width=8)
                 t.add_column("Clip", min_width=4)
-                for name, val, clipping in zip(ch_names, all_vals, levels["clipping"]):
-                    db = level_uint16_to_dbu(val)
+                for name, val, val24, db, clipping in zip(
+                        ch_names, all_vals, all_vals24, db_vals, levels["clipping"]):
                     db_str = f"{db:+.1f}" if db != float("-inf") else " -inf"
-                    t.add_row(name, str(val), db_str,
+                    t.add_row(name, str(val), str(val24), db_str,
                               "[bold red]CLIP[/bold red]" if clipping else "")
                 console.print(t)
                 flag_str = "[bold red]set[/bold red]" if levels["clip"] else "clear"

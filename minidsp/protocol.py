@@ -778,23 +778,40 @@ def cmd_activate() -> bytes:
 
 # --- Response parsers ---
 
-def _ch_level(payload: bytes, group_start: int) -> int:
-    """Extract a channel level from a 3-byte triplet [val_lo, val_hi, instant].
+def _ch_level24(payload: bytes, group_start: int) -> int:
+    """Extract a channel level as the full 24-bit value from its 3-byte triplet.
 
-    First two bytes are a uint16 LE filtered/peak level (0–~264).
-    Third byte is an instantaneous noisy sample (0–255).
-
-    The instant byte and uint16 are on incompatible scales (instant 247
-    = barely visible, uint16 136 = end of green zone), so only the uint16
-    value is used for metering. The device transitions to uint16 mode
-    right at the manufacturer's display threshold.
+    Each channel is a 24-bit linear level sent as ``[mid, high, low]``: the
+    first two bytes are the upper 16 bits (little-endian), the third byte is
+    the least significant byte. The manufacturer's editor assembles exactly
+    this value (reverse-engineered from its meter routine). Earlier notes
+    called the third byte a "noisy instant sample" — it is simply the low
+    byte, which jitters by a few counts on a steady signal.
 
     Args:
         payload: Raw 28-byte level response payload.
-        group_start: Byte offset of the first (low) byte of the triplet.
+        group_start: Byte offset of the first (mid) byte of the triplet.
 
     Returns:
-        uint16 LE amplitude (val_lo + val_hi × 256).
+        24-bit linear amplitude ``low | mid << 8 | high << 16``.
+    """
+    return (payload[group_start + 2]
+            | payload[group_start] << 8
+            | payload[group_start + 1] << 16)
+
+
+def _ch_level(payload: bytes, group_start: int) -> int:
+    """Extract a channel level as the legacy 16-bit value (upper 16 bits).
+
+    Equal to ``_ch_level24(...) >> 8``, i.e. ``mid + high × 256``. Kept for
+    callers that work in the historical uint16 units (0 dBu ≈ 80).
+
+    Args:
+        payload: Raw 28-byte level response payload.
+        group_start: Byte offset of the first (mid) byte of the triplet.
+
+    Returns:
+        Upper 16 bits of the 24-bit amplitude.
     """
     return payload[group_start] + payload[group_start + 1] * 256
 
@@ -804,8 +821,9 @@ def parse_levels(payload: bytes) -> dict | None:
 
     Payload layout: opcode + 8 × 3-byte channel triplets + 3-byte tail
     ``[limiter_mask, state, clip]``.
-    Each triplet: ``[val_lo, val_hi, instant]`` — uint16 LE + instant sample.
-    Input channels at offsets 1, 4, 7, 10; output channels at 13, 16, 19, 22.
+    Each triplet is a 24-bit linear level sent as ``[mid, high, low]`` (see
+    :func:`_ch_level24`). Input channels at offsets 1, 4, 7, 10; output
+    channels at 13, 16, 19, 22.
 
     Args:
         payload: Raw 28-byte response payload starting with opcode byte.
@@ -814,8 +832,13 @@ def parse_levels(payload: bytes) -> dict | None:
         Dict with the following keys, or ``None`` if payload length or opcode
         is invalid:
 
-        - ``'inputs'``: list[int] — 4 input channel uint16 levels (InA–InD).
-        - ``'outputs'``: list[int] — 4 output channel uint16 levels (Out1–Out4).
+        - ``'inputs'``: list[int] — 4 input levels (InA–InD) in legacy uint16
+            units (upper 16 bits of the 24-bit value; 0 dBu ≈ 80).
+        - ``'outputs'``: list[int] — 4 output levels (Out1–Out4), same units.
+        - ``'inputs24'``: list[int] — the full 24-bit input levels
+            (0 dBu ≈ 20 500). Use these for dB conversion; they carry 8 more
+            bits of resolution than ``'inputs'``.
+        - ``'outputs24'``: list[int] — the full 24-bit output levels.
         - ``'limiter_mask'``: int — bitmask at payload[25]; bit N set means
             output channel N (Out1=bit0 … Out4=bit3) has the compressor/limiter
             actively clamping (gain reduction engaged).
@@ -829,19 +852,23 @@ def parse_levels(payload: bytes) -> dict | None:
             a per-channel bitmask — a single input clipping yields 0x01.
         - ``'clipping'``: list[bool] — per-channel clip state for all 8
             channels (inputs 0–3, outputs 4–7), derived with
-            :func:`level_is_clipping` (``level >= LEVEL_CLIP_UINT16``). This
-            is the rule behind the editor's red "Clip" segments; use it to
-            drive per-channel clip LEDs.
+            :func:`level24_is_clipping` (``level24 >= LEVEL_CLIP_LEVEL24``).
+            This is the rule behind the editor's red "Clip" segments (its
+            table entry 11 dB, ≈ uint16 289); use it to drive per-channel
+            clip LEDs. Note it differs from the device flag ``'clip'``, which
+            trips at uint16 256 and covers inputs only.
     """
     if len(payload) != 28 or payload[0] != OP_POLL:
         return None
-    inputs = [_ch_level(payload, 1), _ch_level(payload, 4),
-              _ch_level(payload, 7), _ch_level(payload, 10)]
-    outputs = [_ch_level(payload, 13), _ch_level(payload, 16),
-               _ch_level(payload, 19), _ch_level(payload, 22)]
+    offsets_in = (1, 4, 7, 10)
+    offsets_out = (13, 16, 19, 22)
+    inputs24 = [_ch_level24(payload, o) for o in offsets_in]
+    outputs24 = [_ch_level24(payload, o) for o in offsets_out]
     return {
-        "inputs": inputs,
-        "outputs": outputs,
+        "inputs": [v >> 8 for v in inputs24],
+        "outputs": [v >> 8 for v in outputs24],
+        "inputs24": inputs24,
+        "outputs24": outputs24,
         "limiter_mask": payload[25],
         "state": payload[26],
         # Raw hex seen in "clip channel 1+2 in+out" capture while clipping:
@@ -849,7 +876,7 @@ def parse_levels(payload: bytes) -> dict | None:
         #                                        limiter^ state^ clip^
         # Bench 2026-09-20: InC post-gain 248-252 -> 00, 261-265 -> 01.
         "clip": payload[27] != 0,
-        "clipping": [level_is_clipping(v) for v in inputs + outputs],
+        "clipping": [level24_is_clipping(v) for v in inputs24 + outputs24],
     }
 
 
@@ -1294,52 +1321,104 @@ def delay_samples_to_ms(raw: int) -> float:
 
 
 # --- Level conversion & calibration ---
+#
+# Levels are 24-bit linear amplitudes (see _ch_level24).  Two dB scales exist:
+#
+# * The manufacturer's editor scale, reverse-engineered from its meter
+#   routine (Ghidra, 2026-09-20):  dB = 20*log10(level24 / 2**19) + 28.
+#   LED segment i lights when that value exceeds a table entry T_i; the
+#   input table is [-40, -30, -20, -10, -5, 0, 5, 10, 11] for the labels
+#   [-50, -30, -20, -10, -5, +0, +5, +12, Clip], so the labels are cosmetic.
+#   The "+0" segment therefore lights at level24 ≈ 20 872 (uint16 ≈ 81.5)
+#   and the "Clip" segment at level24 ≈ 74 058 (uint16 ≈ 289.3).
+# * The calibrated dBu scale: dB = 20*log10(level24 / REF), with REF measured
+#   against a voltmeter (dspanalyze calibrate).  Bench 2026-09-20: 0.775 Vrms
+#   → uint16 78.2, so the editor's scale sits ~0.3 dB above true dBu.
+#
+# The legacy uint16 value is level24 >> 8; the constants below are kept in
+# both units so existing callers keep working.
 
-# Factory calibration: designed for 63 dB display range matching the
-# manufacturer's LED meter layout.  0 dBu → uint16 ~188, -30 dBu → uint16 ~5.
-LEVEL_REF_UINT16_FACTORY = 1153
+LEVEL24_PER_UINT16 = 256
+
+EDITOR_LEVEL_SCALE = 2 ** 19       # editor: 20*log10(level24 / 2**19) ...
+EDITOR_LEVEL_OFFSET_DB = 28.0      # ... + 28 dB puts its "+0" LED at 0 dB
+EDITOR_CLIP_DB = 11.0              # table entry of the editor's "Clip" LED
+
+# level24 at which the editor's scale reads 0 dB — used as the factory
+# reference when no calibration file is bundled (≈ 20 872.3).
+LEVEL_REF_LEVEL24_FACTORY = EDITOR_LEVEL_SCALE * 10 ** (-EDITOR_LEVEL_OFFSET_DB / 20)
+LEVEL_REF_LEVEL24 = LEVEL_REF_LEVEL24_FACTORY
+# Same reference expressed in legacy uint16 units (≈ 81.5).
+LEVEL_REF_UINT16_FACTORY = LEVEL_REF_LEVEL24_FACTORY / LEVEL24_PER_UINT16
 LEVEL_REF_UINT16 = LEVEL_REF_UINT16_FACTORY
 
-# Clip threshold of the manufacturer's meters: a channel is "clipping" once
-# its uint16 level reaches 256, i.e. the 8-bit pre-gain level overflows
-# (≈ +10 dBu with the bench-calibrated reference of 80).  Bench-verified
-# 2026-09-20 with a gain sweep on InC: 248–252 → device clip flag clear,
-# 261–265 → set.  The device's own flag (0x40 byte 27) is the OR of this
-# test over the four inputs only; the editor derives every channel's red
-# "Clip" segment (inputs and outputs) from the level itself.
-LEVEL_CLIP_UINT16 = 256
+# Editor's per-channel clip threshold (its "Clip" segment), in both units.
+LEVEL_CLIP_LEVEL24 = EDITOR_LEVEL_SCALE * 10 ** ((EDITOR_CLIP_DB - EDITOR_LEVEL_OFFSET_DB) / 20)
+LEVEL_CLIP_UINT16 = LEVEL_CLIP_LEVEL24 / LEVEL24_PER_UINT16
 
 
-def level_is_clipping(raw: int | float) -> bool:
-    """Return ``True`` when a uint16 level is at or above the clip threshold.
+def level24_to_db_editor(level24: int | float) -> float:
+    """Convert a 24-bit level to dB on the manufacturer's editor scale.
 
-    Applies the manufacturer's per-channel rule ``raw >= LEVEL_CLIP_UINT16``
-    to a single channel value from :func:`parse_levels`. Evaluate it on the
-    unsmoothed sample; averaging first hides one-frame transients.
+    Exact formula of the editor's meter routine, ``20*log10(level24/2**19)
+    + 28``; 0 dB is where its "+0" segment lights. Independent of the
+    calibration file, so useful to compare against the original software.
 
     Args:
-        raw: Linear uint16 amplitude from the device level response.
+        level24: 24-bit linear amplitude from :func:`parse_levels`
+            (``'inputs24'`` / ``'outputs24'``).
+
+    Returns:
+        Level in dB (editor scale), or ``-inf`` for zero.
+    """
+    if level24 <= 0:
+        return float("-inf")
+    return 20.0 * math.log10(level24 / EDITOR_LEVEL_SCALE) + EDITOR_LEVEL_OFFSET_DB
+
+
+def level24_is_clipping(level24: int | float) -> bool:
+    """Return ``True`` when a 24-bit level is at or above the editor's clip point.
+
+    Applies the per-channel rule ``level24 >= LEVEL_CLIP_LEVEL24`` (the
+    editor's "Clip" segment, table entry 11 dB ≈ uint16 289). Evaluate it on
+    the unsmoothed sample; averaging first hides one-frame transients.
+
+    Args:
+        level24: 24-bit linear amplitude from :func:`parse_levels`.
 
     Returns:
         ``True`` if the channel is clipping, else ``False``.
     """
-    return raw >= LEVEL_CLIP_UINT16
+    return level24 >= LEVEL_CLIP_LEVEL24
+
+
+def level_is_clipping(raw: int | float) -> bool:
+    """Legacy-unit variant of :func:`level24_is_clipping` for uint16 levels.
+
+    Args:
+        raw: Level in legacy uint16 units (``'inputs'`` / ``'outputs'``).
+
+    Returns:
+        ``True`` if ``raw * 256 >= LEVEL_CLIP_LEVEL24`` (i.e. ``raw >= ~289.3``).
+    """
+    return raw * LEVEL24_PER_UINT16 >= LEVEL_CLIP_LEVEL24
 
 _CALIBRATION_LOADED = False
 
 
 def _load_calibration_ref() -> float | None:
-    """Load the calibrated ``REF_LEVEL`` from the package-bundled TOML file.
+    """Load the calibrated 0 dBu reference from the package-bundled TOML file.
 
     Looks for ``calibration.toml`` inside the installed ``minidsp`` package
-    (typically written by ``dspanalyze calibrate write``). The file is expected
-    to contain a top-level ``ref_level`` key with a float value.
+    (written by ``dspanalyze calibrate apply``). Prefers the ``ref_level24``
+    key (24-bit units); falls back to the legacy ``ref_level`` key (uint16
+    units), converting it to 24-bit units.
 
     Returns:
-        The ``ref_level`` float read from ``calibration.toml``, or ``None`` if
-        the file is absent, unreadable, malformed, or does not contain a
-        ``ref_level`` key. Any exception during lookup/parse is swallowed and
-        logged at DEBUG level so the factory default can be used as a fallback.
+        The 0 dBu reference in 24-bit level units, or ``None`` if the file is
+        absent, unreadable, malformed, or has neither key. Any exception during
+        lookup/parse is swallowed and logged at DEBUG level so the factory
+        default can be used as a fallback.
     """
     import importlib.resources
     import tomllib
@@ -1349,77 +1428,110 @@ def _load_calibration_ref() -> float | None:
             if path.exists():
                 with open(path, "rb") as f:
                     cal = tomllib.load(f)
-                return cal.get("ref_level")
+                if cal.get("ref_level24") is not None:
+                    return float(cal["ref_level24"])
+                if cal.get("ref_level") is not None:
+                    return float(cal["ref_level"]) * LEVEL24_PER_UINT16
     except Exception:
         log.debug("No calibration.toml found in package, using factory default")
     return None
 
 
 def _ensure_ref_level() -> float:
-    """Return the effective ``REF_LEVEL`` for dBu conversion, caching the result.
+    """Return the effective 0 dBu reference (24-bit units), caching the result.
 
     On the first call this attempts to load a user calibration via
     :func:`_load_calibration_ref` and, if successful, replaces the module-level
-    ``LEVEL_REF_UINT16`` with the calibrated value. Subsequent calls return the
-    cached value without re-reading the file. Module state mutated:
-    ``LEVEL_REF_UINT16`` and ``_CALIBRATION_LOADED``.
+    ``LEVEL_REF_LEVEL24`` (and its uint16 mirror ``LEVEL_REF_UINT16``) with the
+    calibrated value. Subsequent calls return the cached value without
+    re-reading the file.
 
     Returns:
-        The effective ``REF_LEVEL`` (uint16 amplitude corresponding to 0 dBu).
-        Falls back to ``LEVEL_REF_UINT16_FACTORY`` (1153) when no calibration
-        file is bundled.
+        The effective reference: the 24-bit level that corresponds to 0 dBu.
+        Falls back to ``LEVEL_REF_LEVEL24_FACTORY`` (the editor's own 0 dB
+        point, ≈ 20 872) when no calibration file is bundled.
     """
-    global LEVEL_REF_UINT16, _CALIBRATION_LOADED
+    global LEVEL_REF_LEVEL24, LEVEL_REF_UINT16, _CALIBRATION_LOADED
     if not _CALIBRATION_LOADED:
         _CALIBRATION_LOADED = True
         ref = _load_calibration_ref()
         if ref is not None:
-            LEVEL_REF_UINT16 = ref
-            log.debug("Loaded calibrated REF_LEVEL = %.2f", ref)
-    return LEVEL_REF_UINT16
+            LEVEL_REF_LEVEL24 = ref
+            LEVEL_REF_UINT16 = ref / LEVEL24_PER_UINT16
+            log.debug("Loaded calibrated REF_LEVEL24 = %.1f", ref)
+    return LEVEL_REF_LEVEL24
+
+
+def level24_to_dbu(level24: int | float) -> float:
+    """Convert a 24-bit linear level to dBu using the calibrated reference.
+
+    Uses ``ref_level24`` from ``minidsp/calibration.toml`` if present,
+    otherwise the factory default (the editor's 0 dB point).
+
+    Args:
+        level24: 24-bit linear amplitude from :func:`parse_levels`
+            (``'inputs24'`` / ``'outputs24'``).
+
+    Returns:
+        Level in dBu, or ``-inf`` for zero.
+    """
+    if level24 <= 0:
+        return float("-inf")
+    return 20.0 * math.log10(level24 / _ensure_ref_level())
 
 
 def level_uint16_to_dbu(raw: int | float) -> float:
-    """Convert a linear uint16 amplitude value to dBu.
+    """Convert a legacy uint16 level to dBu using the calibrated reference.
 
-    Uses the calibrated reference level from ``minidsp/calibration.toml``
-    if present, otherwise the factory default (1153).
+    Equivalent to :func:`level24_to_dbu` on ``raw * 256``; kept for callers
+    that only have the upper 16 bits. Resolution is ~0.1 dB around 0 dBu.
 
     Args:
-        raw: Linear uint16 amplitude from the device level response.
+        raw: Level in legacy uint16 units (``'inputs'`` / ``'outputs'``).
 
     Returns:
-        Level in dBu, or ``-inf`` for raw values near zero (silence).
+        Level in dBu, or ``-inf`` for values below 0.01.
     """
     if raw < 0.01:
         return float("-inf")
-    ref = _ensure_ref_level()
-    return 20.0 * math.log10(raw / ref)
+    return level24_to_dbu(raw * LEVEL24_PER_UINT16)
+
+
+def _point_level24(p: dict) -> float:
+    """Return a calibration point's mean level in 24-bit units.
+
+    Accepts new-style points (``mean_level24``) and legacy points
+    (``mean_uint16``, converted by × 256).
+    """
+    if p.get("mean_level24") is not None:
+        return float(p["mean_level24"])
+    return float(p["mean_uint16"]) * LEVEL24_PER_UINT16
 
 
 def calibrate_compute_ref(points: list[dict]) -> float | None:
-    """Compute best-fit REF_LEVEL from calibration measurement points.
+    """Compute the best-fit 0 dBu reference (24-bit units) from calibration points.
 
-    Fits the model ``dbu = 20 * log10(uint16 / REF)`` using weighted
+    Fits the model ``dbu = 20 * log10(level24 / REF)`` using weighted
     least-squares. Each point contributes a per-point REF estimate;
-    the result is a weighted geometric mean, weighted by uint16 magnitude
+    the result is a weighted geometric mean, weighted by level magnitude
     (higher values have less quantization error).
 
     Args:
-        points: List of dicts, each with keys ``'dbu'`` (float) and
-            ``'mean_uint16'`` (float) from a known-level measurement.
+        points: List of dicts, each with key ``'dbu'`` (float) and either
+            ``'mean_level24'`` or legacy ``'mean_uint16'`` (float) from a
+            known-level measurement.
 
     Returns:
-        Best-fit REF_LEVEL float, or ``None`` if fewer than 2 valid points
-        are provided.
+        Best-fit reference in 24-bit units, or ``None`` if fewer than 2 valid
+        points are provided.
     """
     if len(points) < 2:
         return None
     log_refs = []
     weights = []
     for p in points:
-        v = p["mean_uint16"]
-        if v < 1:
+        v = _point_level24(p)
+        if v < LEVEL24_PER_UINT16:
             continue
         ref = v / (10.0 ** (p["dbu"] / 20.0))
         log_refs.append(math.log(ref))

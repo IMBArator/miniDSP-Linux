@@ -44,11 +44,17 @@ from minidsp.protocol import (
     freq_raw_to_hz,
     freq_hz_to_raw,
     level_uint16_to_dbu,
+    level24_to_dbu,
+    level24_to_db_editor,
     level_is_clipping,
+    level24_is_clipping,
     LEVEL_CLIP_UINT16,
+    LEVEL_CLIP_LEVEL24,
+    LEVEL_REF_LEVEL24_FACTORY,
     LEVEL_REF_UINT16,
     LEVEL_REF_UINT16_FACTORY,
     _ensure_ref_level,
+    _ch_level24,
     PEQ_TYPE_PEAK,
     PEQ_TYPE_LOW_SHELF,
     PEQ_TYPE_HIGH_SHELF,
@@ -331,6 +337,9 @@ def test_parse_levels_normal_mode():
     assert result["state"] == 0x00
     assert result["clip"] is False
     assert result["clipping"] == [False] * 8
+    # The third byte is the low byte of the 24-bit level, not noise
+    assert result["inputs24"] == [240, 178, 15, 0]
+    assert result["outputs24"] == [200, 28, 5, 150]
 
 
 def test_parse_levels_clip_flag():
@@ -344,10 +353,13 @@ def test_parse_levels_clip_flag():
     assert result is not None
     assert result["inputs"] == [726, 700, 0, 0]
     assert result["outputs"] == [561, 916, 0, 0]
+    # 24-bit: low | mid<<8 | high<<16, e.g. In1 = 0x3c | 0xd6<<8 | 0x02<<16
+    assert result["inputs24"] == [0x02D63C, 0x02BC42, 0x54, 0]
+    assert result["outputs24"] == [0x0231E4, 0x03941D, 0x35, 0x0A]
     assert result["limiter_mask"] == 0x00
     assert result["state"] == 0x01
     assert result["clip"] is True
-    # Per-channel rule level >= 256: In1, In2, Out1, Out2 clip
+    # Editor rule level24 >= ~74058: In1, In2, Out1, Out2 clip
     assert result["clipping"] == [True, True, False, False,
                                   True, True, False, False]
 
@@ -358,15 +370,29 @@ def test_parse_levels_clip_flag():
 
 
 def test_level_is_clipping_threshold():
-    """Bench 2026-09-20: 248–252 → flag clear, 261–265 → set; rule is >= 256."""
-    assert LEVEL_CLIP_UINT16 == 256
-    assert level_is_clipping(255) is False
-    assert level_is_clipping(256) is True
+    """Editor Clip LED: table entry 11 dB → level24 = 2^19 * 10^((11-28)/20)."""
+    assert abs(LEVEL_CLIP_LEVEL24 - 74058) < 1
+    assert abs(LEVEL_CLIP_UINT16 - 289.3) < 0.1
+    assert level24_is_clipping(74000) is False
+    assert level24_is_clipping(74100) is True
+    assert level_is_clipping(289) is False
+    assert level_is_clipping(290) is True
     assert level_is_clipping(0) is False
     assert level_is_clipping(2084) is True
-    # An output just under the threshold must not count (Out3 at 286 did
-    # not set the device flag, but 286 >= 256 is a per-channel clip).
-    assert level_is_clipping(286) is True
+    # The device's byte-27 flag trips at uint16 256 — that is NOT the
+    # editor's per-channel Clip rule, which needs ~289.
+    assert level_is_clipping(256) is False
+
+
+def test_level24_to_db_editor():
+    """Exact editor formula: 20*log10(level24 / 2^19) + 28."""
+    assert abs(level24_to_db_editor(LEVEL_REF_LEVEL24_FACTORY) - 0.0) < 1e-9
+    assert abs(LEVEL_REF_LEVEL24_FACTORY - 20872.3) < 0.5
+    assert abs(level24_to_db_editor(LEVEL_CLIP_LEVEL24) - 11.0) < 1e-9
+    assert abs(level24_to_db_editor(37113) - 5.0) < 0.01   # "+5" LED
+    assert level24_to_db_editor(0) == float("-inf")
+    # Bench: 0.775 Vrms read uint16 78.2 → editor scale ~ -0.35 dB
+    assert -0.5 < level24_to_db_editor(78.2 * 256) < -0.2
 
 
 def test_parse_levels_highres_mode():
@@ -396,20 +422,39 @@ def test_parse_levels_highres_mode():
     assert result is not None
     assert result["inputs"] == [134, 141, 0, 0]
     assert result["outputs"] == [93, 264, 0, 0]
+    assert result["inputs24"] == [134 * 256 + 67, 141 * 256 + 178, 10, 0]
+    assert result["outputs24"] == [93 * 256 + 183, 264 * 256 + 191, 10, 10]
     assert result["clip"] is False
 
 
 def test_ch_level_uint16_le():
-    """_ch_level returns uint16 LE from first two bytes, ignores instant."""
-    # uint16=0 → 0 (instant byte ignored)
+    """_ch_level returns the upper 16 bits (legacy uint16) of the triplet."""
     data = bytes([0x00, 0x00, 0x64])
     assert _ch_level(data, 0) == 0
-    # uint16=0x85 (lo only) → 133
     data = bytes([0x85, 0x00, 0x43])
     assert _ch_level(data, 0) == 0x85
-    # uint16 exceeds 255: val_lo=8, val_hi=1 → 264
+    # exceeds 255: mid=8, high=1 → 264
     data = bytes([0x08, 0x01, 0x43])
     assert _ch_level(data, 0) == 264
+
+
+def test_ch_level24_byte_order():
+    """Triplet on the wire is [mid, high, low]: level24 = low | mid<<8 | high<<16.
+
+    Matches the editor's meter routine (reads bytes 3ch+2, 3ch, 3ch+1) and
+    the monotonic ramp of the sine-sweep capture (…, 0 0 bf → 191,
+    01 00 0c → 268, 01 00 23 → 291, 07 00 b7 → 1975, …).
+    """
+    assert _ch_level24(bytes([0x00, 0x00, 0x64]), 0) == 0x64
+    assert _ch_level24(bytes([0x85, 0x00, 0x43]), 0) == 0x8543
+    assert _ch_level24(bytes([0x08, 0x01, 0x43]), 0) == 0x010843
+    assert _ch_level24(bytes([0x00, 0x00, 0xBF]), 0) == 191
+    assert _ch_level24(bytes([0x01, 0x00, 0x0C]), 0) == 268
+    assert _ch_level24(bytes([0x07, 0x00, 0xB7]), 0) == 1975
+    # legacy value is always the upper 16 bits
+    for trip in ([0x85, 0x00, 0x43], [0x08, 0x01, 0x43], [0xD6, 0x02, 0x3C]):
+        b = bytes(trip)
+        assert _ch_level(b, 0) == _ch_level24(b, 0) >> 8
 
 
 # --- dB conversion ---
@@ -658,45 +703,67 @@ def test_freq_hz_to_raw():
 
 
 def test_level_uint16_to_dbu():
-    assert LEVEL_REF_UINT16_FACTORY == 1153
-    # level_uint16_to_dbu(LEVEL_REF_UINT16_FACTORY) == 0.0 only when
-    # the bundled calibration.toml has ref_level == 1153 (factory default).
-    # The actual value depends on calibration state, so we only test the
-    # mathematical relationship: raw=ref → 0 dBu.
-    import minidsp.protocol as proto
-    current_ref = _ensure_ref_level()
-    assert level_uint16_to_dbu(current_ref) == 0.0
+    # Factory reference = the editor's own 0 dB point (uint16 ≈ 81.5)
+    assert abs(LEVEL_REF_UINT16_FACTORY - 81.53) < 0.01
+    assert abs(LEVEL_REF_UINT16_FACTORY * 256 - LEVEL_REF_LEVEL24_FACTORY) < 1e-6
+    # The effective reference depends on the bundled calibration.toml, so
+    # only the mathematical relationships are tested: level=ref → 0 dBu.
+    current_ref24 = _ensure_ref_level()
+    assert level24_to_dbu(current_ref24) == 0.0
+    assert abs(level_uint16_to_dbu(current_ref24 / 256)) < 1e-9
     assert level_uint16_to_dbu(0) == float("-inf")
     assert level_uint16_to_dbu(0.009) == float("-inf")
+    assert level24_to_dbu(0) == float("-inf")
     # Monotonic and independent of the calibrated reference value
-    assert level_uint16_to_dbu(1) < level_uint16_to_dbu(current_ref / 2) < level_uint16_to_dbu(current_ref)
-    assert abs(level_uint16_to_dbu(current_ref * 2) - 6.02) < 0.01
+    assert level24_to_dbu(1) < level24_to_dbu(current_ref24 / 2) < level24_to_dbu(current_ref24)
+    assert abs(level24_to_dbu(current_ref24 * 2) - 6.02) < 0.01
+    # uint16 and 24-bit conversions agree
+    assert abs(level_uint16_to_dbu(100) - level24_to_dbu(100 * 256)) < 1e-9
 
 
-def test_ensure_ref_level_returns_factory_without_user_config():
-    import minidsp.protocol as proto
-    # When _load_calibration_ref returns None (no calibration file),
-    # _ensure_ref_level should return the factory default
+def _reset_ref(proto):
+    proto.LEVEL_REF_LEVEL24 = proto.LEVEL_REF_LEVEL24_FACTORY
     proto.LEVEL_REF_UINT16 = proto.LEVEL_REF_UINT16_FACTORY
     proto._CALIBRATION_LOADED = False
-    monkeypatch_proto = proto
-    # We can't easily monkeypatch _load_calibration_ref here without
-    # pytest fixtures, so we test the calibration-loaded path instead
+
+
+def test_ensure_ref_level_returns_factory_without_user_config(monkeypatch):
+    import minidsp.protocol as proto
+    _reset_ref(proto)
+    monkeypatch.setattr(proto, "_load_calibration_ref", lambda: None)
     ref = _ensure_ref_level()
-    assert ref > 0
+    assert ref == proto.LEVEL_REF_LEVEL24_FACTORY
     assert isinstance(ref, float)
+    _reset_ref(proto)
 
 
 def test_ensure_ref_level_loads_package_calibration(monkeypatch):
     import minidsp.protocol as proto
-    proto.LEVEL_REF_UINT16 = proto.LEVEL_REF_UINT16_FACTORY
-    proto._CALIBRATION_LOADED = False
-    monkeypatch.setattr(proto, "_load_calibration_ref", lambda: 188.0)
+    _reset_ref(proto)
+    # _load_calibration_ref returns the reference in 24-bit units
+    monkeypatch.setattr(proto, "_load_calibration_ref", lambda: 188.0 * 256)
     ref = _ensure_ref_level()
-    assert ref == 188.0
+    assert ref == 188.0 * 256
+    assert proto.LEVEL_REF_UINT16 == 188.0
     assert abs(level_uint16_to_dbu(188) - 0.0) < 0.01
-    proto.LEVEL_REF_UINT16 = proto.LEVEL_REF_UINT16_FACTORY
-    proto._CALIBRATION_LOADED = False
+    assert abs(level24_to_dbu(188 * 256) - 0.0) < 0.01
+    _reset_ref(proto)
+
+
+def test_load_calibration_ref_accepts_legacy_uint16_key(tmp_path, monkeypatch):
+    """A calibration.toml with only the legacy ``ref_level`` (uint16 units)
+    is converted to 24-bit units."""
+    import importlib.resources
+    import minidsp.protocol as proto
+    (tmp_path / "calibration.toml").write_text("ref_level = 79.99\n")
+
+    class _Files:
+        def joinpath(self, name):
+            return tmp_path / name
+    monkeypatch.setattr(importlib.resources, "files", lambda pkg: _Files())
+    assert abs(proto._load_calibration_ref() - 79.99 * 256) < 1e-6
+    (tmp_path / "calibration.toml").write_text("ref_level24 = 20500.5\nref_level = 80.08\n")
+    assert proto._load_calibration_ref() == 20500.5
 
 
 # --- Device info lock flag (0x2C) ---
@@ -1074,7 +1141,8 @@ def test_decode_routing_matrix_mixed():
 # --- Calibration math ---
 
 
-def test_calibration_ref_level_two_points():
+def test_calibration_ref_level_two_points_legacy_units():
+    """Legacy points carry ``mean_uint16``; the result is in 24-bit units."""
     from minidsp.protocol import calibrate_compute_ref
     points = [
         {"dbu": 0.0, "mean_uint16": 188},
@@ -1082,27 +1150,38 @@ def test_calibration_ref_level_two_points():
     ]
     ref = calibrate_compute_ref(points)
     assert ref is not None
-    assert 150 < ref < 200
+    assert 150 * 256 < ref < 200 * 256
     for p in points:
-        measured = 20 * math.log10(p["mean_uint16"] / ref)
+        measured = 20 * math.log10(p["mean_uint16"] * 256 / ref)
         assert abs(measured - p["dbu"]) < 3.0
 
 
 def test_calibration_ref_level_single_point_returns_none():
     from minidsp.protocol import calibrate_compute_ref
-    assert calibrate_compute_ref([{"dbu": 0, "mean_uint16": 188}]) is None
+    assert calibrate_compute_ref([{"dbu": 0, "mean_level24": 20000}]) is None
 
 
 def test_calibration_ref_level_exact():
     from minidsp.protocol import calibrate_compute_ref
     points = [
-        {"dbu": 0.0, "mean_uint16": 200},
-        {"dbu": -20.0, "mean_uint16": 20},
-        {"dbu": -40.0, "mean_uint16": 2},
+        {"dbu": 0.0, "mean_level24": 20000},
+        {"dbu": -20.0, "mean_level24": 2000},
+        {"dbu": -40.0, "mean_level24": 200},
     ]
     ref = calibrate_compute_ref(points)
     assert ref is not None
-    assert abs(ref - 200.0) < 0.1
+    assert abs(ref - 20000.0) < 0.1
+
+
+def test_calibration_ref_level_mixed_units():
+    """New-style and legacy points may be mixed; mean_level24 wins when present."""
+    from minidsp.protocol import calibrate_compute_ref
+    points = [
+        {"dbu": 0.0, "mean_level24": 20000, "mean_uint16": 78.1},
+        {"dbu": 6.0, "mean_uint16": 20000 * 10 ** (6 / 20) / 256},
+    ]
+    ref = calibrate_compute_ref(points)
+    assert abs(ref - 20000.0) < 1.0
 
 
 def test_dspanalyze_calibrate_save_load(tmp_path):

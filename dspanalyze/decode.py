@@ -117,6 +117,8 @@ def _extract_field_value(payload: bytes, fdef: FieldDef) -> int | str | bytes:
     - ``format == "ascii"``: decodes ``size`` bytes as ASCII and strips
       trailing spaces/null padding. Returns ``str``.
     - ``format == "hex"``: returns the raw ``bytes`` slice unchanged.
+    - ``format == "level24"``: decodes the 3-byte level triplet
+      ``[mid, high, low]`` of a 0x40 reply into a 24-bit ``int``.
     - Otherwise, ``size == 1`` returns a single ``int`` byte; ``size == 2``
       returns a little-endian ``uint16`` ``int``; any other size returns the
       raw ``bytes`` slice.
@@ -143,6 +145,12 @@ def _extract_field_value(payload: bytes, fdef: FieldDef) -> int | str | bytes:
 
     if fdef.format == "hex":
         return payload[offset:offset + size]
+
+    if fdef.format == "level24":
+        # 0x40 level triplet [mid, high, low] → 24-bit linear level
+        return (payload[offset + 2]
+                | payload[offset] << 8
+                | payload[offset + 1] << 16)
 
     if size == 1:
         return payload[offset]

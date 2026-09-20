@@ -40,7 +40,7 @@ A command-line utility for quick access to common operations — additional comm
 
 ```
 dump                    Dump all DSP configuration parameters as tables
-levels [--watch]        Snapshot live level meters (raw uint16 + dBu)
+levels [--watch]        Snapshot live level meters (raw level + dBu + clip)
 mute    [channel ...]   Mute input channel(s)
 unmute  [channel ...]   Unmute input channel(s)
 ```
@@ -118,7 +118,7 @@ Prefix the commands below with `uv run` (`uv run minidsp levels --watch`,
 # Dump all DSP parameters (presets, gains, EQ, crossover, compressor, …)
 minidsp dump
 
-# Snapshot live level meters (all 8 channels: raw uint16 + dBu)
+# Snapshot live level meters (all 8 channels: raw 24-bit level + dBu + clip)
 minidsp levels
 
 # Continuous level monitoring (Ctrl+C to stop)
