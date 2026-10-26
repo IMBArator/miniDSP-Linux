@@ -9,6 +9,9 @@ Usage:
     python -m minidsp mute 1         # Mute input channel 1
     python -m minidsp unmute 1        # Unmute input channel 1
     python -m minidsp mute 1 2 3 4   # Mute all input channels
+    python -m minidsp save-unt FILE   # Save the stored presets to a .unt file
+    python -m minidsp restore-unt FILE --yes  # Write a .unt to the device (reboots it)
+    python -m minidsp unt-info FILE   # Show a .unt file's header and presets (offline)
 """
 
 from __future__ import annotations
@@ -395,6 +398,110 @@ def _do_mute(channels: list[int], mute: bool) -> None:
         dsp.close()
 
 
+def _load_unt_or_exit(path: str):
+    """Read a .unt file, or print the error and exit with status 1."""
+    from .unt import UntFile, UntParseError
+    try:
+        return UntFile.read(path)
+    except (OSError, UntParseError) as e:
+        print(f"Error: cannot read {path}: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def _print_unt_presets(unt) -> None:
+    """Print a .unt file's filled slots, marking the active one."""
+    for slot in unt.filled_slots():
+        mark = "*" if slot == unt.active_slot else " "
+        print(f"  {mark} U{slot:02d}  {unt.slot_name(slot)}")
+
+
+def _open_unlocked_or_exit() -> DSPmini:
+    """Open the device and refuse to continue if it is locked."""
+    dsp = DSPmini()
+    try:
+        dsp.open()
+    except Exception as e:
+        print(f"Error: Could not open device: {e}", file=sys.stderr)
+        sys.exit(1)
+    if dsp.is_locked():
+        dsp.close()
+        print("Error: the device is locked - unlock it with its PIN first", file=sys.stderr)
+        sys.exit(1)
+    return dsp
+
+
+def cmd_unt_info(args: argparse.Namespace) -> None:
+    """Show a .unt file's header fields and presets (no device needed).
+
+    Args:
+        args: Parsed CLI arguments — ``file`` (str).
+    """
+    unt = _load_unt_or_exit(args.file)
+    hdr = unt.header
+    active = f"U{hdr['active_slot']:02d}" if hdr["active_slot"] else "F00"
+    print(f"File:        {args.file}")
+    print(f"Product:     {hdr['product']} (version {hdr['version']})")
+    print(f"Active slot: {active}")
+    print(f"PIN field:   {hdr['pin']}")
+    print(f"Presets:     {len(unt.filled_slots())} of 30 (* = active)")
+    _print_unt_presets(unt)
+
+
+def cmd_save_unt(args: argparse.Namespace) -> None:
+    """Save the device's stored presets to a .unt file, like the editor.
+
+    Reads every slot not named "Default Preset" without recalling it; the
+    live config and the audio stay unchanged.
+
+    Args:
+        args: Parsed CLI arguments — ``file`` (str).
+    """
+    dsp = _open_unlocked_or_exit()
+    try:
+        unt = dsp.export_unt()
+    finally:
+        dsp.close()
+    if unt is None:
+        print("Error: failed to read the presets from the device", file=sys.stderr)
+        sys.exit(1)
+    unt.write(args.file)
+    print(f"Saved {len(unt.filled_slots())} presets to {args.file} (* = active):")
+    _print_unt_presets(unt)
+    print("Note: presets are saved as stored - unsaved live edits are not included.")
+
+
+def cmd_restore_unt(args: argparse.Namespace) -> None:
+    """Write a .unt file's presets to the device and reboot it, like the editor.
+
+    Refuses to touch the device unless ``--yes`` is given.
+
+    Args:
+        args: Parsed CLI arguments — ``file`` (str), ``yes`` (bool),
+            ``file_pin`` (bool).
+    """
+    unt = _load_unt_or_exit(args.file)
+    print(f"Restoring {args.file} writes these presets to the device (* = active):")
+    _print_unt_presets(unt)
+    print("The device then reboots and must be reconnected.")
+    print("PIN: " + ("the file's PIN field is written" if args.file_pin
+                     else "the device keeps its current lock PIN"))
+    print("Not verified yet: whether slots that are empty in the file get erased.")
+    if not args.yes:
+        print("Nothing written - run again with --yes to restore.", file=sys.stderr)
+        sys.exit(1)
+
+    dsp = _open_unlocked_or_exit()
+    try:
+        ok = dsp.restore_unt(unt, confirm=True, keep_device_pin=not args.file_pin)
+    finally:
+        dsp.close()
+    if not ok:
+        print("Error: restore failed - the device may hold a partial set of presets",
+              file=sys.stderr)
+        sys.exit(1)
+    print("Restored. The device is rebooting - reconnect in a few seconds.")
+
+
 def main() -> None:
     """Entry point for the ``minidsp`` CLI."""
     parser = argparse.ArgumentParser(
@@ -435,6 +542,27 @@ def main() -> None:
     p_unmute = sub.add_parser("unmute", help="Unmute input channel(s)")
     p_unmute.add_argument("channels", type=int, nargs="+", help="Channel numbers (1–4)")
     p_unmute.set_defaults(func=cmd_unmute)
+
+    # save-unt
+    p_save = sub.add_parser("save-unt",
+                            help="Save the stored presets to a .unt file (like the editor)")
+    p_save.add_argument("file", help="Destination .unt file")
+    p_save.set_defaults(func=cmd_save_unt)
+
+    # restore-unt
+    p_restore = sub.add_parser("restore-unt",
+                               help="Write a .unt file to the device and reboot it")
+    p_restore.add_argument("file", help="Source .unt file")
+    p_restore.add_argument("--yes", action="store_true",
+                           help="Really write the presets (rewrites preset flash)")
+    p_restore.add_argument("--file-pin", action="store_true",
+                           help="Also write the file's lock PIN field (default: keep the device PIN)")
+    p_restore.set_defaults(func=cmd_restore_unt)
+
+    # unt-info
+    p_info = sub.add_parser("unt-info", help="Show a .unt file's header and presets (offline)")
+    p_info.add_argument("file", help=".unt file")
+    p_info.set_defaults(func=cmd_unt_info)
 
     args = parser.parse_args()
     level = (logging.DEBUG if args.verbose >= 2
