@@ -1,0 +1,11 @@
+[capture]
+file = "capture_20261026_222715_editor_startup__load_unt.pcapng"
+format = "pcapng"
+created = "2026-10-26T22:28:06"
+source_machine = "windows"
+interface = "\\\\.\\USBPcap1"
+device_address = 14
+
+[description]
+feature = "editor startup + load .unt"
+notes = "the restore action made the device disconnect and apparently reboot..."
