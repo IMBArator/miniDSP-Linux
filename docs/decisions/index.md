@@ -50,6 +50,8 @@ add a line to the relevant table below.
 | [0018](0018-add-observability-with-stdlib-logging-behind-verbosity-flags.md) | Add observability with stdlib logging behind -v/-vv, configured only at the entry point |
 | [0019](0019-ship-level-meter-calibration-as-an-editable-package-resource.md) | Ship level-meter calibration as an editable package resource with a fitting workflow |
 | [0024](0024-support-windows-through-a-hidapi-transport.md) | Support Windows through a platform-selected hidapi transport |
+| [0025](0025-the-library-owns-the-unt-file-format.md) | The library owns the .unt file format, with byte-preserving in-place edits |
+| [0026](0026-transfer-presets-the-way-the-editor-does.md) | Transfer presets the way the editor does: stored reads without recall; guarded restore that keeps the device PIN |
 
 ## Build, release, and documentation
 
