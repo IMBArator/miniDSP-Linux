@@ -22,16 +22,23 @@ PRODUCT_ID = 0x0821
 REPORT_SIZE = 64
 
 # Opcodes
+OP_REBOOT = 0x04        # OUT 04 → no reply; device reboots and re-enumerates (end of a .unt restore)
 OP_INIT = 0x10
 OP_ACTIVATE = 0x12
 OP_FIRMWARE = 0x13
 OP_PRESET_INDEX = 0x14
 OP_SET_DELAY_UNIT = 0x15  # set delay display unit (0x00=ms, 0x01=m, 0x02=ft)
+OP_DEVICE_HEADER = 0x19   # OUT 19 00 00 22 → IN 19 + 34 bytes = .unt header bytes 0x10–0x31
+OP_WRITE_DEVICE_HEADER = 0x1A  # OUT 1a 01 00 21 + 33 bytes (.unt header 0x11–0x31) → ACK
 OP_LOAD_PRESET = 0x20   # direct slot index: 0=F00, 1=U01 … 30=U30
 OP_STORE_PRESET = 0x21  # direct slot index: 1=U01 … 30=U30  (NEVER 0/F00!)
 OP_PRESET_HEADER = 0x22
+OP_RESTORE_BEGIN = 0x23   # OUT 23 → ACK after ~1.6 s; first step of a .unt restore
+OP_SELECT_STORED = 0x24   # OUT 24 [slot 1–30] → ACK: select a stored preset for 0x28 reads (IN 0x24 = config page)
+OP_WRITE_STORED_PAGE = 0x25  # OUT 25 [page] [slot 0–29] [data] → IN 25 [page]; page 8 carries 19 bytes
 OP_STORE_NAME = 0x26    # 14-char name, space-padded; send BEFORE 0x21
 OP_READ_CONFIG = 0x27
+OP_READ_STORED_PAGE = 0x28  # OUT 28 [page 0–8] → IN 28 [page] [50 bytes] of the slot selected via 0x24
 OP_READ_NAME = 0x29
 OP_DEVICE_INFO = 0x2C
 OP_SUBMIT_PIN = 0x2D    # PIN auth when device is locked (request + response)
@@ -674,6 +681,107 @@ def parse_pin_response(payload: bytes) -> bool | None:
     return payload[2] == LOCK_PIN_CORRECT
 
 
+# Argument bytes the editor sends after the 0x19 / 0x1a opcodes
+# (capture_20261026_221454 and _222715). They read like [offset LE16][length]:
+# read 34 bytes from offset 0, write 33 bytes from offset 1 — unverified, so
+# they are sent verbatim.
+_DEVICE_HEADER_READ_ARGS = bytes([0x00, 0x00, 0x22])
+_DEVICE_HEADER_WRITE_ARGS = bytes([0x01, 0x00, 0x21])
+DEVICE_HEADER_SIZE = 34        # 0x19 reply data = .unt header bytes 0x10–0x31
+DEVICE_HEADER_WRITE_SIZE = 33  # 0x1a data = .unt header bytes 0x11–0x31
+_DEVICE_HEADER_PIN = slice(13, 17)  # PIN field within the 34-byte block (.unt 0x1D–0x20)
+
+
+def cmd_read_device_header() -> bytes:
+    """Build the header block read command (0x19).
+
+    The editor sends ``19 00 00 22`` before saving a ``.unt`` file. The reply
+    carries the 34 bytes the ``.unt`` header holds at offsets 0x10–0x31; see
+    :func:`parse_device_header`.
+
+    Returns:
+        Encoded 64-byte HID report.
+    """
+    return build_frame(bytes([OP_DEVICE_HEADER]) + _DEVICE_HEADER_READ_ARGS)
+
+
+def cmd_write_device_header(data: bytes) -> bytes:
+    """Build the header block write command (0x1A).
+
+    Second step of a ``.unt`` restore. ``data`` is the ``.unt`` header from
+    offset 0x11 to 0x31 — the 34-byte block of :func:`parse_device_header`
+    without its leading device-address byte. It includes the lock PIN field.
+
+    Args:
+        data: Exactly 33 bytes.
+
+    Returns:
+        Encoded 64-byte HID report.
+
+    Raises:
+        ValueError: If ``data`` is not 33 bytes long.
+    """
+    if len(data) != DEVICE_HEADER_WRITE_SIZE:
+        raise ValueError(f"header write needs {DEVICE_HEADER_WRITE_SIZE} bytes, got {len(data)}")
+    return build_frame(bytes([OP_WRITE_DEVICE_HEADER]) + _DEVICE_HEADER_WRITE_ARGS + bytes(data))
+
+
+def parse_device_header(payload: bytes) -> dict | None:
+    """Parse a 0x19 header block response.
+
+    The 34 data bytes equal the ``.unt`` header at offsets 0x10–0x31 byte for
+    byte (verified against ``miniDSP current settings 261026.unt``).
+
+    Args:
+        payload: Raw response payload starting with the opcode byte.
+
+    Returns:
+        Dict with ``'device_address'``, ``'active_slot'`` (1=U01 … 30=U30),
+        ``'max_presets'``, ``'unknown_0x13'`` (4-char ASCII, ``"0000"`` so far),
+        ``'counter'`` (0x270F, same as the 0x2C reply), ``'pin'`` (4-char ASCII
+        lock PIN field), ``'version'`` (0x0A), ``'product'``
+        (``"4x4D Amplifier"``) and ``'raw'`` (the 34 data bytes), or ``None``
+        if the payload is too short or has the wrong opcode.
+    """
+    if len(payload) < 1 + DEVICE_HEADER_SIZE or payload[0] != OP_DEVICE_HEADER:
+        return None
+    raw = bytes(payload[1:1 + DEVICE_HEADER_SIZE])
+    return {
+        "device_address": raw[0],                                    # .unt 0x10
+        "active_slot": raw[1],                                       # .unt 0x11
+        "max_presets": raw[2],                                       # .unt 0x12
+        "unknown_0x13": raw[3:7].decode("ascii", errors="replace"),  # .unt 0x13–0x16
+        "counter": int.from_bytes(raw[9:11], "big"),                 # .unt 0x19–0x1A
+        "pin": raw[_DEVICE_HEADER_PIN].decode("ascii", errors="replace"),  # .unt 0x1D–0x20
+        "version": raw[18],                                          # .unt 0x22
+        "product": raw[20:34].decode("ascii", errors="replace").rstrip(" \x00"),  # .unt 0x24–0x31
+        "raw": raw,
+    }
+
+
+def device_header_with_pin(header: bytes, pin: bytes) -> bytes:
+    """Return a copy of a 34-byte header block with its PIN field replaced.
+
+    Used by a restore to keep the device's current lock PIN instead of the
+    one stored in the ``.unt`` file.
+
+    Args:
+        header: 34-byte header block (``.unt`` bytes 0x10–0x31).
+        pin: The 4 raw PIN bytes to put in.
+
+    Returns:
+        The patched 34-byte block.
+
+    Raises:
+        ValueError: If ``header`` is not 34 bytes or ``pin`` not 4 bytes.
+    """
+    if len(header) != DEVICE_HEADER_SIZE or len(pin) != 4:
+        raise ValueError("need a 34-byte header block and a 4-byte PIN")
+    block = bytearray(header)
+    block[_DEVICE_HEADER_PIN] = pin
+    return bytes(block)
+
+
 def cmd_preset_header() -> bytes:
     """Build active preset header query (0x22)."""
     return build_frame(bytes([OP_PRESET_HEADER]))
@@ -769,6 +877,113 @@ def cmd_read_config(page: int) -> bytes:
         Encoded 64-byte HID report.
     """
     return build_frame(bytes([OP_READ_CONFIG, page]))
+
+
+def _check_user_slot(slot: int) -> None:
+    """Reject anything but a user slot 1–30 (F00 is never read or written here)."""
+    if not 1 <= slot <= 30:
+        raise ValueError(f"stored preset slot must be 1–30 (U01–U30), got {slot}")
+
+
+def cmd_select_stored_preset(slot: int) -> bytes:
+    """Build a select-stored-preset command (0x24 sent as a request).
+
+    Selects which stored preset the following :func:`cmd_read_stored_page`
+    requests return. Unlike :func:`cmd_load_preset` it does not recall the
+    preset, so the live config and the audio stay unchanged. The device ACKs
+    after ~250 ms.
+
+    Args:
+        slot: User preset slot 1–30 (1=U01, …, 30=U30). F00 (slot 0) has not
+            been captured with this command and is rejected.
+
+    Returns:
+        Encoded 64-byte HID report.
+
+    Raises:
+        ValueError: If ``slot`` is outside 1–30.
+    """
+    _check_user_slot(slot)
+    return build_frame(bytes([OP_SELECT_STORED, slot]))
+
+
+def cmd_read_stored_page(page: int) -> bytes:
+    """Build a stored-preset page read command (0x28).
+
+    Args:
+        page: Page index 0–8 of the slot selected with
+            :func:`cmd_select_stored_preset`. The device responds with opcode
+            0x28 and the same 50-byte page layout as a 0x24 config page.
+
+    Returns:
+        Encoded 64-byte HID report.
+    """
+    return build_frame(bytes([OP_READ_STORED_PAGE, page]))
+
+
+# A restore writes 8 full pages plus 19 bytes of page 8 per slot (419 bytes),
+# exactly like the editor; .unt blob bytes 419–428 are not sent.
+STORED_WRITE_SIZE = 419
+
+
+def cmd_restore_begin() -> bytes:
+    """Build the begin-restore command (0x23).
+
+    First step of a ``.unt`` restore; the device ACKs after ~1.6 s. Whether it
+    erases every user slot is not known yet.
+    """
+    return build_frame(bytes([OP_RESTORE_BEGIN]))
+
+
+def cmd_write_stored_page(slot: int, page: int, data: bytes) -> bytes:
+    """Build a stored-preset page write command (0x25).
+
+    The device echoes ``25 [page]``; see :func:`parse_stored_page_ack`.
+
+    Args:
+        slot: User preset slot 1–30 (1=U01, …, 30=U30). Sent on the wire as
+            the 0-based index the editor uses (0=U01 … 29=U30).
+        page: Page index 0–8.
+        data: 50 bytes for pages 0–7, 19 bytes for page 8 (bytes 400–418 of
+            the preset).
+
+    Returns:
+        Encoded 64-byte HID report.
+
+    Raises:
+        ValueError: If ``slot`` is outside 1–30, ``page`` outside 0–8 or
+            ``data`` has the wrong length for the page.
+    """
+    _check_user_slot(slot)
+    if not 0 <= page < CONFIG_PAGES:
+        raise ValueError(f"page must be 0–{CONFIG_PAGES - 1}, got {page}")
+    expected = STORED_WRITE_SIZE - page * CONFIG_PAGE_SIZE if page == CONFIG_PAGES - 1 else CONFIG_PAGE_SIZE
+    if len(data) != expected:
+        raise ValueError(f"page {page} needs {expected} bytes, got {len(data)}")
+    return build_frame(bytes([OP_WRITE_STORED_PAGE, page, slot - 1]) + bytes(data))
+
+
+def parse_stored_page_ack(payload: bytes, page: int) -> bool:
+    """Check the ``25 [page]`` echo that answers a 0x25 page write.
+
+    Args:
+        payload: Raw response payload starting with the opcode byte.
+        page: The page number that was written.
+
+    Returns:
+        ``True`` if the device echoed exactly that page.
+    """
+    return len(payload) >= 2 and payload[0] == OP_WRITE_STORED_PAGE and payload[1] == page
+
+
+def cmd_reboot() -> bytes:
+    """Build the reboot command (0x04).
+
+    Last step of a ``.unt`` restore. The device sends no reply, drops off
+    USB and re-enumerates with a new device address; close the handle and
+    reopen the device afterwards.
+    """
+    return build_frame(bytes([OP_REBOOT]))
 
 
 def cmd_activate() -> bytes:
@@ -976,19 +1191,21 @@ def parse_preset_name(payload: bytes) -> tuple[int, str] | None:
     return slot, name
 
 
-def parse_config_page(payload: bytes) -> tuple[int, bytes] | None:
-    """Parse a config page response (opcode 0x24).
+def parse_config_page(payload: bytes, opcode: int = OP_CONFIG_RESP) -> tuple[int, bytes] | None:
+    """Parse a config page response.
 
     Args:
         payload: Raw response payload starting with opcode byte.
+        opcode: Expected response opcode — :data:`OP_CONFIG_RESP` (0x24, live
+            config) or :data:`OP_READ_STORED_PAGE` (0x28, stored preset).
 
     Returns:
         ``(page_index, data)`` where ``data`` is exactly 50 bytes, or
         ``None`` if the payload has the wrong opcode or is too short.
     """
-    if len(payload) < 2 or payload[0] != OP_CONFIG_RESP:
+    if len(payload) < 2 or payload[0] != opcode:
         log.debug("parse_config_page: bad header (opcode=%02x, len=%d, need 0x%02x)",
-                  payload[0] if payload else 0, len(payload), OP_CONFIG_RESP)
+                  payload[0] if payload else 0, len(payload), opcode)
         return None
     page = payload[1]
     data = payload[2:2 + CONFIG_PAGE_SIZE]
@@ -1122,6 +1339,107 @@ def parse_preset_params(config_data: bytes) -> dict | None:
             "delays": delays, "crossovers": crossovers, "compressors": compressors,
             "peqs": peqs,
             "test_tone_mode": test_tone_mode, "test_tone_freq": test_tone_freq}
+
+
+def pack_preset_params(params: dict, base: bytes) -> bytes:
+    """Write preset parameters back into a config blob — the inverse of
+    :func:`parse_preset_params`.
+
+    Only the fields :func:`parse_preset_params` models are overwritten. Every
+    other byte of ``base`` — the preset name, reserved bytes, flag bits the
+    parser ignores — is kept, so
+    ``pack_preset_params(parse_preset_params(blob), blob) == blob``.
+
+    Args:
+        params: Dict in the shape returned by :func:`parse_preset_params`.
+            ``test_tone_mode`` / ``test_tone_freq`` are optional.
+        base: Blob to patch — the 450-byte device config or a 429-byte
+            ``.unt`` slot blob. Footer fields past its end are skipped.
+
+    Returns:
+        The patched blob, same length as ``base``.
+
+    Raises:
+        ValueError: If ``base`` ends before the mute bitmasks (412 bytes).
+    """
+    if len(base) < _OUTPUT_MUTE_BITMASK_OFFSET + 2:
+        raise ValueError(f"config blob too short ({len(base)} bytes, need "
+                         f"{_OUTPUT_MUTE_BITMASK_OFFSET + 2})")
+    buf = bytearray(base)
+
+    def put_u16(off: int, value: int) -> None:
+        buf[off:off + 2] = int(value).to_bytes(2, "little")
+
+    def put_flag(off: int, value: bool) -> None:
+        # Keep the stored byte when it already means the same (only 0/1 seen)
+        if bool(buf[off]) != bool(value):
+            buf[off] = 0x01 if value else 0x00
+
+    def put_name(off: int, name: str) -> None:
+        encoded = name[:_CHANNEL_NAME_SIZE].encode("ascii", errors="replace")
+        buf[off:off + _CHANNEL_NAME_SIZE] = encoded.ljust(_CHANNEL_NAME_SIZE, b"\x00")
+
+    for i in range(4):
+        base_off = _PRESET_INPUT_START + i * _INPUT_BLOCK_SIZE
+        put_name(base_off + _CHANNEL_NAME_OFFSET, params["names"][i])
+        gate = params["gates"][i]
+        put_u16(base_off + _INPUT_GATE_ATTACK_OFFSET, gate["attack"])
+        put_u16(base_off + _INPUT_GATE_RELEASE_OFFSET, gate["release"])
+        put_u16(base_off + _INPUT_GATE_HOLD_OFFSET, gate["hold"])
+        put_u16(base_off + _INPUT_GATE_THRESH_OFFSET, gate["threshold"])
+        put_u16(base_off + _INPUT_GAIN_OFFSET, params["gains"][i])
+        put_flag(base_off + _INPUT_PHASE_OFFSET, params["phases"][i])
+        buf[base_off + _INPUT_LINK_FLAGS_OFFSET] = params["link_flags"][i]
+
+    for i in range(4):
+        base_off = _PRESET_OUTPUT_START + i * _OUTPUT_BLOCK_SIZE
+        ch = i + 4  # unified channel index for names/gains/phases/link flags
+        put_name(base_off + _CHANNEL_NAME_OFFSET, params["names"][ch])
+        buf[base_off + _OUTPUT_ROUTING_OFFSET] = params["routings"][i]
+        xover = params["crossovers"][i]
+        put_u16(base_off + _OUTPUT_HIPASS_OFFSET, xover["hipass_freq"])
+        put_u16(base_off + _OUTPUT_LOPASS_OFFSET, xover["lopass_freq"])
+        buf[base_off + _OUTPUT_HIPASS_SLOPE_OFFSET] = xover["hipass_slope"]
+        buf[base_off + _OUTPUT_LOPASS_SLOPE_OFFSET] = xover["lopass_slope"]
+        for b, band in enumerate(params["peqs"][i]["bands"][:7]):
+            boff = base_off + _OUTPUT_PEQ_OFFSET + b * _OUTPUT_PEQ_BAND_SIZE
+            put_u16(boff, band["gain"])
+            put_u16(boff + 2, band["freq"])
+            buf[boff + 4] = band["q"]
+            buf[boff + 5] = band["type"]
+        comp = params["compressors"][i]
+        buf[base_off + _OUTPUT_COMP_RATIO_OFFSET] = comp["ratio"]
+        buf[base_off + _OUTPUT_COMP_KNEE_OFFSET] = comp["knee"]
+        put_u16(base_off + _OUTPUT_COMP_ATTACK_OFFSET, comp["attack"])
+        put_u16(base_off + _OUTPUT_COMP_RELEASE_OFFSET, comp["release"])
+        put_u16(base_off + _OUTPUT_COMP_THRESH_OFFSET, comp["threshold"])
+        put_u16(base_off + _OUTPUT_GAIN_OFFSET, params["gains"][ch])
+        put_flag(base_off + _OUTPUT_PHASE_OFFSET, params["phases"][ch])
+        put_u16(base_off + _OUTPUT_DELAY_OFFSET, params["delays"][i])
+        buf[base_off + _OUTPUT_LINK_FLAGS_OFFSET] = params["link_flags"][ch]
+
+    # Footer: mute bitmasks (bits 0–3 modelled, upper bits kept)
+    for offset, first in ((_INPUT_MUTE_BITMASK_OFFSET, 0), (_OUTPUT_MUTE_BITMASK_OFFSET, 4)):
+        mask = sum(1 << i for i in range(4) if params["mutes"][first + i])
+        old = int.from_bytes(buf[offset:offset + 2], "little")
+        put_u16(offset, (old & 0xFFF0) | mask)
+
+    for i in range(4):
+        peq = params["peqs"][i]
+        off = _PEQ_BAND_BYPASS_OFFSET + i
+        if off < len(buf):
+            bits = sum(1 << b for b, band in enumerate(peq["bands"][:7]) if band["bypass"])
+            buf[off] = (buf[off] & 0x80) | bits
+        off = _PEQ_CHANNEL_BYPASS_OFFSET + i
+        if off < len(buf):
+            put_flag(off, peq["channel_bypass"])
+
+    for key, off in (("test_tone_mode", _TEST_TONE_MODE_OFFSET),
+                     ("test_tone_freq", _TEST_TONE_FREQ_OFFSET)):
+        if key in params and off < len(buf):
+            buf[off] = params[key]
+
+    return bytes(buf)
 
 
 # --- Gain conversion ---

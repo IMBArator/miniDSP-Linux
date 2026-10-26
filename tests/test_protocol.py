@@ -71,7 +71,21 @@ from minidsp.protocol import (
     SLOPE_BYPASS,
     SLOPE_BW6,
     SLOPE_LR24,
+    OP_READ_STORED_PAGE,
+    STORED_WRITE_SIZE,
+    cmd_read_device_header,
+    cmd_write_device_header,
+    cmd_restore_begin,
+    cmd_select_stored_preset,
+    cmd_read_stored_page,
+    cmd_write_stored_page,
+    cmd_reboot,
+    device_header_with_pin,
+    pack_preset_params,
+    parse_device_header,
+    parse_stored_page_ack,
 )
+import pytest
 
 
 # --- Checksum ---
@@ -1194,6 +1208,133 @@ def test_dspanalyze_calibrate_save_load(tmp_path):
     with open(cal_file, "rb") as f:
         loaded = tomllib.load(f)
     assert loaded["points"][0]["dbu"] == 0.0
+
+
+# --- .unt save / restore commands (0x19 0x1a 0x23 0x24 0x25 0x28 0x04) ---
+# Expected frames are verbatim from capture_20261026_221454 (save) and
+# capture_20261026_222715 (restore).
+
+ANALYSIS_DIR = os.path.join(os.path.dirname(__file__), "..", "analysis")
+UNT_FIXTURES = ["miniDSP current settings.unt",
+                "miniDSP current settings 260409.unt",
+                "miniDSP current settings 261026.unt"]
+# 0x19 reply payload from the save capture (= .unt 261026 header 0x10–0x31)
+HEADER_REPLY = bytes.fromhex(
+    "1901031e303030300000270f000041534446000a003478344420416d706c6966696572")
+
+
+def _unt_slot_blobs(name: str) -> list[bytes]:
+    """Return the 429-byte blobs of every filled slot of a fixture .unt."""
+    path = os.path.join(ANALYSIS_DIR, name)
+    if not os.path.exists(path):
+        pytest.skip(f"{name} not present")
+    data = open(path, "rb").read()
+    blobs = []
+    for i in range(30):
+        off = 0x32 + i * 432
+        if data[off] != 0x64:
+            blobs.append(data[off + 1:off + 430])
+    return blobs
+
+
+def _frame(report: bytes) -> bytes:
+    """Strip a built report to its frame (drop the zero padding)."""
+    return report[:5 + report[4] + 3]
+
+
+def test_unt_transfer_builders_match_captured_frames():
+    assert _frame(cmd_read_device_header()) == bytes.fromhex("10020001041900002210033f")
+    assert _frame(cmd_select_stored_preset(1)) == bytes.fromhex("10020001022401100327")
+    assert _frame(cmd_select_stored_preset(30)) == bytes.fromhex("1002000102241e100338")
+    assert _frame(cmd_read_stored_page(0)) == bytes.fromhex("1002000102280010032a")
+    assert _frame(cmd_restore_begin()) == bytes.fromhex("100200010123100322")
+    assert _frame(cmd_reboot()) == bytes.fromhex("100200010104100305")
+    assert _frame(cmd_write_device_header(HEADER_REPLY[2:])) == bytes.fromhex(
+        "10020001251a010021031e303030300000270f000041534446000a00"
+        "3478344420416d706c696669657210036d")
+
+
+def test_write_stored_page_matches_capture():
+    blobs = _unt_slot_blobs("miniDSP current settings 261026.unt")
+    u01, u30 = blobs[0], blobs[-1]
+    assert _frame(cmd_write_stored_page(1, 0, u01[0:50]))[5:-3] == bytes.fromhex(
+        "250000ffff444959204d6f6e20202020202020496e41000000000000003100f301630000"
+        "00180100000300496e4200000000000000")
+    # Page 8 carries only 19 bytes; slot is 0-based on the wire (U30 → 0x1d)
+    assert _frame(cmd_write_stored_page(30, 8, u30[400:STORED_WRITE_SIZE])) == bytes.fromhex(
+        "100200011625081d36010000000008000000000000000000000000100319")
+
+
+def test_unt_transfer_builders_reject_bad_arguments():
+    for slot in (0, 31):
+        with pytest.raises(ValueError):
+            cmd_select_stored_preset(slot)
+        with pytest.raises(ValueError):
+            cmd_write_stored_page(slot, 0, bytes(50))
+    with pytest.raises(ValueError):
+        cmd_write_stored_page(1, 8, bytes(50))   # page 8 is 19 bytes
+    with pytest.raises(ValueError):
+        cmd_write_stored_page(1, 9, bytes(50))
+    with pytest.raises(ValueError):
+        cmd_write_device_header(bytes(34))
+
+
+def test_parse_device_header_capture_reply():
+    hdr = parse_device_header(HEADER_REPLY)
+    assert hdr["device_address"] == 1
+    assert hdr["active_slot"] == 3
+    assert hdr["max_presets"] == 30
+    assert hdr["unknown_0x13"] == "0000"
+    assert hdr["counter"] == 0x270F
+    assert hdr["pin"] == "ASDF"
+    assert hdr["version"] == 10
+    assert hdr["product"] == "4x4D Amplifier"
+    assert hdr["raw"] == HEADER_REPLY[1:]
+    assert parse_device_header(HEADER_REPLY[:10]) is None
+    assert parse_device_header(b"\x01" + HEADER_REPLY[1:]) is None
+
+
+def test_device_header_with_pin_replaces_only_the_pin():
+    patched = device_header_with_pin(HEADER_REPLY[1:], b"1234")
+    assert parse_device_header(b"\x19" + patched)["pin"] == "1234"
+    assert sum(a != b for a, b in zip(patched, HEADER_REPLY[1:])) == 4
+
+
+def test_parse_config_page_accepts_stored_page_opcode():
+    payload = bytes([0x28, 0x05]) + bytes(range(50))
+    assert parse_config_page(payload, opcode=OP_READ_STORED_PAGE) == (5, bytes(range(50)))
+    assert parse_config_page(payload) is None   # default still expects 0x24
+
+
+def test_parse_stored_page_ack():
+    assert parse_stored_page_ack(b"\x25\x08", 8) is True
+    assert parse_stored_page_ack(b"\x25\x07", 8) is False
+    assert parse_stored_page_ack(b"\x01", 8) is False
+
+
+@pytest.mark.parametrize("name", UNT_FIXTURES)
+def test_pack_preset_params_roundtrips_every_fixture_slot(name):
+    for blob in _unt_slot_blobs(name):
+        assert pack_preset_params(parse_preset_params(blob), blob) == blob
+        device_blob = blob + bytes(21)   # 450-byte device form
+        assert pack_preset_params(parse_preset_params(device_blob), device_blob) == device_blob
+
+
+def test_pack_preset_params_changes_only_the_edited_field():
+    blob = _unt_slot_blobs("miniDSP current settings 261026.unt")[0]
+    params = parse_preset_params(blob)
+    params["gains"][5] = 123          # Out2 gain
+    params["mutes"][0] = not params["mutes"][0]
+    packed = pack_preset_params(params, blob)
+    changed = [i for i, (a, b) in enumerate(zip(blob, packed)) if a != b]
+    out2_gain = 112 + 74 + 66
+    assert set(changed) <= {out2_gain, out2_gain + 1, 408}
+    assert parse_preset_params(packed)["gains"][5] == 123
+
+
+def test_pack_preset_params_rejects_short_blob():
+    with pytest.raises(ValueError):
+        pack_preset_params(parse_preset_params(bytes(450)), bytes(100))
 
 
 if __name__ == "__main__":
