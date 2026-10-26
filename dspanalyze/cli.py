@@ -398,8 +398,11 @@ def cmd_capture(args: argparse.Namespace) -> None:
         _find_linux_device_address,
         detect_device,
         find_tshark,
+        find_usbpcapcmd,
         list_interfaces,
+        list_usbpcap_devices,
         run_capture,
+        running_capture_programs,
     )
 
     tshark = find_tshark()
@@ -419,9 +422,30 @@ def cmd_capture(args: argparse.Namespace) -> None:
             print("Device not found (VID=0x0168 PID=0x0821)")
 
         print("\nAvailable capture interfaces:")
-        for iface in list_interfaces(tshark):
+        interfaces = list_interfaces(tshark)
+        for iface in interfaces:
             print(f"  {iface['index']}. {iface['name']}"
                   + (f" ({iface['description']})" if iface['description'] else ""))
+
+        # Windows: show what hangs off each USBPcap hub, so the right
+        # --interface and --device-address can be picked (the DSP shows up
+        # as a "USB Input Device" with a single "HID-compliant device").
+        usbpcapcmd = find_usbpcapcmd(tshark)
+        if usbpcapcmd:
+            for iface in interfaces:
+                if "USBPcap" not in iface["name"]:
+                    continue
+                print(f"\nDevices on {iface['name']} ([address] name):")
+                entries = list_usbpcap_devices(usbpcapcmd, iface["name"])
+                if not entries:
+                    print("  (none)")
+                for entry in entries:
+                    indent = "      " if "_" in entry["value"] else "  "
+                    print(f"{indent}{entry['display']}")
+
+        busy = running_capture_programs()
+        if busy:
+            print(f"\nWarning: capture programs already running: {', '.join(busy)}")
         return
 
     output_path = run_capture(

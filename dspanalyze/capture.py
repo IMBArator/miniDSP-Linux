@@ -165,6 +165,115 @@ def _find_linux_device_address() -> int | None:
     return None
 
 
+def find_usbpcapcmd(tshark: str) -> str | None:
+    """Locate ``USBPcapCMD.exe`` (Wireshark's USBPcap extcap helper) on Windows.
+
+    Args:
+        tshark: Path to the tshark binary; USBPcapCMD lives in its ``extcap``
+            folder.
+
+    Returns:
+        Path to ``USBPcapCMD.exe``, or ``None`` if it is not installed.
+    """
+    base = Path(tshark).parent / "extcap"
+    for candidate in (base / "USBPcapCMD.exe", base / "wireshark" / "USBPcapCMD.exe"):
+        if candidate.exists():
+            return str(candidate)
+    return None
+
+
+def list_usbpcap_devices(usbpcapcmd: str, interface: str) -> list[dict]:
+    """List the devices attached to one USBPcap root hub (Windows only).
+
+    Runs ``USBPcapCMD --extcap-config``, which only enumerates the hub — it
+    captures nothing and does not raise a UAC prompt.
+
+    Args:
+        usbpcapcmd: Path to ``USBPcapCMD.exe`` (see :func:`find_usbpcapcmd`).
+        interface: USBPcap interface name, e.g. ``"\\\\.\\USBPcap1"``.
+
+    Returns:
+        One dict per entry with ``'value'`` (str — the USB device address for
+        devices, ``"<addr>_<n>"`` for their functions), ``'display'`` (str) and
+        ``'parent'`` (str | None). Empty if the hub has no devices or the
+        helper fails.
+    """
+    try:
+        result = subprocess.run(
+            [usbpcapcmd, "--extcap-interface", interface, "--extcap-config"],
+            capture_output=True, text=True, timeout=15,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    entries = []
+    for line in result.stdout.splitlines():
+        if not line.startswith("value {arg=99}"):
+            continue
+        fields = dict(re.findall(r"\{(\w+)=([^}]*)\}", line))
+        entries.append({
+            "value": fields.get("value", ""),
+            "display": fields.get("display", ""),
+            "parent": fields.get("parent"),
+        })
+    return entries
+
+
+# Programs that hold a USB capture interface open while they run.
+_CAPTURE_PROGRAMS = ("wireshark", "dumpcap", "tshark", "usbpcapcmd")
+
+
+def running_capture_programs() -> list[str]:
+    """Return the names of capture programs that are already running.
+
+    A forgotten Wireshark capturing on the same USBPcap hub makes a new
+    capture come back empty, so :func:`run_capture` warns about these.
+
+    Returns:
+        Sorted process names (e.g. ``["Wireshark.exe", "dumpcap.exe"]``);
+        empty if none run or the process list cannot be read.
+    """
+    try:
+        if platform.system() == "Windows":
+            out = subprocess.run(["tasklist", "/FO", "CSV", "/NH"],
+                                 capture_output=True, text=True, timeout=10).stdout
+            names = [line.split('","')[0].strip('"') for line in out.splitlines() if line]
+        else:
+            out = subprocess.run(["ps", "-A", "-o", "comm="],
+                                 capture_output=True, text=True, timeout=10).stdout
+            names = out.split()
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    return sorted({n for n in names if Path(n).stem.lower() in _CAPTURE_PROGRAMS})
+
+
+def is_windows_admin() -> bool | None:
+    """Report whether this Windows process is elevated.
+
+    Returns:
+        ``True``/``False`` on Windows, ``None`` elsewhere or if unknown.
+    """
+    if platform.system() != "Windows":
+        return None
+    try:
+        import ctypes
+        return bool(ctypes.windll.shell32.IsUserAnAdmin())
+    except (AttributeError, OSError):
+        return None
+
+
+def _print_tshark_failure(returncode: int | None, stderr: bytes) -> None:
+    """Print tshark's exit code and error output to stderr.
+
+    Args:
+        returncode: tshark's exit status (``None`` if still unknown).
+        stderr: Everything tshark wrote to stderr.
+    """
+    print(f"tshark exit code: {returncode}", file=sys.stderr)
+    text = stderr.decode(errors="replace").strip()
+    if text:
+        print("tshark output:\n  " + text.replace("\n", "\n  "), file=sys.stderr)
+
+
 def detect_device() -> dict | None:
     """Detect the DSP device and return its connection info.
 
@@ -183,9 +292,13 @@ def detect_device() -> dict | None:
     elif system == "Windows":
         # Use PowerShell to check for the device
         try:
+            # Print only the InstanceId: the default table output truncates
+            # that column in a narrow (non-console) pipe, hiding the VID.
             result = subprocess.run(
-                ["powershell", "-Command",
-                 f"Get-PnpDevice | Where-Object {{ $_.HardwareID -match 'VID_{VENDOR_ID:04X}&PID_{PRODUCT_ID:04X}' }}"],
+                ["powershell", "-NoProfile", "-Command",
+                 "Get-PnpDevice -PresentOnly | Where-Object { $_.InstanceId -match "
+                 f"'VID_{VENDOR_ID:04X}&PID_{PRODUCT_ID:04X}' }} | "
+                 "Select-Object -ExpandProperty InstanceId"],
                 capture_output=True, text=True, timeout=10,
             )
             if f"VID_{VENDOR_ID:04X}" in result.stdout:
@@ -276,6 +389,16 @@ def run_capture(
     if duration:
         cmd.extend(["-a", f"duration:{duration}"])
 
+    busy = running_capture_programs()
+    if busy:
+        print(f"Warning: other capture programs are running ({', '.join(busy)}). "
+              "A capture already open on the same interface can leave this one empty.",
+              file=sys.stderr)
+    if is_windows_admin() is False:
+        print("Note: this shell is not elevated. USBPcap will ask for administrator "
+              "rights (UAC prompt) and the capture only starts once you approve it — "
+              "approve it before starting the editor.", file=sys.stderr)
+
     print(f"Capturing USB traffic on interface: {interface}")
     print(f"Device address: {device_address}")
     print(f"Output: {output_path}")
@@ -294,9 +417,11 @@ def run_capture(
         proc.terminate()
         proc.wait(timeout=5)
         print("\nCapture stopped.")
+    _stdout, tshark_stderr = proc.communicate()
 
     if not temp_path.exists() or temp_path.stat().st_size == 0:
         print("Warning: Capture file is empty or was not created.", file=sys.stderr)
+        _print_tshark_failure(proc.returncode, tshark_stderr)
         temp_path.unlink(missing_ok=True)
         return None
 
@@ -323,7 +448,9 @@ def run_capture(
 
     if not output_path.exists() or output_path.stat().st_size == 0:
         print("Warning: No packets matched the device address filter.", file=sys.stderr)
-        print(f"Device address {device_address} may be incorrect.", file=sys.stderr)
+        print(f"Device address {device_address} may be incorrect "
+              "(check with --detect), or nothing was captured:", file=sys.stderr)
+        _print_tshark_failure(proc.returncode, tshark_stderr)
         output_path.unlink(missing_ok=True)
         return None
 
