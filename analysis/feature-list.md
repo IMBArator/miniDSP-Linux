@@ -140,7 +140,8 @@ From the screenshots: columns are outputs, rows are inputs. Green = routed.
 | **Factory preset** | F00 (read-only, slot 0) | **⚠ NEVER write to slot 0.** Overwriting F00 may permanently corrupt the device. |
 | **Preset names** | Max **14 characters**, space-padded. **Sending >14 chars crashes the DSP!** | Capture-verified: `0x26` payload is 15 bytes (1 opcode + 14 name chars) |
 | **Quick access** | Address, Preset, Store, Recall buttons in status bar | Visible in screenshots |
-| **File load/save** | .unt preset files on PC | .unt format partially reverse-engineered |
+| **Stored preset read** | Read a stored preset without recalling it (audio unchanged) | **Captured & implemented** (`0x24` select + `0x28` ×9 page reads) |
+| **File load/save** | .unt preset files on PC | **Captured & implemented** — format in `minidsp/unt.py`; save like the editor (`0x19` header + stored reads of every slot not named "Default Preset", byte-identical to the editor's file); restore (`0x23`, `0x1a` header, `0x25` page writes, `0x04` reboot; device PIN kept by default). Open: whether a restore erases slots that are empty in the file |
 
 ### 8. Test Tone Generator
 
@@ -186,6 +187,8 @@ State persisted in device config at offset 420 (mode) and 422 (last sine freq in
 - Device lock: submit PIN (`0x2d`, 4 ASCII digits, response byte signals correct/wrong), set lock PIN (`0x2f`, locks immediately on receipt)
 - Output PEQ (`0x33`, 7 bands per output: gain/freq/Q/type/bypass; `0x3c` channel bypass; config parsing from footer bitmasks at offsets 412–415 and 428–431)
 - Test tone generator (`0x39`, mode byte: 0=off, 1=pink noise, 2=white noise, 3=sine wave; freq index 0x00–0x1E for sine, 31 ISO 1/3-octave steps 20Hz–20kHz)
+- Stored preset read without recall (`0x24` select + `0x28` page reads)
+- `.unt` file read/write (`minidsp.unt.UntFile`), save from the device (`0x19` + stored reads) and restore to the device (`0x23`, `0x1a`, `0x25`, `0x04` reboot)
 - Initialization sequence
 
 ### Protocol likely known but NOT yet or not fully captured on our device:

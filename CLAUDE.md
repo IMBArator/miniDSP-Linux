@@ -31,9 +31,10 @@ minidsp/                  # Python package — the runtime control application
   device.py               # open/close, send/recv, command methods, config read
   transport.py            # HID I/O backends: hidraw (Linux), hidapi (Windows)
   protocol.py             # frame encoding/decoding, command builders, parsers
+  unt.py                  # .unt preset file format (UntFile: read, edit, write)
   factory_defaults.toml   # F00 factory-preset values (raw protocol form); regenerate via `dspanalyze extract-defaults`
   defaults.py             # load_factory_defaults() — parses the bundled TOML
-  cli.py                  # CLI (dump, mute/unmute)
+  cli.py                  # CLI (dump, levels, mute/unmute, save-unt, restore-unt, unt-info)
 
 dspanalyze/               # Protocol analysis toolchain
   __init__.py

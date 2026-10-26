@@ -170,10 +170,11 @@ minidsp/                  Python control package
   device.py               Open/close, send/recv, command methods, config read
   transport.py            HID I/O backends: hidraw (Linux), hidapi (Windows)
   protocol.py             Frame encoding/decoding, all command builders
+  unt.py                  .unt preset file format (UntFile: read, edit, write)
   calibration.toml        Level meter calibration (REF_LEVEL + anchor points)
   factory_defaults.toml   F00 factory-preset parameter values (raw protocol form)
   defaults.py             load_factory_defaults() — parses the bundled TOML
-  cli.py                  CLI subcommands: dump, levels, mute, unmute
+  cli.py                  CLI subcommands: dump, levels, mute, unmute, save-unt, restore-unt, unt-info
 
 dspanalyze/               Protocol analysis toolchain
   cli.py                  Entry point: analyze, check, capture, diff-config, list-captures, calibrate, extract-defaults

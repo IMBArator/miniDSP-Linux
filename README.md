@@ -30,6 +30,8 @@ All commands are verified against real Wireshark captures on the device.
 | Preset load / store / name | `0x20` / `0x21` / `0x26` |
 | Read all 30 preset names | `0x29` |
 | Config read (9 pages × 50 bytes) | `0x27` |
+| Read stored presets without recalling them | `0x24` + `0x28` |
+| `.unt` file save / restore (like the manufacturer editor) | `0x19` / `0x1a` / `0x23` / `0x25` / `0x04` |
 | Device lock (set PIN / submit PIN) | `0x2f` / `0x2d` |
 | Test tone generator (pink/white noise, sine 20Hz–20kHz) | `0x39` |
 | Real-time level metering (8 ch + limiter mask) | `0x40` |
@@ -43,7 +45,13 @@ dump                    Dump all DSP configuration parameters as tables
 levels [--watch]        Snapshot live level meters (raw level + dBu + clip)
 mute    [channel ...]   Mute input channel(s)
 unmute  [channel ...]   Unmute input channel(s)
+save-unt FILE           Save the stored presets to a .unt file (audio unchanged)
+restore-unt FILE --yes  Write a .unt file to the device (rewrites presets, reboots)
+unt-info FILE           Show a .unt file's header and presets (offline)
 ```
+
+The `.unt` format is handled by `minidsp.unt.UntFile` (read, edit, write; unknown
+bytes are kept), the transfer by `DSPmini.export_unt()` / `DSPmini.restore_unt()`.
 
 ### Level meter calibration (`dspanalyze calibrate`)
 
@@ -132,6 +140,15 @@ minidsp mute 1 2
 
 # Unmute all input channels
 minidsp unmute 1 2 3 4
+
+# Save every stored preset to a .unt file, like the manufacturer editor
+minidsp save-unt my-presets.unt
+
+# Inspect a .unt file without a device
+minidsp unt-info my-presets.unt
+
+# Write a .unt file back to the device (keeps the device PIN; the DSP reboots)
+minidsp restore-unt my-presets.unt --yes
 ```
 
 ### Protocol analysis toolchain (`dspanalyze`)
@@ -217,7 +234,10 @@ Key opcodes (see [analysis/protocol.md](analysis/protocol.md) for full reference
 | `0x13` | both | Firmware/model string query |
 | `0x14` | both | Active preset index |
 | `0x15` | out | Delay display unit (ms/m/ft) |
+| `0x19` / `0x1a` | both/out | Read / write header block (`.unt` header) |
 | `0x20` / `0x21` | out | Load / store preset |
+| `0x23` / `0x25` / `0x04` | out | Begin restore / write stored page / reboot |
+| `0x24` + `0x28` | out | Select + read a stored preset page (no recall) |
 | `0x26` | out | Set preset name (14 chars max) |
 | `0x27` / `0x24` | out/in | Read config page / response |
 | `0x2c` | both | Device info (counter, lock status) |
@@ -241,10 +261,11 @@ minidsp/                  Python control package
   device.py               Open/close, send/recv, command methods, config read
   transport.py            HID I/O backends: hidraw (Linux), hidapi (Windows)
   protocol.py             Frame encoding/decoding, all command builders
+  unt.py                  .unt preset file format (UntFile: read, edit, write)
   calibration.toml        Level meter calibration (REF_LEVEL + anchor points)
   factory_defaults.toml   F00 factory-preset parameter values (raw protocol form)
   defaults.py             load_factory_defaults() — parses the bundled TOML
-  cli.py                  CLI subcommands: dump, levels, mute, unmute
+  cli.py                  CLI subcommands: dump, levels, mute, unmute, save-unt, restore-unt, unt-info
 
 dspanalyze/               Protocol analysis toolchain
   cli.py                  Entry point: analyze, check, capture, diff-config, list-captures, calibrate, extract-defaults
