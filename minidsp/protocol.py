@@ -689,7 +689,7 @@ _DEVICE_HEADER_READ_ARGS = bytes([0x00, 0x00, 0x22])
 _DEVICE_HEADER_WRITE_ARGS = bytes([0x01, 0x00, 0x21])
 DEVICE_HEADER_SIZE = 34        # 0x19 reply data = .unt header bytes 0x10–0x31
 DEVICE_HEADER_WRITE_SIZE = 33  # 0x1a data = .unt header bytes 0x11–0x31
-_DEVICE_HEADER_PIN = slice(13, 17)  # PIN field within the 34-byte block (.unt 0x1D–0x20)
+DEVICE_HEADER_PIN = slice(13, 17)  # PIN field within the 34-byte block (.unt 0x1D–0x20)
 
 
 def cmd_read_device_header() -> bytes:
@@ -752,7 +752,7 @@ def parse_device_header(payload: bytes) -> dict | None:
         "max_presets": raw[2],                                       # .unt 0x12
         "unknown_0x13": raw[3:7].decode("ascii", errors="replace"),  # .unt 0x13–0x16
         "counter": int.from_bytes(raw[9:11], "big"),                 # .unt 0x19–0x1A
-        "pin": raw[_DEVICE_HEADER_PIN].decode("ascii", errors="replace"),  # .unt 0x1D–0x20
+        "pin": raw[DEVICE_HEADER_PIN].decode("ascii", errors="replace"),  # .unt 0x1D–0x20
         "version": raw[18],                                          # .unt 0x22
         "product": raw[20:34].decode("ascii", errors="replace").rstrip(" \x00"),  # .unt 0x24–0x31
         "raw": raw,
@@ -778,7 +778,7 @@ def device_header_with_pin(header: bytes, pin: bytes) -> bytes:
     if len(header) != DEVICE_HEADER_SIZE or len(pin) != 4:
         raise ValueError("need a 34-byte header block and a 4-byte PIN")
     block = bytearray(header)
-    block[_DEVICE_HEADER_PIN] = pin
+    block[DEVICE_HEADER_PIN] = pin
     return bytes(block)
 
 

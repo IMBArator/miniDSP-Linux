@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import logging
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -27,6 +28,7 @@ from minidsp.device import (
     DeviceLockedError,
 )
 from minidsp.protocol import REPORT_SIZE
+from minidsp.unt import UntFile
 from minidsp.transport import (
     HidapiTransport,
     HidrawTransport,
@@ -656,3 +658,169 @@ def test_hidapi_find_device_returns_first_enumerated_path(monkeypatch):
 
 def test_hidapi_find_device_returns_none_when_not_connected(hid_stub):
     assert HidapiTransport.find_device() is None
+
+
+# --- .unt save / restore (ADR-0026) ----------------------------------------
+# The fake device serves names, the 0x19 header block and stored pages from
+# the file the editor wrote during capture_20261026_221454.
+
+UNT_261026 = (Path(__file__).resolve().parent.parent / "analysis"
+              / "miniDSP current settings 261026.unt")
+# 0x1a frame the editor sent in capture_20261026_222715 (restoring that file)
+CAPTURED_HEADER_WRITE = bytes.fromhex(
+    "10020001251a010021031e303030300000270f000041534446000a00"
+    "3478344420416d706c696669657210036d")
+# First 0x25 write of that capture: page 0 of U01
+CAPTURED_FIRST_PAGE_WRITE = bytes.fromhex(
+    "250000ffff444959204d6f6e20202020202020496e41000000000000003100f301630000"
+    "00180100000300496e4200000000000000")
+
+
+def unt_fixture() -> UntFile:
+    if not UNT_261026.exists():
+        pytest.skip("miniDSP current settings 261026.unt not present")
+    return UntFile.read(UNT_261026)
+
+
+def unt_device_responder(unt: UntFile, device_pin: bytes = b"ASDF",
+                         fail_opcode: int | None = None):
+    """Return a responder emulating a device that holds ``unt``'s presets."""
+    header = protocol.device_header_with_pin(unt.header_block, device_pin)
+    selected = {"slot": None}
+
+    def respond(report: bytes) -> bytes | None:
+        op = request_opcode(report)
+        if op == fail_opcode:
+            return None
+        if op == protocol.OP_READ_NAME:
+            index = report[6]
+            name = unt.slot_name(index + 1) or "Default Preset"
+            return device_frame(bytes([op, index]) + name.ljust(14).encode("ascii"))
+        if op == protocol.OP_DEVICE_HEADER:
+            return device_frame(bytes([op]) + header)
+        if op == protocol.OP_SELECT_STORED:
+            selected["slot"] = report[6]
+            return ACK
+        if op == protocol.OP_READ_STORED_PAGE:
+            page = report[6]
+            raw = unt.slot_blob(selected["slot"]) + bytes(21)   # 450-byte device form
+            return device_frame(bytes([op, page]) + raw[page * 50:(page + 1) * 50])
+        if op == protocol.OP_WRITE_STORED_PAGE:
+            return device_frame(bytes([op, report[6]]))
+        if op == protocol.OP_REBOOT:
+            return None
+        return ACK   # activate, begin restore, header write
+    return respond
+
+
+def frame(report: bytes) -> bytes:
+    return report[:5 + report[4] + 3]
+
+
+def test_export_unt_matches_the_editor_file():
+    unt = unt_fixture()
+    dsp, fake = opened_device(responder=unt_device_responder(unt))
+
+    exported = dsp.export_unt()
+
+    assert exported is not None
+    assert exported.to_bytes() == unt.to_bytes()
+    ops = [request_opcode(r) for r in fake.sent]
+    assert ops[:30] == [protocol.OP_READ_NAME] * 30
+    per_slot = [protocol.OP_SELECT_STORED] + [protocol.OP_READ_STORED_PAGE] * 9
+    assert ops[30:] == [protocol.OP_DEVICE_HEADER] + per_slot * 4 + [protocol.OP_ACTIVATE]
+    selects = [r[6] for r in fake.sent if request_opcode(r) == protocol.OP_SELECT_STORED]
+    assert selects == [1, 2, 3, 30]
+    # never a recall
+    assert protocol.OP_LOAD_PRESET not in ops
+
+
+def test_read_stored_preset_returns_raw_blob_and_params():
+    unt = unt_fixture()
+    dsp, _fake = opened_device(responder=unt_device_responder(unt))
+
+    preset = dsp.read_stored_preset(2)
+
+    assert preset["name"] == "DIY Mon offset"
+    assert len(preset["raw"]) == 450
+    assert preset["unt_blob"] == unt.slot_blob(2)
+    assert preset["params"] == unt.slot_params(2)
+
+
+def test_read_stored_presets_validates_slots_before_any_io():
+    dsp, fake = opened_device(responder=lambda report: ACK)
+    with pytest.raises(ValueError):
+        dsp.read_stored_presets([1, 0])
+    assert fake.sent == []
+
+
+def test_read_stored_presets_failure_still_sends_activate():
+    unt = unt_fixture()
+    dsp, fake = opened_device(responder=unt_device_responder(
+        unt, fail_opcode=protocol.OP_READ_STORED_PAGE))
+
+    assert dsp.read_stored_presets([1]) is None
+    assert request_opcode(fake.sent[-1]) == protocol.OP_ACTIVATE
+
+
+def test_restore_unt_requires_confirm():
+    unt = unt_fixture()
+    dsp, fake = opened_device(responder=unt_device_responder(unt))
+    with pytest.raises(ValueError, match="confirm"):
+        dsp.restore_unt(unt)
+    assert fake.sent == []
+
+
+def test_restore_unt_refuses_a_file_without_presets():
+    dsp, fake = opened_device(responder=lambda report: ACK)
+    with pytest.raises(ValueError, match="no presets"):
+        dsp.restore_unt(UntFile.blank(), confirm=True)
+    assert fake.sent == []
+
+
+def test_restore_unt_sends_the_editor_sequence_and_closes():
+    unt = unt_fixture()
+    dsp, fake = opened_device(responder=unt_device_responder(unt))
+
+    assert dsp.restore_unt(unt, confirm=True) is True
+
+    ops = [request_opcode(r) for r in fake.sent]
+    assert ops == ([protocol.OP_DEVICE_HEADER, protocol.OP_RESTORE_BEGIN,
+                    protocol.OP_WRITE_DEVICE_HEADER]
+                   + [protocol.OP_WRITE_STORED_PAGE] * 36 + [protocol.OP_REBOOT])
+    # device PIN == file PIN here, so the header write equals the captured frame
+    assert frame(fake.sent[2]) == CAPTURED_HEADER_WRITE
+    writes = [frame(r) for r in fake.sent if request_opcode(r) == protocol.OP_WRITE_STORED_PAGE]
+    assert writes[0][5:-3] == CAPTURED_FIRST_PAGE_WRITE
+    assert [(w[6], w[7]) for w in writes[::9]] == [(0, 0), (0, 1), (0, 2), (0, 29)]
+    assert {len(w) for w in writes[8::9]} == {5 + 22 + 3}     # page 8: 19 data bytes
+    assert 3000 in fake.timeouts                               # 0x23 waits ~1.6 s
+    assert not fake.is_open
+
+
+def test_restore_unt_keeps_the_device_pin_by_default():
+    unt = unt_fixture()                                        # file PIN "ASDF"
+    dsp, fake = opened_device(responder=unt_device_responder(unt, device_pin=b"1234"))
+
+    assert dsp.restore_unt(unt, confirm=True) is True
+    header_write = fake.sent[2]
+    assert header_write[5 + 16:5 + 20] == b"1234"              # .unt 0x1D–0x20
+
+
+def test_restore_unt_can_write_the_file_pin():
+    unt = unt_fixture()
+    dsp, fake = opened_device(responder=unt_device_responder(unt, device_pin=b"1234"))
+
+    assert dsp.restore_unt(unt, confirm=True, keep_device_pin=False) is True
+    assert request_opcode(fake.sent[0]) == protocol.OP_RESTORE_BEGIN   # no 0x19 read
+    assert frame(fake.sent[1]) == CAPTURED_HEADER_WRITE
+
+
+def test_restore_unt_stops_on_a_missing_page_echo():
+    unt = unt_fixture()
+    dsp, fake = opened_device(responder=unt_device_responder(
+        unt, fail_opcode=protocol.OP_WRITE_STORED_PAGE))
+
+    assert dsp.restore_unt(unt, confirm=True) is False
+    assert protocol.OP_REBOOT not in [request_opcode(r) for r in fake.sent]
+    assert fake.is_open

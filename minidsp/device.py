@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Iterable
 
 log = logging.getLogger(__name__)
 
@@ -102,7 +103,21 @@ from .protocol import (
     parse_preset_index,
     parse_preset_name,
     parse_preset_params,
+    DEVICE_HEADER_PIN,
+    OP_READ_STORED_PAGE,
+    STORED_WRITE_SIZE,
+    cmd_read_device_header,
+    cmd_write_device_header,
+    cmd_restore_begin,
+    cmd_select_stored_preset,
+    cmd_read_stored_page,
+    cmd_write_stored_page,
+    cmd_reboot,
+    device_header_with_pin,
+    parse_device_header,
+    parse_stored_page_ack,
 )
+from .unt import UNT_BLOB_SIZE, UntFile, slots_to_save
 
 
 class DSPmini:
@@ -491,13 +506,7 @@ class DSPmini:
         active_slot = parse_preset_index(preset_idx_payload) if preset_idx_payload else None
         # Step 6: read all 30 preset names
         log.info("Step 6/8: reading 30 preset names (0x29)")
-        preset_names: list[str] = []
-        for slot in range(30):
-            payload = self._send_recv(cmd_read_name(slot), skip_polls=True)
-            if payload is None:
-                log.warning("Step 6/8: preset name slot %d — no response", slot)
-            result = parse_preset_name(payload) if payload else None
-            preset_names.append(result[1] if result else "")
+        preset_names = self.read_preset_names()
         # Step 7: read 9 config pages
         log.info("Step 7/8: reading %d config pages (0x27)", CONFIG_PAGES)
         config_data = bytearray()
@@ -613,6 +622,225 @@ class DSPmini:
         if payload is None or not is_ack(payload):
             log.warning("store_preset: activate — no ACK")
             return False
+        return True
+
+    def read_preset_names(self) -> list[str]:
+        """Read the 30 user preset names (0x29 ×30).
+
+        Returns:
+            30 names in slot order (index 0 = U01). A never-stored slot reads
+            ``"Default Preset"``; a slot whose name could not be read is ``""``.
+        """
+        names: list[str] = []
+        for index in range(30):
+            payload = self._send_recv(cmd_read_name(index), skip_polls=True)
+            if payload is None:
+                log.warning("preset name slot %d — no response", index)
+            result = parse_preset_name(payload) if payload else None
+            names.append(result[1] if result else "")
+        return names
+
+    # --- .unt save / restore (editor-identical sequences, ADR-0026) ---
+
+    def read_device_header(self) -> dict | None:
+        """Read the header block (0x19) — the ``.unt`` header bytes 0x10–0x31.
+
+        Returns:
+            Dict from :func:`~minidsp.protocol.parse_device_header` (active
+            slot, PIN field, product name, ``'raw'`` …), or ``None`` on
+            timeout or an invalid reply.
+        """
+        payload = self._send_recv(cmd_read_device_header(), skip_polls=True)
+        if payload is None:
+            log.warning("read_device_header: no response to 0x19")
+            return None
+        header = parse_device_header(payload)
+        if header is None:
+            log.warning("read_device_header: unexpected reply %s", payload.hex(" "))
+        return header
+
+    def _read_stored_slot(self, slot: int) -> bytes | None:
+        """Select one stored preset (0x24) and read its 9 pages (0x28).
+
+        Returns:
+            The 450-byte stored config, or ``None`` on any failed exchange.
+        """
+        log.info("reading stored preset U%02d (0x24 + %d× 0x28)", slot, CONFIG_PAGES)
+        ack = self._send_recv(cmd_select_stored_preset(slot), timeout_ms=1000, skip_polls=True)
+        if ack is None or not is_ack(ack):
+            log.warning("select stored preset U%02d (0x24): no ACK", slot)
+            return None
+        data = bytearray()
+        for page in range(CONFIG_PAGES):
+            payload = self._send_recv(cmd_read_stored_page(page), skip_polls=True)
+            parsed = parse_config_page(payload, opcode=OP_READ_STORED_PAGE) if payload else None
+            if parsed is None or parsed[0] != page:
+                log.warning("stored preset U%02d page %d (0x28): no or bad reply", slot, page)
+                return None
+            data.extend(parsed[1])
+        return bytes(data)
+
+    def read_stored_presets(self, slots: Iterable[int]) -> dict[int, dict] | None:
+        """Read stored user presets without recalling them (0x24 + 0x28).
+
+        Same sequence as the editor's ``.unt`` save: per slot ``24 [slot]``
+        (ACK after ~250 ms) and nine ``28 [page]`` reads, then one ``0x12``
+        at the end — also after a failure. The live config and the audio are
+        not touched (no ``0x20``).
+
+        Args:
+            slots: User preset slots 1–30 (1=U01, …, 30=U30).
+
+        Returns:
+            ``{slot: preset}`` where each preset dict holds ``'name'`` (str),
+            ``'raw'`` (the 450-byte stored config), ``'unt_blob'`` (its first
+            429 bytes, as stored in a ``.unt``) and ``'params'``
+            (:func:`~minidsp.protocol.parse_preset_params`). ``None`` if any
+            exchange fails.
+
+        Raises:
+            ValueError: If a slot is outside 1–30 (raised before any I/O).
+        """
+        slots = list(slots)
+        for slot in slots:
+            cmd_select_stored_preset(slot)  # validate all slots before talking to the device
+        presets: dict[int, dict] | None = {}
+        for slot in slots:
+            raw = self._read_stored_slot(slot)
+            if raw is None:
+                presets = None
+                break
+            presets[slot] = {
+                "name": raw[2:16].decode("ascii", errors="replace").rstrip(" \x00"),
+                "raw": raw,
+                "unt_blob": raw[:UNT_BLOB_SIZE],
+                "params": parse_preset_params(raw),
+            }
+        act = self._send_recv(cmd_activate(), skip_polls=True)
+        if act is None or not is_ack(act):
+            log.warning("read_stored_presets: activate (0x12) — no ACK")
+        return presets
+
+    def read_stored_preset(self, slot: int) -> dict | None:
+        """Read one stored preset without recalling it.
+
+        Single-slot form of :meth:`read_stored_presets`.
+
+        Args:
+            slot: User preset slot 1–30.
+
+        Returns:
+            The preset dict (``'name'``, ``'raw'``, ``'unt_blob'``,
+            ``'params'``), or ``None`` on communication failure.
+        """
+        presets = self.read_stored_presets([slot])
+        return presets[slot] if presets else None
+
+    def export_unt(self, preset_names: list[str] | None = None) -> UntFile | None:
+        """Build a ``.unt`` file from the device's stored presets, like the editor.
+
+        Reads the header block (0x19) and every slot not named
+        ``"Default Preset"`` (:meth:`read_stored_presets`). The result is the
+        file the editor writes, byte for byte; nothing on the device changes.
+
+        Note:
+            Presets are saved in their *stored* form, as by the editor:
+            unsaved live edits of the active slot are not included. Store
+            them first (:meth:`store_preset`) or patch them in with
+            :meth:`minidsp.unt.UntFile.set_slot_params`.
+
+        Args:
+            preset_names: The 30 names from ``read_config()['preset_names']``
+                or :meth:`read_preset_names`; read from the device when
+                ``None``.
+
+        Returns:
+            The :class:`~minidsp.unt.UntFile`, or ``None`` on communication
+            failure.
+        """
+        names = preset_names if preset_names is not None else self.read_preset_names()
+        header = self.read_device_header()
+        if header is None:
+            return None
+        stored = self.read_stored_presets(slots_to_save(names))
+        if stored is None:
+            return None
+        unt = UntFile.from_header_block(header["raw"])
+        for slot, preset in stored.items():
+            unt.set_slot_blob(slot, preset["unt_blob"])
+        return unt
+
+    def restore_unt(self, unt: UntFile, *, confirm: bool = False,
+                    keep_device_pin: bool = True) -> bool:
+        """Write a ``.unt`` file to the device and reboot it, like the editor.
+
+        Sequence (capture-verified): ``0x23`` begin restore (ACK after
+        ~1.6 s) → ``0x1a`` header bytes 0x11–0x31 → per filled slot nine
+        ``0x25`` page writes (419 bytes, each echo-checked) → ``0x04`` reboot.
+        After the reboot command the handle is closed: the device drops off
+        USB and re-enumerates, so call :meth:`open` again after a few seconds.
+
+        Warning:
+            This rewrites preset flash. Only the file's filled slots are
+            written; whether slots that are empty in the file get erased is
+            not verified yet. Bytes 419–428 of each preset (test tone, delay
+            display unit, Out1 PEQ channel bypass) are not sent — the editor
+            does not send them either. F00 is never written.
+
+        Args:
+            unt: The file to restore.
+            confirm: Must be ``True``; guards against accidental calls.
+            keep_device_pin: Keep the device's current lock PIN (read with
+                0x19 first) instead of the file's PIN field. ``False`` sends
+                the file header exactly like the editor.
+
+        Returns:
+            ``True`` if every step was acknowledged and the reboot was sent.
+            ``False`` if a step failed; the handle stays open and the device
+            may hold a partially restored set of presets.
+
+        Raises:
+            ValueError: If ``confirm`` is not ``True`` or the file holds no
+                presets (``0x23`` might erase every slot).
+        """
+        if not confirm:
+            raise ValueError("restore_unt rewrites the device presets and reboots it; "
+                             "pass confirm=True")
+        slots = unt.filled_slots()
+        if not slots:
+            raise ValueError("the .unt file holds no presets — refusing to restore it")
+        block = unt.header_block
+        if keep_device_pin:
+            current = self.read_device_header()
+            if current is None:
+                log.warning("restore_unt: cannot read the device PIN (0x19) — nothing written")
+                return False
+            block = device_header_with_pin(block, current["raw"][DEVICE_HEADER_PIN])
+
+        log.info("restore_unt: begin restore (0x23), slots %s", slots)
+        ack = self._send_recv(cmd_restore_begin(), timeout_ms=3000, skip_polls=True)
+        if ack is None or not is_ack(ack):
+            log.warning("restore_unt: begin restore (0x23) — no ACK, nothing written")
+            return False
+        ack = self._send_recv(cmd_write_device_header(block[1:]), timeout_ms=1000, skip_polls=True)
+        if ack is None or not is_ack(ack):
+            log.warning("restore_unt: header write (0x1a) — no ACK")
+            return False
+        for slot in slots:
+            blob = unt.slot_blob(slot)
+            for page in range(CONFIG_PAGES):
+                start = page * CONFIG_PAGE_SIZE
+                data = blob[start:min(start + CONFIG_PAGE_SIZE, STORED_WRITE_SIZE)]
+                # the last page of a slot takes ~170 ms (flash commit)
+                timeout = 1000 if page == CONFIG_PAGES - 1 else 500
+                reply = self._send_recv(cmd_write_stored_page(slot, page, data),
+                                        timeout_ms=timeout, skip_polls=True)
+                if reply is None or not parse_stored_page_ack(reply, page):
+                    log.warning("restore_unt: U%02d page %d (0x25) — no echo", slot, page)
+                    return False
+        log.info("restore_unt: reboot (0x04) — closing the handle")
+        self._send(cmd_reboot())
+        self.close()
         return True
 
     def set_peq_band(self, channel: int, band: int, gain_raw: int,
