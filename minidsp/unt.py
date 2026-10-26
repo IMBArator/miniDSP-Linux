@@ -9,7 +9,8 @@ Layout (see ``analysis/protocol.md``, "Configuration File Format (.unt)"):
 0x3112  432 B   slot U30
 ```
 
-Unused slots are 432 bytes of ``0x64`` filler. :class:`UntFile` keeps the
+Unused slots are 430 bytes of ``0x64`` filler followed by the CRLF, as in every
+editor-saved file. :class:`UntFile` keeps the
 whole file as one buffer and edits fields in place, so bytes it does not
 model survive a load → save unchanged (ADR-0025). Device transfer lives in
 :meth:`minidsp.device.DSPmini.export_unt` / :meth:`~minidsp.device.DSPmini.restore_unt`.
@@ -35,7 +36,7 @@ UNT_SLOT_COUNT = 30
 UNT_SLOT_BASE = 0x32
 UNT_SLOT_STRIDE = 432
 UNT_BLOB_SIZE = 429        # first 429 bytes of the 450-byte device config
-UNT_EMPTY_FILL = 0x64      # every byte of an unused slot
+UNT_EMPTY_FILL = 0x64      # unused slot: 430 × 0x64 + CRLF
 UNT_ACTIVE_SLOT_OFFSET = 0x11
 UNT_PIN_OFFSET = 0x1D      # 4 ASCII chars, 0x1D–0x20
 EMPTY_PRESET_NAME = "Default Preset"   # 0x29 name of a never-stored slot
@@ -43,6 +44,7 @@ EMPTY_PRESET_NAME = "Default Preset"   # 0x29 name of a never-stored slot
 _HEADER_BLOCK_OFFSET = 0x10            # header 0x10–0x31 = the 34-byte 0x19 block
 _PRESET_NAME = slice(2, 16)            # within a slot blob, after the FF FF marker
 _CRLF = b"\r\n"
+_EMPTY_SLOT = bytes([UNT_EMPTY_FILL]) * (UNT_SLOT_STRIDE - len(_CRLF)) + _CRLF
 
 # Header block of a blank file, as in the editor-made blank template: device 1,
 # active U01, 30 slots, "0000", counter 0x270F, PIN "1234", version 10.
@@ -121,14 +123,17 @@ class UntFile:
         """
         if len(block) != DEVICE_HEADER_SIZE:
             raise ValueError(f"header block must be {DEVICE_HEADER_SIZE} bytes, got {len(block)}")
-        data = bytearray([UNT_EMPTY_FILL]) * UNT_SIZE
-        data[:len(UNT_MAGIC)] = UNT_MAGIC
-        data[_HEADER_BLOCK_OFFSET:UNT_HEADER_SIZE] = block
+        data = bytearray(UNT_MAGIC) + bytes(_HEADER_BLOCK_OFFSET - len(UNT_MAGIC))
+        data += block + _EMPTY_SLOT * UNT_SLOT_COUNT
         return cls(data)
 
     @classmethod
     def blank(cls) -> UntFile:
-        """Return an empty file (active U01, PIN ``"1234"``, all slots unused)."""
+        """Return an empty file (active U01, PIN ``"1234"``, all slots unused).
+
+        The header equals the blank template the Qt app shipped; unlike that
+        template, unused slots keep their CRLF, as in editor-saved files.
+        """
         return cls.from_header_block(_BLANK_HEADER_BLOCK)
 
     # --- header ---------------------------------------------------------
@@ -205,9 +210,9 @@ class UntFile:
         self._data[off + 1 + UNT_BLOB_SIZE:off + UNT_SLOT_STRIDE] = _CRLF
 
     def clear_slot(self, slot: int) -> None:
-        """Mark a slot unused (432 bytes of ``0x64`` filler)."""
+        """Mark a slot unused (430 bytes of ``0x64`` filler + CRLF)."""
         off = self._slot_offset(slot)
-        self._data[off:off + UNT_SLOT_STRIDE] = bytes([UNT_EMPTY_FILL]) * UNT_SLOT_STRIDE
+        self._data[off:off + UNT_SLOT_STRIDE] = _EMPTY_SLOT
 
     def slot_name(self, slot: int) -> str | None:
         """The preset name of a slot (trailing spaces stripped), or ``None``."""

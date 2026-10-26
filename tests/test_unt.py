@@ -63,8 +63,17 @@ def test_blank_matches_editor_template_header():
     data = blank.to_bytes()
     assert len(data) == UNT_SIZE
     assert data[:50] == BLANK_HEADER
-    assert set(data[50:]) == {0x64}
+    empty_slot = b"\x64" * 430 + b"\r\n"     # as in every editor-saved file
+    assert data[50:] == empty_slot * 30
     assert blank.filled_slots() == []
+
+
+def test_clearing_an_empty_editor_slot_changes_nothing():
+    raw = fixture_bytes("miniDSP current settings 261026.unt")
+    unt = UntFile(raw)
+    for slot in range(4, 30):
+        unt.clear_slot(slot)
+    assert unt.to_bytes() == raw
 
 
 def test_from_header_block_rejects_wrong_size():
