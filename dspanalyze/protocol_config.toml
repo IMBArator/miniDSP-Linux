@@ -45,6 +45,12 @@ direction = "in"
 description = "Generic command acknowledgment"
 verified = true
 
+[opcodes.0x04]
+name = "reboot"
+direction = "out"
+description = "Reboot the device — no response; it drops off USB and re-enumerates with a new device address. Last step of a .unt restore."
+verified = true
+
 [opcodes.0x10]
 name = "init"
 direction = "both"
@@ -87,6 +93,37 @@ verified = true
 [opcodes.0x15.fields.request]
 unit = { offset = 1, size = 1, format = "uint8", note = "0x00=ms (default), 0x01=m (meters), 0x02=ft (feet)" }
 
+[opcodes.0x19]
+name = "read_header"
+direction = "both"
+description = "Read header block: OUT 19 00 00 22 → IN 19 + 34 bytes = .unt header 0x10–0x31 (first step of a .unt save)."
+verified = true
+
+[opcodes.0x19.fields.request]
+args = { offset = 1, size = 3, format = "hex", note = "00 00 22 — offset LE16 + length? (unverified)" }
+
+[opcodes.0x19.fields.response]
+device_address = { offset = 1, size = 1, format = "uint8", note = ".unt 0x10" }
+active_slot = { offset = 2, size = 1, format = "uint8", note = ".unt 0x11; 1=U01 … 30=U30" }
+max_presets = { offset = 3, size = 1, format = "uint8", note = ".unt 0x12" }
+unknown_0x13 = { offset = 4, size = 4, format = "ascii", note = ".unt 0x13–0x16" }
+counter = { offset = 10, size = 2, format = "uint16be", note = ".unt 0x19; 0x270F like the 0x2c reply" }
+pin = { offset = 14, size = 4, format = "ascii", note = ".unt 0x1D–0x20 lock PIN field" }
+version = { offset = 19, size = 1, format = "uint8", note = ".unt 0x22" }
+product = { offset = 21, size = 14, format = "ascii", note = ".unt 0x24–0x31" }
+
+[opcodes.0x1a]
+name = "write_header"
+direction = "out"
+description = "Write header block: 1a 01 00 21 + 33 bytes = .unt header 0x11–0x31 (incl. PIN field). Response: ACK. Second step of a .unt restore."
+verified = true
+
+[opcodes.0x1a.fields.request]
+args = { offset = 1, size = 3, format = "hex", note = "01 00 21 — offset LE16 + length? (unverified)" }
+active_slot = { offset = 4, size = 1, format = "uint8", note = ".unt 0x11" }
+pin = { offset = 16, size = 4, format = "ascii", note = ".unt 0x1D–0x20 lock PIN field" }
+product = { offset = 23, size = 14, format = "ascii", note = ".unt 0x24–0x31" }
+
 [opcodes.0x20]
 name = "load_preset"
 direction = "out"
@@ -111,15 +148,37 @@ direction = "both"
 description = "Active preset header query (out) / response (in)"
 verified = true
 
+[opcodes.0x23]
+name = "restore_begin"
+direction = "out"
+description = "Begin .unt restore — ACK after ~1.6 s (flash erase? scope unknown). First step of a .unt restore."
+verified = true
+
 [opcodes.0x24]
 name = "config_page"
-direction = "in"
-description = "Config page response (to 0x27 request)"
+direction = "both"
+description = "IN: config page response to 0x27. OUT: select stored preset 24 [slot] (1=U01 … 30=U30) for 0x28 reads — ACK after ~250 ms, no recall."
 verified = true
+
+[opcodes.0x24.fields.request]
+select_slot = { offset = 1, size = 1, format = "uint8", note = "1=U01 … 30=U30" }
 
 [opcodes.0x24.fields.response]
 page = { offset = 1, size = 1, format = "uint8" }
 data = { offset = 2, size = 50, format = "hex" }
+
+[opcodes.0x25]
+name = "write_stored_page"
+direction = "both"
+description = "Write stored preset page: OUT 25 [page] [slot0] [50 bytes] (page 8: 19 bytes) → IN 25 [page]. Used by a .unt restore."
+verified = true
+
+[opcodes.0x25.fields.request]
+page = { offset = 1, size = 1, format = "uint8" }
+slot = { offset = 2, size = 1, format = "uint8", note = "0-based: 0=U01 … 29=U30" }
+
+[opcodes.0x25.fields.response]
+page = { offset = 1, size = 1, format = "uint8" }
 
 [opcodes.0x26]
 name = "set_preset_name"
@@ -138,6 +197,19 @@ verified = true
 
 [opcodes.0x27.fields.request]
 page = { offset = 1, size = 1, format = "uint8" }
+
+[opcodes.0x28]
+name = "read_stored_page"
+direction = "both"
+description = "Read stored preset page: OUT 28 [page] → IN 28 [page] [50 bytes] of the slot selected with OUT 0x24. Used by a .unt save."
+verified = true
+
+[opcodes.0x28.fields.request]
+page = { offset = 1, size = 1, format = "uint8" }
+
+[opcodes.0x28.fields.response]
+page = { offset = 1, size = 1, format = "uint8" }
+data = { offset = 2, size = 50, format = "hex" }
 
 [opcodes.0x29]
 name = "read_name"
