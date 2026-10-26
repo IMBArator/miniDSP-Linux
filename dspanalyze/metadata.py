@@ -106,7 +106,10 @@ def write_metadata(capture_path: str | Path, commands: list[DecodedCommand],
     If the sidecar already exists, the existing ``description.feature`` and
     ``description.notes`` fields are preserved when the caller passes empty
     strings — this lets re-analysis update statistics without clobbering
-    human-authored prose. All ``analysis`` fields are always overwritten.
+    human-authored prose. Extra ``capture`` keys written by
+    :func:`dspanalyze.capture.run_capture` (``created``, ``source_machine``,
+    ``interface``, ``device_address``) are kept as well. All ``analysis``
+    fields are always overwritten.
 
     Args:
         capture_path: Path to the capture file; the sidecar path is derived
@@ -131,6 +134,9 @@ def write_metadata(capture_path: str | Path, commands: list[DecodedCommand],
         import tomllib
         with open(meta_file, "rb") as f:
             existing = tomllib.load(f)
+        # Capture provenance (from run_capture) is not derivable from the
+        # packets — keep it; file/format are recomputed.
+        meta["capture"] = {**existing.get("capture", {}), **meta["capture"]}
         existing_desc = existing.get("description", {})
         if not description and existing_desc.get("feature"):
             meta["description"]["feature"] = existing_desc["feature"]
