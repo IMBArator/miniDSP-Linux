@@ -1,0 +1,11 @@
+[capture]
+file = "capture_20261026_221454_editor_startup__save_unt.pcapng"
+format = "pcapng"
+created = "2026-10-26T22:16:09"
+source_machine = "windows"
+interface = "\\\\.\\USBPcap1"
+device_address = 14
+
+[description]
+feature = "editor startup + save .unt"
+notes = ""
