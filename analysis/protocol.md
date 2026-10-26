@@ -1408,7 +1408,7 @@ The file stores **30 user preset slots** (U01–U30). The factory preset F00 is 
 - Bytes 1–429: config blob (429 bytes — see Preset Structure below)
 - Bytes 430–431: `0x0D 0x0A` (CRLF — Windows text-mode record terminator)
 
-Empty/unused slots are filled with `0x64` (`'d'`) repeated for all 432 bytes.
+Empty/unused slots are 430 bytes of `0x64` (`'d'`) followed by the CRLF (see "Empty Slot Filler").
 
 ### File Header (50 bytes, offset 0x00–0x31)
 
@@ -1553,7 +1553,10 @@ Verified by 5 diff-config captures (one per parameter), each showing exactly one
 
 ### Empty Slot Filler
 
-Unused preset slots are filled with `0x64` (`'d'`) repeated for all 432 bytes.
+Unused preset slots are 430 bytes of `0x64` (`'d'`) followed by the slot's CRLF
+(`0D 0A`) — verified for every empty slot of all three editor-saved files. The slot
+byte is then `0x64` too, which is how an unused slot is recognised. (The blank
+template the Qt app shipped has `0x64` in all 432 bytes; its origin is unknown.)
 The fixed file size of 13010 bytes (50 + 30 × 432) is a software requirement.
 
 ### .unt Format Unknowns
