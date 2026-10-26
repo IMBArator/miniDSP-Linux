@@ -148,8 +148,23 @@ def cmd_check(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def _force_utf8_output() -> None:
+    """Make stdout/stderr UTF-8 so box-drawing output survives Windows consoles.
+
+    Windows Python falls back to the cp1252 code page when output is redirected,
+    and ``print()`` then raises ``UnicodeEncodeError`` on characters such as
+    ``─`` or ``…`` used by the formatters.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass  # not a TextIOWrapper (e.g. pytest capture) — leave as is
+
+
 def main() -> None:
     """Entry point for the ``dspanalyze`` CLI."""
+    _force_utf8_output()
     parser = argparse.ArgumentParser(
         prog="dspanalyze",
         description="USB HID protocol analysis for the t.racks DSP 4x4 Mini",
