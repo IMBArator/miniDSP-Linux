@@ -9,3 +9,42 @@ device_address = 14
 [description]
 feature = "editor startup + save .unt"
 notes = ""
+
+[analysis]
+packet_count = 542
+out_packets = 271
+in_packets = 271
+duration_seconds = 60.49
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x19",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x28",
+    "0x29",
+    "0x2c",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-10-26T22:50:00"
+
+[analysis.opcode_counts]
+0x40 = 368
+0x28 = 72
+0x29 = 60
+0x24 = 13
+0x27 = 9
+0x01 = 6
+0x10 = 2
+0x13 = 2
+0x2c = 2
+0x22 = 2
+0x14 = 2
+0x12 = 2
+0x19 = 2
