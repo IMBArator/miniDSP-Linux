@@ -1,0 +1,52 @@
+[capture]
+file = "capture_20261027_102506_editor_startup__save_unt_-_F00_active.pcapng"
+format = "pcapng"
+created = "2026-10-27T10:26:07"
+source_machine = "windows"
+interface = "\\\\.\\USBPcap1"
+device_address = 18
+
+[description]
+feature = "editor startup + save .unt - F00 active"
+notes = ""
+
+[analysis]
+packet_count = 468
+out_packets = 234
+in_packets = 234
+duration_seconds = 46.48
+opcodes_seen = [
+    "0x01",
+    "0x10",
+    "0x12",
+    "0x13",
+    "0x14",
+    "0x19",
+    "0x20",
+    "0x22",
+    "0x24",
+    "0x27",
+    "0x28",
+    "0x29",
+    "0x2c",
+    "0x40",
+]
+has_unknown_opcodes = false
+has_checksum_errors = false
+last_analyzed = "2026-10-27T10:30:06"
+
+[analysis.opcode_counts]
+0x40 = 272
+0x28 = 72
+0x29 = 60
+0x24 = 22
+0x27 = 18
+0x01 = 8
+0x12 = 3
+0x10 = 2
+0x13 = 2
+0x2c = 2
+0x22 = 2
+0x14 = 2
+0x19 = 2
+0x20 = 1
