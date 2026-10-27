@@ -1186,8 +1186,12 @@ wrote and then restored (`miniDSP current settings 261026.unt`):
 
 - `capture_20261026_221454_editor_startup__save_unt.pcapng` — save the device to a file
 - `capture_20261026_222715_editor_startup__load_unt.pcapng` — restore that file to the device
+- `capture_20261027_102506_editor_startup__save_unt_-_F00_active.pcapng` — save while F00
+  is active (`miniDSP current settings 261027 - F00 active.unt`)
+- `capture_20261027_103133_editor_startup__restore_unt_-_F00_active.pcapng` — restore that
+  file
 
-Both run after the normal startup sequence, which supplies the 30 preset names.
+All run after the normal startup sequence, which supplies the 30 preset names.
 
 ### Save Sequence (Device → File)
 
@@ -1212,6 +1216,9 @@ Step  Command                 Response                 Description
 - **File assembly:** magic `***4x4MINIV010**` + the 34 bytes of the `0x19` reply, then
   per saved slot: slot byte + the first 429 bytes of its 450-byte stored config + CRLF.
   All other slots are `0x64` filler.
+- **F00 active:** the `0x19` reply carries active slot `0`, so the file's header byte
+  0x11 is `0`. F00 itself is never saved — the file only has slots for U01–U30 — and the
+  slot rule is unchanged.
 
 ### Restore Sequence (File → Device)
 
@@ -1229,8 +1236,18 @@ Step  Command                       Response                  Description
 - **419 bytes per slot** are written: pages 0–7 carry 50 bytes, page 8 only 19. Bytes
   419–428 of the `.unt` blob — test tone mode (420), sine frequency (422), delay display
   unit (424), Out1 PEQ channel bypass (428) — are not restored by the editor.
+- **Byte 419 reads `0x10` after a restore.** Every slot written by the 2026-10-26 restore
+  returns `0x10` at preset byte 419 in its stored pages (`0x28`), and the live config
+  loaded from it does too; it was `0x00` before the restore, and F00 (never restored)
+  still has `0x00`. So a file saved after a restore differs from the restored file in
+  exactly that byte per slot. Hypothesis (unverified): the device stores 20 bytes for
+  page 8, the 20th being the `10` that starts the frame terminator `10 03` after the 19
+  data bytes. The byte has no known function.
 - Only the file's filled slots are written. Whether `0x23` clears the other slots is not
   known yet: the device already held exactly the file's slots.
+- **F00 active:** restoring a file with header byte 0x11 = `0` sends it unchanged in the
+  `0x1a` data, and the device ACKs it. Whether the device then boots into F00 is not
+  captured (the capture ends at the reboot).
 - Timing: about 31 ms per page, about 170 ms for page 8 (flash commit).
 - After `0x04` the device drops off USB, reboots and re-enumerates with a **new USB device
   address**. The editor had to be reconnected by hand.
@@ -1250,7 +1267,7 @@ The 34 data bytes equal the `.unt` header at offsets 0x10–0x31 (0 differences)
 | Reply bytes | `.unt` offset | Captured value | Meaning |
 |---|---|---|---|
 | 1 | 0x10 | `01` | Device address |
-| 2 | 0x11 | `03` | Active preset slot (1=U01 … 30=U30) |
+| 2 | 0x11 | `03` | Active preset slot (0=F00, 1=U01 … 30=U30) |
 | 3 | 0x12 | `1e` | Max user presets (30) |
 | 4–7 | 0x13–0x16 | `"0000"` | Unknown ASCII field |
 | 8–9 | 0x17–0x18 | `00 00` | — |
@@ -1374,6 +1391,8 @@ close the handle and reopen the device.
 - [ ] **`0x19` / `0x1a` argument bytes:** offset + length? Only one request of each seen.
 - [ ] **`0x24` / `0x28` for F00 (slot 0):** untested.
 - [ ] **`0x19` while locked:** does the device answer it? The reply carries the PIN field.
+- [ ] **Byte 419 = `0x10` after a restore:** where does the device take it from (frame
+      terminator hypothesis, see "Restore Sequence")?
 - [ ] **Stored bytes 419–428:** a restore writes only 419 bytes per slot — does the device
       keep test tone, delay unit and PEQ channel bypass per stored slot?
 
@@ -1417,7 +1436,7 @@ Offset  Size  Field
 ──────  ────  ─────────────────────────────────────────────────────────────
 0x00    16    Magic: "***4x4MINIV010**"
 0x10     1    Device address (always 0x01)
-0x11     1    Active preset slot (1=U01, 2=U02, ..., 30=U30)
+0x11     1    Active preset slot (0=F00, 1=U01, 2=U02, ..., 30=U30)
 0x12     1    Max user presets (always 0x1E = 30)
 0x13     4    ASCII "0000" — purpose unknown
 0x17     2    Always 0x00 0x00
@@ -1433,8 +1452,8 @@ Offset  Size  Field
 Bytes 0x10–0x31 are exactly the 34-byte reply to `0x19` (read header block); a restore
 writes bytes 0x11–0x31 back with `0x1a`. Only the 16-byte magic is added by the editor.
 
-**Key header discoveries (verified from 3 files):**
-- `0x11` changes between files: old file=0x02 (U02 was active), 260409 file=0x1E=30 (U30 was active), 261026 file=0x03 (U03)
+**Key header discoveries (verified from 4 files):**
+- `0x11` changes between files: old file=0x02 (U02 was active), 260409 file=0x1E=30 (U30 was active), 261026 file=0x03 (U03), 261027 file=0x00 (F00 was active — F00 itself is not stored)
 - `0x1D–0x20` holds the PIN: old file="1234", 260409 file="7654" (matches our device lock captures), 261026 file="ASDF"
 - `0x19–0x1A` = 0x270F matches the constant in the `0x2C` device-info USB response
 
@@ -1457,7 +1476,7 @@ Offset  Size  Field
 413      1    Out2 PEQ band bypass bitmask
 414      1    Out3 PEQ band bypass bitmask
 415      1    Out4 PEQ band bypass bitmask
-416      4    Always 0x00 — reserved (padding)
+416      4    0x00 — reserved (padding); byte 419 reads 0x10 in slots written by a restore
 420      1    **Test tone mode**: 0x00=off, 0x01=pink noise, 0x02=white noise, 0x03=sine wave (set by `0x39` command)
 421      1    Always 0x00 — reserved
 422      1    **Sine wave frequency index**: last used sine freq (0x00=20Hz … 0x1E=20kHz); persists across mode changes
@@ -1568,7 +1587,7 @@ The fixed file size of 13010 bytes (50 + 30 × 432) is a software requirement.
 - [x] ~~Output block bytes 12–13 (always 300)~~ → Lo-pass crossover frequency (raw 300 = 20.16 kHz = default/max)
 - [x] ~~Whether the file can hold more than 2 presets~~ → Yes. File holds 30 slots (U01–U30). Verified: `miniDSP current settings 260409.unt` has U01, U02 and U30 filled; `miniDSP current settings 261026.unt` has U01, U02, U03 and U30.
 - [x] ~~How the editor fills non-active slots~~ → It reads every slot not named "Default Preset" with `0x24` + `0x28` (no recall) and writes their stored contents. Verified byte for byte with the save capture.
-- [x] ~~Header byte 0x11 meaning~~ → Active preset slot (1-indexed: 1=U01, 2=U02, ..., 30=U30). Verified: old file has 0x02 (U02 active), new file has 0x1E (U30 active).
+- [x] ~~Header byte 0x11 meaning~~ → Active preset slot (1-indexed: 1=U01, 2=U02, ..., 30=U30; 0 = F00 active). Verified: old file has 0x02 (U02 active), 260409 file has 0x1E (U30 active), 261027 file has 0x00 (F00 active).
 - [x] ~~Header bytes 0x1D–0x20~~ → Device lock PIN (4 ASCII digits). Old file has "1234", new file has "7654" matching our device-lock capture.
 - [x] ~~Input block unknown bytes (8–9, 21, 23)~~ → Always zero (pure padding). Verified across 5 presets.
 - [x] ~~Output block unknown bytes (9, 69, 73)~~ → Always zero (pure padding). Verified across 5 presets.

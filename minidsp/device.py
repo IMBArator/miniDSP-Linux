@@ -785,7 +785,11 @@ class DSPmini:
             written; whether slots that are empty in the file get erased is
             not verified yet. Bytes 419–428 of each preset (test tone, delay
             display unit, Out1 PEQ channel bypass) are not sent — the editor
-            does not send them either. F00 is never written.
+            does not send them either; afterwards the device reports byte 419
+            as ``0x10`` in every restored slot (reserved byte, no known
+            effect), so a later :meth:`export_unt` differs there. F00 is never
+            written; a file saved with F00 active (header byte 0x11 = 0) is
+            sent unchanged, as the editor does.
 
         Args:
             unt: The file to restore.
