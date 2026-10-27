@@ -802,6 +802,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1736,6 +1740,76 @@
   
   
     <li class="md-nav__item">
+      <a href="../decisions/0025-the-library-owns-the-unt-file-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The library owns the .unt file format
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0026-transfer-presets-the-way-the-editor-does/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transfer presets the way the editor does
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../decisions/adr-template/" class="md-nav__link">
         
   
@@ -2486,6 +2560,8 @@
       
         
       
+        
+      
     
     
     
@@ -2665,6 +2741,34 @@
     
   
     minidsp.transport
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/minidsp/unt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    minidsp.unt
   
 
     
@@ -3042,34 +3146,35 @@ open release blocker.</p>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  device.py               Open/close, send/recv, command methods, config read
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  transport.py            HID I/O backends: hidraw (Linux), hidapi (Windows)
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  protocol.py             Frame encoding/decoding, all command builders
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  calibration.toml        Level meter calibration (REF_LEVEL + anchor points)
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>  factory_defaults.toml   F00 factory-preset parameter values (raw protocol form)
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  defaults.py             load_factory_defaults() — parses the bundled TOML
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  cli.py                  CLI subcommands: dump, levels, mute, unmute
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>dspanalyze/               Protocol analysis toolchain
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>  cli.py                  Entry point: analyze, check, capture, diff-config, list-captures, calibrate, extract-defaults
-<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>  calibrate.py            Level meter calibration tool (capture, show, apply, reset)
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>  extract_defaults.py     Stitch F00 config pages → factory_defaults.json
-<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>  protocol_config.toml    All protocol knowledge (opcodes, fields, value formats)
-<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>  decode.py               Frame → structured command decoder
-<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>  capture.py              tshark-based USB capture with device auto-detect
-<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>  check.py                Protocol assertion framework
-<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>  readers/                pcapng and Wireshark text export parsers
-<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>  output/                 claude / human / raw output formatters
-<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>
-<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>tests/                    Protocol and device-layer unit tests (pytest)
-<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>docs/                     MkDocs site sources
-<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a>  decisions/              Architecture decision records (MADR)
-<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a>analysis/                 Reverse engineering reference
-<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>  protocol.md             Full protocol specification
-<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a>  feature-list.md         DSP feature inventory with protocol status
-<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a>  usb_captures/           Wireshark USBPcap captures (.pcapng + .meta.toml)
-<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a>  resources/              Screenshots, manual PDF
-<a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a>
-<a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a>CLAUDE.md                 Agent/contributor working notes
-<a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a>scripts/                  version.sh + publish.sh (release automation)
-<a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a>Makefile                  Targets for test, build, docs, analysis, release
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  unt.py                  .unt preset file format (UntFile: read, edit, write)
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>  calibration.toml        Level meter calibration (REF_LEVEL + anchor points)
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  factory_defaults.toml   F00 factory-preset parameter values (raw protocol form)
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  defaults.py             load_factory_defaults() — parses the bundled TOML
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>  cli.py                  CLI subcommands: dump, levels, mute, unmute, save-unt, restore-unt, unt-info
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>dspanalyze/               Protocol analysis toolchain
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>  cli.py                  Entry point: analyze, check, capture, diff-config, list-captures, calibrate, extract-defaults
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>  calibrate.py            Level meter calibration tool (capture, show, apply, reset)
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>  extract_defaults.py     Stitch F00 config pages → factory_defaults.json
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>  protocol_config.toml    All protocol knowledge (opcodes, fields, value formats)
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>  decode.py               Frame → structured command decoder
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>  capture.py              tshark-based USB capture with device auto-detect
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>  check.py                Protocol assertion framework
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>  readers/                pcapng and Wireshark text export parsers
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>  output/                 claude / human / raw output formatters
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>tests/                    Protocol and device-layer unit tests (pytest)
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a>docs/                     MkDocs site sources
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a>  decisions/              Architecture decision records (MADR)
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>analysis/                 Reverse engineering reference
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a>  protocol.md             Full protocol specification
+<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a>  feature-list.md         DSP feature inventory with protocol status
+<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a>  usb_captures/           Wireshark USBPcap captures (.pcapng + .meta.toml)
+<a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a>  resources/              Screenshots, manual PDF
+<a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a>
+<a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a>CLAUDE.md                 Agent/contributor working notes
+<a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a>scripts/                  version.sh + publish.sh (release automation)
+<a id="__codelineno-5-34" name="__codelineno-5-34" href="#__codelineno-5-34"></a>Makefile                  Targets for test, build, docs, analysis, release
 </code></pre></div>
 <h2 id="architecture-decisions">Architecture decisions<a class="headerlink" href="#architecture-decisions" title="Permanent link">&para;</a></h2>
 <p>Lasting design decisions — and the positions the project abandoned along the

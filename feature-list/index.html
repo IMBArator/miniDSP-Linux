@@ -840,6 +840,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -1774,6 +1778,76 @@
   
   
     <li class="md-nav__item">
+      <a href="../decisions/0025-the-library-owns-the-unt-file-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The library owns the .unt file format
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/0026-transfer-presets-the-way-the-editor-does/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transfer presets the way the editor does
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--accepted"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../decisions/adr-template/" class="md-nav__link">
         
   
@@ -2524,6 +2598,8 @@
       
         
       
+        
+      
     
     
     
@@ -2703,6 +2779,34 @@
     
   
     minidsp.transport
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/minidsp/unt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    minidsp.unt
   
 
     
@@ -3273,9 +3377,14 @@ Bypass behavior: slope=0x00 disables the filter. The device does not retain the 
 <td>Visible in screenshots</td>
 </tr>
 <tr>
+<td><strong>Stored preset read</strong></td>
+<td>Read a stored preset without recalling it (audio unchanged)</td>
+<td><strong>Captured &amp; implemented</strong> (<code>0x24</code> select + <code>0x28</code> ×9 page reads)</td>
+</tr>
+<tr>
 <td><strong>File load/save</strong></td>
 <td>.unt preset files on PC</td>
-<td>.unt format partially reverse-engineered</td>
+<td><strong>Captured &amp; implemented</strong> — format in <code>minidsp/unt.py</code>; save like the editor (<code>0x19</code> header + stored reads of every slot not named "Default Preset", byte-identical to the editor's file); restore (<code>0x23</code>, <code>0x1a</code> header, <code>0x25</code> page writes, <code>0x04</code> reboot; device PIN kept by default). Open: whether a restore erases slots that are empty in the file</td>
 </tr>
 </tbody>
 </table>
@@ -3375,6 +3484,8 @@ State persisted in device config at offset 420 (mode) and 422 (last sine freq in
 <li>Device lock: submit PIN (<code>0x2d</code>, 4 ASCII digits, response byte signals correct/wrong), set lock PIN (<code>0x2f</code>, locks immediately on receipt)</li>
 <li>Output PEQ (<code>0x33</code>, 7 bands per output: gain/freq/Q/type/bypass; <code>0x3c</code> channel bypass; config parsing from footer bitmasks at offsets 412–415 and 428–431)</li>
 <li>Test tone generator (<code>0x39</code>, mode byte: 0=off, 1=pink noise, 2=white noise, 3=sine wave; freq index 0x00–0x1E for sine, 31 ISO 1/3-octave steps 20Hz–20kHz)</li>
+<li>Stored preset read without recall (<code>0x24</code> select + <code>0x28</code> page reads)</li>
+<li><code>.unt</code> file read/write (<code>minidsp.unt.UntFile</code>), save from the device (<code>0x19</code> + stored reads) and restore to the device (<code>0x23</code>, <code>0x1a</code>, <code>0x25</code>, <code>0x04</code> reboot)</li>
 <li>Initialization sequence</li>
 </ul>
 <h3 id="protocol-likely-known-but-not-yet-or-not-fully-captured-on-our-device">Protocol likely known but NOT yet or not fully captured on our device:<a class="headerlink" href="#protocol-likely-known-but-not-yet-or-not-fully-captured-on-our-device" title="Permanent link">&para;</a></h3>
