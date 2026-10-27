@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2026-10-27
+
+### Added
+
+- Capture helper diagnostics ([`27d4747`](https://github.com/IMBArator/miniDSP-Linux/commit/27d474776ba587aad48836b626ae6ec5580ab394))
+- Decode .unt transfer opcodes ([`670ddf6`](https://github.com/IMBArator/miniDSP-Linux/commit/670ddf642f3434a4bf4a7a20dd9f76970fabcbee))
+- Stored-preset, header and restore commands; pack_preset_params ([`7ee1f99`](https://github.com/IMBArator/miniDSP-Linux/commit/7ee1f99b2cb4037ba15e342a6d7897e34e3f03f5))
+- .unt file format module ([`c72d46e`](https://github.com/IMBArator/miniDSP-Linux/commit/c72d46e764c4bc64c1c5deac5f4a136fefad5181))
+- Read stored presets, export and restore .unt ([`6814953`](https://github.com/IMBArator/miniDSP-Linux/commit/68149538c9a1d7c05dc9edfdf9e7a504d0d69faa))
+- Save-unt, restore-unt, unt-info ([`842def1`](https://github.com/IMBArator/miniDSP-Linux/commit/842def18e9ce89cd4e1f023bad0d94f4a8c2d7c2))
+- Allow active slot 0 (F00) like editor files ([`fe3c00b`](https://github.com/IMBArator/miniDSP-Linux/commit/fe3c00bd36a461f5afa0b1455a15972145ba47f0))
+
+### Documentation
+
+- Document .unt save/restore opcodes ([`25ba07b`](https://github.com/IMBArator/miniDSP-Linux/commit/25ba07b23152d41ae814a44f8bbe4795208aa76c))
+- Correct the .unt empty-slot layout ([`4dfba52`](https://github.com/IMBArator/miniDSP-Linux/commit/4dfba52874fbc34e03cb1118be6b68eb95cf4206))
+- Describe .unt save/restore in README, feature list and layout ([`4c7acd6`](https://github.com/IMBArator/miniDSP-Linux/commit/4c7acd6c5664c8ae9486708363366baa89e72d86))
+- Record ADR-0025 and ADR-0026 for .unt support ([`2357bf7`](https://github.com/IMBArator/miniDSP-Linux/commit/2357bf71c93a9af4350831fcabbfcb23ea4eb41d))
+- Byte 419 after restore and F00-active save/restore ([`da835cc`](https://github.com/IMBArator/miniDSP-Linux/commit/da835cc3b7abf4dcae1425da80e8a78cf353a06a))
+
+### Fixed
+
+- Print UTF-8 on Windows consoles ([`0bbfeee`](https://github.com/IMBArator/miniDSP-Linux/commit/0bbfeee401bd015fcb8e32cd458d53fc504c2bef))
+- Keep capture provenance when refreshing metadata ([`80ca7c3`](https://github.com/IMBArator/miniDSP-Linux/commit/80ca7c3d4bac7e2907c73bc840d02fba4885f748))
+- Keep the CRLF in unused slots like the editor ([`630bf58`](https://github.com/IMBArator/miniDSP-Linux/commit/630bf5835b0b78d6d0081e2e25154b6a91d2bb77))
+
 ## [1.4.0] - 2026-09-20
 
 ### Added
