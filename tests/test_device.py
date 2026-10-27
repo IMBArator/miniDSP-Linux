@@ -816,6 +816,21 @@ def test_restore_unt_can_write_the_file_pin():
     assert frame(fake.sent[1]) == CAPTURED_HEADER_WRITE
 
 
+def test_restore_unt_of_an_f00_active_file_matches_the_capture():
+    # capture_20261027_103133: the editor restores a file saved with F00
+    # active; its 0x1a header write carries active slot 0 and is ACKed.
+    path = UNT_261026.with_name("miniDSP current settings 261027 - F00 active.unt")
+    if not path.exists():
+        pytest.skip(f"{path.name} not present")
+    unt = UntFile.read(path)
+    dsp, fake = opened_device(responder=unt_device_responder(unt))
+
+    assert dsp.restore_unt(unt, confirm=True) is True
+    assert frame(fake.sent[2]) == bytes.fromhex(
+        "10020001251a010021001e303030300000270f000041534446000a00"
+        "3478344420416d706c696669657210036e")
+
+
 def test_restore_unt_stops_on_a_missing_page_echo():
     unt = unt_fixture()
     dsp, fake = opened_device(responder=unt_device_responder(

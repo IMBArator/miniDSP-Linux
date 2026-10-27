@@ -23,6 +23,8 @@ FIXTURES = {
     "miniDSP current settings.unt": ([1, 2], 2, "1234"),
     "miniDSP current settings 260409.unt": ([1, 2, 30], 30, "7654"),
     "miniDSP current settings 261026.unt": ([1, 2, 3, 30], 3, "ASDF"),
+    # saved by the editor while F00 was active: active byte 0, F00 not stored
+    "miniDSP current settings 261027 - F00 active.unt": ([1, 2, 3, 30], 0, "ASDF"),
 }
 # First 50 bytes of the editor-made blank template the Qt app shipped
 BLANK_HEADER = bytes.fromhex(
@@ -129,8 +131,12 @@ def test_header_setters_validate():
     unt.active_slot = 30
     unt.pin = "7654"
     assert (unt.active_slot, unt.pin) == (30, "7654")
+    unt.active_slot = 0                      # F00 active, as the editor writes it
+    assert unt.active_slot == 0
     with pytest.raises(ValueError):
         unt.active_slot = 31
+    with pytest.raises(ValueError):
+        unt.active_slot = -1
     with pytest.raises(ValueError):
         unt.pin = "12345"
     with pytest.raises(ValueError):

@@ -94,7 +94,7 @@ class UntFile:
             raise UntParseError(f"expected {UNT_SIZE} bytes, got {len(data)}")
         if bytes(data[:len(UNT_MAGIC)]) != UNT_MAGIC:
             raise UntParseError(f"bad magic {bytes(data[:len(UNT_MAGIC)])!r}")
-        # 1–30 in every editor file; 0 is accepted for an active F00
+        # 0 = F00 active (the editor writes 0 then), 1–30 = U01–U30
         if data[UNT_ACTIVE_SLOT_OFFSET] > UNT_SLOT_COUNT:
             raise UntParseError(f"active slot byte {data[UNT_ACTIVE_SLOT_OFFSET]} out of range")
         self._data = bytearray(data)
@@ -150,12 +150,17 @@ class UntFile:
 
     @property
     def active_slot(self) -> int:
-        """Active preset slot (1=U01 … 30=U30)."""
+        """Active preset slot: 0 = F00 (factory preset), 1=U01 … 30=U30.
+
+        The editor writes 0 when F00 is active; F00 itself is never stored in
+        the file. A restore sends this byte as is (captured: the device ACKs 0).
+        """
         return self._data[UNT_ACTIVE_SLOT_OFFSET]
 
     @active_slot.setter
     def active_slot(self, slot: int) -> None:
-        _check_slot(slot)
+        if not 0 <= slot <= UNT_SLOT_COUNT:
+            raise ValueError(f"active slot must be 0 (F00) to {UNT_SLOT_COUNT}, got {slot}")
         self._data[UNT_ACTIVE_SLOT_OFFSET] = slot
 
     @property

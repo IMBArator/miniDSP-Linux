@@ -1217,7 +1217,8 @@ def test_dspanalyze_calibrate_save_load(tmp_path):
 ANALYSIS_DIR = os.path.join(os.path.dirname(__file__), "..", "analysis")
 UNT_FIXTURES = ["miniDSP current settings.unt",
                 "miniDSP current settings 260409.unt",
-                "miniDSP current settings 261026.unt"]
+                "miniDSP current settings 261026.unt",
+                "miniDSP current settings 261027 - F00 active.unt"]
 # 0x19 reply payload from the save capture (= .unt 261026 header 0x10–0x31)
 HEADER_REPLY = bytes.fromhex(
     "1901031e303030300000270f000041534446000a003478344420416d706c6966696572")
