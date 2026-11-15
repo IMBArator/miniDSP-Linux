@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 #
-# Bump the project version, regenerate the changelog, commit, and tag.
-# The companion of scripts/publish.sh — this prepares the release
-# locally; publish.sh sends it to GitHub.
+# Bump the project version (pyproject.toml and both packages' __version__),
+# regenerate the changelog, commit, and tag. The companion of
+# scripts/publish.sh — this prepares the release locally; publish.sh sends
+# it to GitHub. The final push is optional and needs an explicit yes.
 #
 # Usage:
 #   scripts/version.sh X.Y.Z
@@ -29,6 +30,16 @@ confirm() {
     [[ "$reply" =~ ^[Yy]$ ]]
 }
 
+# Like confirm, but without a terminal the answer is no: the push must only
+# happen after an explicit yes from the maintainer.
+confirm_explicit() {
+    local prompt="$1" reply
+    [[ -t 0 ]] || return 1  # non-interactive: no explicit yes, so no
+    read -r -p "$prompt [y/N] " -n 1 reply
+    echo ""
+    [[ "$reply" =~ ^[Yy]$ ]]
+}
+
 # --- 1. preconditions --------------------------------------------------------
 
 for cmd in git uv sed; do
@@ -49,6 +60,8 @@ fi
 TAG="v$VERSION"
 PYPROJECT="pyproject.toml"
 CHANGELOG="CHANGELOG.md"
+# Packages whose __version__ follows pyproject.toml (tests/test_version.py).
+PACKAGE_INITS=("minidsp/__init__.py" "dspanalyze/__init__.py")
 
 PRERELEASE=false
 [[ "$TAG" =~ -(rc|beta|alpha) ]] && PRERELEASE=true
@@ -110,6 +123,12 @@ if [[ -f "$CHANGELOG" ]] && grep -qE "^## \[${VERSION//./\\.}\]" "$CHANGELOG"; t
     die "$CHANGELOG already has a [${VERSION}] section — commit that and tag manually instead of running this script"
 fi
 
+# Every package must have a __version__ line to bump, checked before any
+# file is touched.
+for init in "${PACKAGE_INITS[@]}"; do
+    grep -q '^__version__ = ' "$init" || die "$init has no __version__ line to bump"
+done
+
 # --- 3. prepare release ------------------------------------------------------
 
 c_grn "Preparing release $TAG"
@@ -117,6 +136,11 @@ c_grn "Preparing release $TAG"
 
 # Bump pyproject.toml — only the first `version = "..."` line at top of file.
 sed -i "0,/^version = \".*\"/{s/^version = \".*\"/version = \"$VERSION\"/}" "$PYPROJECT"
+
+# Keep the packages' __version__ in step with pyproject.toml.
+for init in "${PACKAGE_INITS[@]}"; do
+    sed -i "s/^__version__ = \".*\"/__version__ = \"$VERSION\"/" "$init"
+done
 
 # Refresh uv.lock so it reflects the new project version. Folded into
 # the release commit below so the tag covers a self-consistent tree.
@@ -135,21 +159,21 @@ fi
 
 # --- 4. preview --------------------------------------------------------------
 
-c_dim "pyproject.toml diff:"
-git --no-pager diff --color "$PYPROJECT" | sed 's/^/  /'
+c_dim "pyproject.toml and __version__ diff:"
+git --no-pager diff --color "$PYPROJECT" "${PACKAGE_INITS[@]}" | sed 's/^/  /'
 
 c_dim "CHANGELOG.md (first 25 lines of the new section):"
 sed -n "/^## \[${VERSION//./\\.}\]/,/^## /p" "$CHANGELOG" | head -25 | sed 's/^/  /'
 
 if ! confirm "Commit and tag $TAG?"; then
     c_yel "Reverting working-tree changes..."
-    git checkout -- "$PYPROJECT" "$CHANGELOG" uv.lock
+    git checkout -- "$PYPROJECT" "$CHANGELOG" uv.lock "${PACKAGE_INITS[@]}"
     die "aborted by user"
 fi
 
 # --- 5. commit + tag ---------------------------------------------------------
 
-git add "$PYPROJECT" "$CHANGELOG" uv.lock
+git add "$PYPROJECT" "$CHANGELOG" uv.lock "${PACKAGE_INITS[@]}"
 git commit -m "chore(release): $TAG"
 git tag -a "$TAG" -m "Release $TAG"
 
@@ -160,10 +184,10 @@ c_grn "Tagged $TAG"
 git log --oneline -1 | sed 's/^/  /'
 git tag -n1 "$TAG" | sed 's/^/  /'
 
-# --- 7. optional push --------------------------------------------------------
+# --- 7. optional push (explicit yes only) -------------------------------------
 
 echo ""
-if confirm "Push commit + tag to origin?"; then
+if confirm_explicit "Push commit + tag to origin?"; then
     git push
     git push origin "$TAG"
     c_grn "Pushed."

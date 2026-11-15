@@ -137,9 +137,10 @@ The release flow uses two helper scripts under
 wired into the Makefile:
 
 ```bash
-# 1. Bump version in pyproject.toml + uv.lock, prepend a new CHANGELOG.md
-#    section (git-cliff), commit `chore(release): vX.Y.Z`, tag vX.Y.Z,
-#    optionally push.
+# 1. Bump version in pyproject.toml, uv.lock and both packages' __version__,
+#    prepend a new CHANGELOG.md section (git-cliff), commit
+#    `chore(release): vX.Y.Z`, tag vX.Y.Z, optionally push (only after an
+#    explicit yes; without a terminal it never pushes).
 make version VERSION=X.Y.Z
 
 # 2. Push the commit + tag if you skipped the prompt above.
