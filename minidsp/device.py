@@ -15,7 +15,75 @@ import logging
 import time
 from collections.abc import Iterable
 
+from .protocol import (
+    CONFIG_PAGE_SIZE,
+    CONFIG_PAGES,
+    DEVICE_HEADER_PIN,
+    OP_READ_STORED_PAGE,
+    STORED_WRITE_SIZE,
+    cmd_activate,
+    cmd_channel_link,
+    cmd_compressor,
+    cmd_delay,
+    cmd_device_info,
+    cmd_firmware,
+    cmd_gain,
+    cmd_gate,
+    cmd_hipass,
+    cmd_init,
+    cmd_load_preset,
+    cmd_lopass,
+    cmd_matrix_route,
+    cmd_mute,
+    cmd_peq_band,
+    cmd_peq_channel_bypass,
+    cmd_phase,
+    cmd_poll,
+    cmd_prepare_link,
+    cmd_preset_header,
+    cmd_preset_index,
+    cmd_read_config,
+    cmd_read_device_header,
+    cmd_read_name,
+    cmd_read_stored_page,
+    cmd_reboot,
+    cmd_restore_begin,
+    cmd_select_stored_preset,
+    cmd_set_channel_name,
+    cmd_set_delay_unit,
+    cmd_set_lock_pin,
+    cmd_store_preset,
+    cmd_store_preset_name,
+    cmd_submit_pin,
+    cmd_test_tone,
+    cmd_write_device_header,
+    cmd_write_stored_page,
+    device_header_with_pin,
+    is_ack,
+    parse_config_page,
+    parse_device_header,
+    parse_device_info,
+    parse_firmware,
+    parse_frame,
+    parse_levels,
+    parse_pin_response,
+    parse_preset_index,
+    parse_preset_name,
+    parse_preset_params,
+    parse_stored_page_ack,
+)
+
+# DeviceBusyError and DeviceClosedError are re-exported: callers (the Qt GUI)
+# import them from minidsp.device.
+from .transport import DeviceBusyError as DeviceBusyError
+from .transport import DeviceClosedError as DeviceClosedError
+from .transport import HidrawTransport, Transport, default_transport
+from .unt import UNT_BLOB_SIZE, UntFile, slots_to_save
+
 log = logging.getLogger(__name__)
+
+# Back-compat: both names lived in this module before the transport split.
+find_hidraw_device = HidrawTransport.find_device
 
 
 def _frame_hex(report: bytes) -> str:
@@ -34,90 +102,6 @@ def _frame_hex(report: bytes) -> str:
 
 class DeviceLockedError(RuntimeError):
     """Raised when the device is locked and requires a PIN before config access."""
-
-
-from .transport import (
-    DeviceBusyError,
-    DeviceClosedError,
-    HidrawTransport,
-    Transport,
-    default_transport,
-)
-
-# Back-compat: both names lived in this module before the transport split.
-find_hidraw_device = HidrawTransport.find_device
-
-from .protocol import (
-    VENDOR_ID,
-    PRODUCT_ID,
-    REPORT_SIZE,
-    CONFIG_PAGES,
-    CONFIG_PAGE_SIZE,
-    build_frame,
-    cmd_activate,
-    cmd_compressor,
-    cmd_device_info,
-    cmd_firmware,
-    cmd_delay,
-    cmd_gain,
-    cmd_gate,
-    cmd_hipass,
-    cmd_channel_link,
-    cmd_init,
-    cmd_load_preset,
-    cmd_lopass,
-    cmd_matrix_route,
-    cmd_mute,
-    cmd_phase,
-    cmd_poll,
-    cmd_prepare_link,
-    cmd_preset_header,
-    cmd_preset_index,
-    cmd_read_config,
-    cmd_read_name,
-    cmd_store_preset,
-    cmd_store_preset_name,
-    cmd_set_channel_name,
-    cmd_peq_band,
-    cmd_peq_channel_bypass,
-    cmd_submit_pin,
-    cmd_set_lock_pin,
-    cmd_set_delay_unit,
-    cmd_test_tone,
-    DELAY_UNIT_MS,
-    DELAY_UNIT_M,
-    DELAY_UNIT_FT,
-    TONE_OFF,
-    TONE_PINK,
-    TONE_WHITE,
-    TONE_SINE,
-    is_ack,
-    OP_ACTIVATE,
-    OP_INIT,
-    parse_config_page,
-    parse_device_info,
-    parse_firmware,
-    parse_frame,
-    parse_levels,
-    parse_pin_response,
-    parse_preset_index,
-    parse_preset_name,
-    parse_preset_params,
-    DEVICE_HEADER_PIN,
-    OP_READ_STORED_PAGE,
-    STORED_WRITE_SIZE,
-    cmd_read_device_header,
-    cmd_write_device_header,
-    cmd_restore_begin,
-    cmd_select_stored_preset,
-    cmd_read_stored_page,
-    cmd_write_stored_page,
-    cmd_reboot,
-    device_header_with_pin,
-    parse_device_header,
-    parse_stored_page_ack,
-)
-from .unt import UNT_BLOB_SIZE, UntFile, slots_to_save
 
 
 class DSPmini:
@@ -832,6 +816,7 @@ class DSPmini:
             return False
         for slot in slots:
             blob = unt.slot_blob(slot)
+            assert blob is not None  # slots come from unt.filled_slots()
             for page in range(CONFIG_PAGES):
                 start = page * CONFIG_PAGE_SIZE
                 data = blob[start:min(start + CONFIG_PAGE_SIZE, STORED_WRITE_SIZE)]
