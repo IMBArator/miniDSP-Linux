@@ -27,3 +27,8 @@ Capabilities:
 Invoke via ``python -m dspanalyze <subcommand>`` or the ``dspanalyze`` entry
 point — see :func:`dspanalyze.cli.main`.
 """
+
+from __future__ import annotations
+
+# Kept in step with pyproject.toml by scripts/version.sh.
+__version__ = "1.5.0"

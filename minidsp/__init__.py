@@ -21,3 +21,8 @@ Modules:
 See ``analysis/protocol.md`` in the source tree for the full reverse-engineered
 protocol specification.
 """
+
+from __future__ import annotations
+
+# Kept in step with pyproject.toml by scripts/version.sh.
+__version__ = "1.5.0"
