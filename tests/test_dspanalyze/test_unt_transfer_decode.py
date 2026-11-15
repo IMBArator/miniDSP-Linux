@@ -3,8 +3,11 @@
 Payloads are taken verbatim from capture_20261026_221454_editor_startup__save_unt
 and capture_20261026_222715_editor_startup__load_unt.
 """
+from __future__ import annotations
 
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from dspanalyze.config import load_config
@@ -24,7 +27,9 @@ def decode(payload: bytes, direction: str):
     pkt = RawPacket(frame_number=1, timestamp=0.0, direction=direction,
                     endpoint=0x81 if direction == "in" else 0x02,
                     hid_data=bytes(report))
-    return decode_frame(parse_raw_packet(pkt), load_config())
+    frame = parse_raw_packet(pkt)
+    assert frame is not None
+    return decode_frame(frame, load_config())
 
 
 def test_new_opcodes_are_known():

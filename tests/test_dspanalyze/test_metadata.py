@@ -1,6 +1,10 @@
 """Tests for dspanalyze.metadata sidecar handling."""
+from __future__ import annotations
 
-import sys, os, tomllib
+import os
+import sys
+import tomllib
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import tomli_w

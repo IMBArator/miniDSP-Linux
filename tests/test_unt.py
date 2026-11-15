@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import pytest
@@ -57,7 +56,9 @@ def test_fixture_slot_names_and_params():
         "DIY Mon", "DIY Mon offset", "DIY Mon off 2", "Test 2"]
     assert unt.slot_name(4) is None
     assert unt.slot_blob(4) is None
-    assert unt.slot_params(1)["names"][0] == "InA"
+    params = unt.slot_params(1)
+    assert params is not None
+    assert params["names"][0] == "InA"
 
 
 def test_blank_matches_editor_template_header():
@@ -86,7 +87,9 @@ def test_from_header_block_rejects_wrong_size():
 def test_set_and_clear_slot():
     src = UntFile(fixture_bytes("miniDSP current settings 261026.unt"))
     unt = UntFile.blank()
-    unt.set_slot_blob(5, src.slot_blob(2))
+    blob = src.slot_blob(2)
+    assert blob is not None
+    unt.set_slot_blob(5, blob)
     assert unt.filled_slots() == [5]
     assert unt.slot_name(5) == "DIY Mon offset"
     assert unt.to_bytes()[0x32 + 4 * 432] == 5                       # slot byte
@@ -98,7 +101,9 @@ def test_set_and_clear_slot():
 def test_set_slot_blob_accepts_450_byte_device_config():
     src = UntFile(fixture_bytes("miniDSP current settings 261026.unt"))
     unt = UntFile.blank()
-    unt.set_slot_blob(1, src.slot_blob(1) + bytes(21))
+    blob = src.slot_blob(1)
+    assert blob is not None
+    unt.set_slot_blob(1, blob + bytes(21))
     assert unt.slot_blob(1) == src.slot_blob(1)
     with pytest.raises(ValueError):
         unt.set_slot_blob(1, bytes(100))
@@ -108,22 +113,31 @@ def test_set_slot_params_edits_only_the_field():
     raw = fixture_bytes("miniDSP current settings 261026.unt")
     unt = UntFile(raw)
     params = unt.slot_params(2)
+    assert params is not None
     params["gains"][0] = 100
     unt.set_slot_params(2, params)
-    changed = [i for i, (a, b) in enumerate(zip(raw, unt.to_bytes())) if a != b]
+    changed = [i for i, (a, b) in enumerate(zip(raw, unt.to_bytes(), strict=True)) if a != b]
     blob_start = 0x32 + 432 + 1
     assert changed == [blob_start + 16 + 18, blob_start + 16 + 19] or \
         changed == [blob_start + 16 + 18]
-    assert unt.slot_params(2)["gains"][0] == 100
+    edited = unt.slot_params(2)
+    assert edited is not None
+    assert edited["gains"][0] == 100
 
 
 def test_set_slot_params_on_unused_slot_creates_a_preset():
     src = UntFile(fixture_bytes("miniDSP current settings 261026.unt"))
     unt = UntFile.blank()
-    unt.set_slot_params(7, src.slot_params(1), name="NEW PRESET")
+    src_params = src.slot_params(1)
+    assert src_params is not None
+    unt.set_slot_params(7, src_params, name="NEW PRESET")
     assert unt.slot_name(7) == "NEW PRESET"
-    assert unt.slot_blob(7)[:2] == b"\xff\xff"
-    assert parse_preset_params(unt.slot_blob(7))["gains"] == src.slot_params(1)["gains"]
+    new_blob = unt.slot_blob(7)
+    assert new_blob is not None
+    assert new_blob[:2] == b"\xff\xff"
+    new_params = parse_preset_params(new_blob)
+    assert new_params is not None
+    assert new_params["gains"] == src_params["gains"]
 
 
 def test_header_setters_validate():

@@ -1,10 +1,41 @@
 """Tests for the protocol encoding/decoding — verified against real captures."""
+from __future__ import annotations
 
-import sys, os, math
+import math
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+import pytest
+
 from minidsp.protocol import (
+    DELAY_UNIT_FT,
+    DELAY_UNIT_M,
+    DELAY_UNIT_MS,
+    LEVEL_CLIP_LEVEL24,
+    LEVEL_CLIP_UINT16,
+    LEVEL_REF_LEVEL24_FACTORY,
+    LEVEL_REF_UINT16_FACTORY,
+    LOCK_PIN_CORRECT,
+    LOCK_PIN_WRONG,
+    OP_READ_STORED_PAGE,
+    PEQ_TYPE_HIGH_SHELF,
+    PEQ_TYPE_LOW_SHELF,
+    PEQ_TYPE_PEAK,
+    SINE_FREQ_1KHZ,
+    SINE_FREQ_20HZ,
+    SINE_FREQ_20KHZ,
+    SLOPE_BYPASS,
+    SLOPE_LR24,
+    STORED_WRITE_SIZE,
+    TONE_OFF,
+    TONE_PINK,
+    TONE_SINE,
+    TONE_WHITE,
     _ch_level,
+    _ch_level24,
+    _ensure_ref_level,
     build_frame,
     checksum,
     cmd_delay,
@@ -13,80 +44,47 @@ from minidsp.protocol import (
     cmd_hipass,
     cmd_lopass,
     cmd_mute,
-    cmd_phase,
-    cmd_poll,
-    cmd_set_channel_name,
-    cmd_submit_pin,
-    cmd_set_lock_pin,
-    cmd_set_delay_unit,
-    cmd_test_tone,
-    DELAY_UNIT_MS,
-    DELAY_UNIT_M,
-    DELAY_UNIT_FT,
-    TONE_OFF,
-    TONE_PINK,
-    TONE_WHITE,
-    TONE_SINE,
-    SINE_FREQ_20HZ,
-    SINE_FREQ_1KHZ,
-    SINE_FREQ_20KHZ,
-    parse_device_info,
-    parse_firmware,
-    parse_pin_response,
-    LOCK_PIN_CORRECT,
-    LOCK_PIN_WRONG,
     cmd_peq_band,
     cmd_peq_channel_bypass,
-    peq_gain_to_raw,
-    peq_raw_to_gain,
-    peq_q_to_raw,
-    peq_raw_to_q,
-    freq_raw_to_hz,
-    freq_hz_to_raw,
-    level_uint16_to_dbu,
-    level24_to_dbu,
-    level24_to_db_editor,
-    level_is_clipping,
-    level24_is_clipping,
-    LEVEL_CLIP_UINT16,
-    LEVEL_CLIP_LEVEL24,
-    LEVEL_REF_LEVEL24_FACTORY,
-    LEVEL_REF_UINT16,
-    LEVEL_REF_UINT16_FACTORY,
-    _ensure_ref_level,
-    _ch_level24,
-    PEQ_TYPE_PEAK,
-    PEQ_TYPE_LOW_SHELF,
-    PEQ_TYPE_HIGH_SHELF,
-    PEQ_TYPE_LOW_PASS,
-    PEQ_TYPE_HIGH_PASS,
-    PEQ_TYPE_ALLPASS1,
-    PEQ_TYPE_ALLPASS2,
-    db_to_raw,
-    parse_config_page,
-    parse_frame,
-    parse_levels,
-    parse_preset_params,
-    raw_to_db,
-    SLOPE_BYPASS,
-    SLOPE_BW6,
-    SLOPE_LR24,
-    OP_READ_STORED_PAGE,
-    STORED_WRITE_SIZE,
+    cmd_phase,
+    cmd_poll,
     cmd_read_device_header,
-    cmd_write_device_header,
+    cmd_read_stored_page,
+    cmd_reboot,
     cmd_restore_begin,
     cmd_select_stored_preset,
-    cmd_read_stored_page,
+    cmd_set_channel_name,
+    cmd_set_delay_unit,
+    cmd_set_lock_pin,
+    cmd_submit_pin,
+    cmd_test_tone,
+    cmd_write_device_header,
     cmd_write_stored_page,
-    cmd_reboot,
+    db_to_raw,
     device_header_with_pin,
+    freq_hz_to_raw,
+    freq_raw_to_hz,
+    level24_is_clipping,
+    level24_to_db_editor,
+    level24_to_dbu,
+    level_is_clipping,
+    level_uint16_to_dbu,
     pack_preset_params,
+    parse_config_page,
     parse_device_header,
+    parse_device_info,
+    parse_firmware,
+    parse_frame,
+    parse_levels,
+    parse_pin_response,
+    parse_preset_params,
     parse_stored_page_ack,
+    peq_gain_to_raw,
+    peq_q_to_raw,
+    peq_raw_to_gain,
+    peq_raw_to_q,
+    raw_to_db,
 )
-import pytest
-
 
 # --- Checksum ---
 
@@ -332,14 +330,14 @@ def test_parse_levels_normal_mode():
     payload = bytearray(28)
     payload[0] = 0x40
     # Triplets: [val_lo=0, val_hi=0, instant] — uint16=0 → level is 0
-    payload[1] = 0;  payload[2] = 0;  payload[3] = 240   # in1 instant ignored
-    payload[4] = 0;  payload[5] = 0;  payload[6] = 178   # in2 instant ignored
-    payload[7] = 0;  payload[8] = 0;  payload[9] = 15    # in3 noise floor ignored
-    payload[10] = 0; payload[11] = 0; payload[12] = 0    # in4 silence
-    payload[13] = 0; payload[14] = 0; payload[15] = 200  # out1 instant ignored
-    payload[16] = 0; payload[17] = 0; payload[18] = 28   # out2 noise floor ignored
-    payload[19] = 0; payload[20] = 0; payload[21] = 5    # out3 noise floor ignored
-    payload[22] = 0; payload[23] = 0; payload[24] = 150  # out4 instant ignored
+    payload[1:4] = [0, 0, 240]    # in1 instant ignored
+    payload[4:7] = [0, 0, 178]    # in2 instant ignored
+    payload[7:10] = [0, 0, 15]    # in3 noise floor ignored
+    payload[10:13] = [0, 0, 0]    # in4 silence
+    payload[13:16] = [0, 0, 200]  # out1 instant ignored
+    payload[16:19] = [0, 0, 28]   # out2 noise floor ignored
+    payload[19:22] = [0, 0, 5]    # out3 noise floor ignored
+    payload[22:25] = [0, 0, 150]  # out4 instant ignored
     payload[25] = 0x00  # no limiter
     payload[26] = 0x00  # idle
 
@@ -379,8 +377,10 @@ def test_parse_levels_clip_flag():
 
     # Same frame with the flag cleared → clip False, everything else equal
     cleared = payload[:27] + b"\x00"
-    assert parse_levels(cleared)["clip"] is False
-    assert parse_levels(cleared)["clipping"] == result["clipping"]
+    cleared_levels = parse_levels(cleared)
+    assert cleared_levels is not None
+    assert cleared_levels["clip"] is False
+    assert cleared_levels["clipping"] == result["clipping"]
 
 
 def test_level_is_clipping_threshold():
@@ -414,21 +414,21 @@ def test_parse_levels_highres_mode():
     payload = bytearray(28)
     payload[0] = 0x40
     # In1: val_lo=134, val_hi=0 → uint16=134
-    payload[1] = 134; payload[2] = 0; payload[3] = 67
+    payload[1:4] = [134, 0, 67]
     # In2: val_lo=141, val_hi=0 → uint16=141
-    payload[4] = 141; payload[5] = 0; payload[6] = 178
+    payload[4:7] = [141, 0, 178]
     # In3: uint16=0 → 0
-    payload[7] = 0;   payload[8] = 0; payload[9] = 10
+    payload[7:10] = [0, 0, 10]
     # In4: all zero
-    payload[10] = 0;  payload[11] = 0; payload[12] = 0
+    payload[10:13] = [0, 0, 0]
     # Out1: val_lo=93, val_hi=0 → uint16=93
-    payload[13] = 93; payload[14] = 0; payload[15] = 183
+    payload[13:16] = [93, 0, 183]
     # Out2: val_lo=8, val_hi=1 → uint16=264 (exceeds 255)
-    payload[16] = 8;  payload[17] = 1; payload[18] = 191
+    payload[16:19] = [8, 1, 191]
     # Out3: uint16=0 → 0
-    payload[19] = 0;  payload[20] = 0; payload[21] = 10
+    payload[19:22] = [0, 0, 10]
     # Out4: uint16=0 → 0
-    payload[22] = 0;  payload[23] = 0; payload[24] = 10
+    payload[22:25] = [0, 0, 10]
     payload[25] = 0x00
     payload[26] = 0x01
 
@@ -514,7 +514,9 @@ def test_parse_config_page():
     payload[0] = 0x24  # config response opcode
     payload[1] = 0x03  # page 3
     payload[2:52] = bytes(range(50))  # dummy data
-    page, data = parse_config_page(bytes(payload))
+    parsed = parse_config_page(bytes(payload))
+    assert parsed is not None
+    page, data = parsed
     assert page == 3
     assert len(data) == 50
     assert data == bytes(range(50))
@@ -690,7 +692,6 @@ def test_peq_gain_encoding():
 
 
 def test_peq_q_encoding():
-    import math
     assert peq_q_to_raw(0.4) == 0       # minimum Q
     assert peq_q_to_raw(128.0) == 100   # maximum Q (Peak)
     # Q=3.0 should map to raw 35 (shelf/pass max)
@@ -768,6 +769,7 @@ def test_load_calibration_ref_accepts_legacy_uint16_key(tmp_path, monkeypatch):
     """A calibration.toml with only the legacy ``ref_level`` (uint16 units)
     is converted to 24-bit units."""
     import importlib.resources
+
     import minidsp.protocol as proto
     (tmp_path / "calibration.toml").write_text("ref_level = 79.99\n")
 
@@ -775,7 +777,9 @@ def test_load_calibration_ref_accepts_legacy_uint16_key(tmp_path, monkeypatch):
         def joinpath(self, name):
             return tmp_path / name
     monkeypatch.setattr(importlib.resources, "files", lambda pkg: _Files())
-    assert abs(proto._load_calibration_ref() - 79.99 * 256) < 1e-6
+    loaded = proto._load_calibration_ref()
+    assert loaded is not None
+    assert abs(loaded - 79.99 * 256) < 1e-6
     (tmp_path / "calibration.toml").write_text("ref_level24 = 20500.5\nref_level = 80.08\n")
     assert proto._load_calibration_ref() == 20500.5
 
@@ -985,11 +989,8 @@ def test_cmd_store_preset():
 def test_cmd_store_preset_slot0_guard():
     """Slot 0 (F00 factory preset) must raise ValueError."""
     from minidsp.protocol import cmd_store_preset
-    try:
+    with pytest.raises(ValueError):
         cmd_store_preset(0)
-        assert False, "Expected ValueError for slot 0"
-    except ValueError:
-        pass  # expected
 
 
 def test_cmd_store_preset_name():
@@ -1195,12 +1196,14 @@ def test_calibration_ref_level_mixed_units():
         {"dbu": 6.0, "mean_uint16": 20000 * 10 ** (6 / 20) / 256},
     ]
     ref = calibrate_compute_ref(points)
+    assert ref is not None
     assert abs(ref - 20000.0) < 1.0
 
 
 def test_dspanalyze_calibrate_save_load(tmp_path):
-    import tomli_w
     import tomllib
+
+    import tomli_w
     cal = {"points": [{"dbu": 0.0, "mean_uint16": 188.0}]}
     cal_file = tmp_path / "calibration.toml"
     with open(cal_file, "wb") as f:
@@ -1282,6 +1285,7 @@ def test_unt_transfer_builders_reject_bad_arguments():
 
 def test_parse_device_header_capture_reply():
     hdr = parse_device_header(HEADER_REPLY)
+    assert hdr is not None
     assert hdr["device_address"] == 1
     assert hdr["active_slot"] == 3
     assert hdr["max_presets"] == 30
@@ -1297,8 +1301,10 @@ def test_parse_device_header_capture_reply():
 
 def test_device_header_with_pin_replaces_only_the_pin():
     patched = device_header_with_pin(HEADER_REPLY[1:], b"1234")
-    assert parse_device_header(b"\x19" + patched)["pin"] == "1234"
-    assert sum(a != b for a, b in zip(patched, HEADER_REPLY[1:])) == 4
+    header = parse_device_header(b"\x19" + patched)
+    assert header is not None
+    assert header["pin"] == "1234"
+    assert sum(a != b for a, b in zip(patched, HEADER_REPLY[1:], strict=True)) == 4
 
 
 def test_parse_config_page_accepts_stored_page_opcode():
@@ -1316,26 +1322,35 @@ def test_parse_stored_page_ack():
 @pytest.mark.parametrize("name", UNT_FIXTURES)
 def test_pack_preset_params_roundtrips_every_fixture_slot(name):
     for blob in _unt_slot_blobs(name):
-        assert pack_preset_params(parse_preset_params(blob), blob) == blob
+        params = parse_preset_params(blob)
+        assert params is not None
+        assert pack_preset_params(params, blob) == blob
         device_blob = blob + bytes(21)   # 450-byte device form
-        assert pack_preset_params(parse_preset_params(device_blob), device_blob) == device_blob
+        device_params = parse_preset_params(device_blob)
+        assert device_params is not None
+        assert pack_preset_params(device_params, device_blob) == device_blob
 
 
 def test_pack_preset_params_changes_only_the_edited_field():
     blob = _unt_slot_blobs("miniDSP current settings 261026.unt")[0]
     params = parse_preset_params(blob)
+    assert params is not None
     params["gains"][5] = 123          # Out2 gain
     params["mutes"][0] = not params["mutes"][0]
     packed = pack_preset_params(params, blob)
-    changed = [i for i, (a, b) in enumerate(zip(blob, packed)) if a != b]
+    changed = [i for i, (a, b) in enumerate(zip(blob, packed, strict=True)) if a != b]
     out2_gain = 112 + 74 + 66
     assert set(changed) <= {out2_gain, out2_gain + 1, 408}
-    assert parse_preset_params(packed)["gains"][5] == 123
+    repacked = parse_preset_params(packed)
+    assert repacked is not None
+    assert repacked["gains"][5] == 123
 
 
 def test_pack_preset_params_rejects_short_blob():
+    params = parse_preset_params(bytes(450))
+    assert params is not None
     with pytest.raises(ValueError):
-        pack_preset_params(parse_preset_params(bytes(450)), bytes(100))
+        pack_preset_params(params, bytes(100))
 
 
 if __name__ == "__main__":

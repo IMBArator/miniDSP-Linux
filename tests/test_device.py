@@ -24,18 +24,17 @@ from minidsp import protocol, transport
 from minidsp.device import (
     DeviceBusyError,
     DeviceClosedError,
-    DSPmini,
     DeviceLockedError,
+    DSPmini,
 )
 from minidsp.protocol import REPORT_SIZE
-from minidsp.unt import UntFile
 from minidsp.transport import (
     HidapiTransport,
     HidrawTransport,
     Transport,
     default_transport,
 )
-
+from minidsp.unt import UntFile
 
 # --- Helpers ---------------------------------------------------------------
 
@@ -703,7 +702,11 @@ def unt_device_responder(unt: UntFile, device_pin: bytes = b"ASDF",
             return ACK
         if op == protocol.OP_READ_STORED_PAGE:
             page = report[6]
-            raw = unt.slot_blob(selected["slot"]) + bytes(21)   # 450-byte device form
+            slot = selected["slot"]
+            assert slot is not None   # 0x24 select always precedes 0x28 reads
+            blob = unt.slot_blob(slot)
+            assert blob is not None
+            raw = blob + bytes(21)   # 450-byte device form
             return device_frame(bytes([op, page]) + raw[page * 50:(page + 1) * 50])
         if op == protocol.OP_WRITE_STORED_PAGE:
             return device_frame(bytes([op, report[6]]))
@@ -741,6 +744,7 @@ def test_read_stored_preset_returns_raw_blob_and_params():
 
     preset = dsp.read_stored_preset(2)
 
+    assert preset is not None
     assert preset["name"] == "DIY Mon offset"
     assert len(preset["raw"]) == 450
     assert preset["unt_blob"] == unt.slot_blob(2)
