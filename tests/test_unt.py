@@ -16,6 +16,8 @@ from minidsp.unt import (
     slots_to_save,
 )
 
+# --- Fixtures and helpers ---
+
 ANALYSIS = Path(__file__).resolve().parent.parent / "analysis"
 # fixture name → (filled slots, active slot, PIN)
 FIXTURES = {
@@ -37,6 +39,8 @@ def fixture_bytes(name: str) -> bytes:
         pytest.skip(f"{name} not present")
     return path.read_bytes()
 
+
+# --- Editor files ---
 
 @pytest.mark.parametrize("name", FIXTURES)
 def test_fixture_parses_and_roundtrips(name):
@@ -78,6 +82,8 @@ def test_clearing_an_empty_editor_slot_changes_nothing():
         unt.clear_slot(slot)
     assert unt.to_bytes() == raw
 
+
+# --- Header and slots ---
 
 def test_from_header_block_rejects_wrong_size():
     with pytest.raises(ValueError):
@@ -157,6 +163,8 @@ def test_header_setters_validate():
         unt.slot_blob(0)
 
 
+# --- Parse errors and file I/O ---
+
 def test_parse_errors():
     data = bytearray(UntFile.blank().to_bytes())
     with pytest.raises(UntParseError):
@@ -194,6 +202,8 @@ def test_failed_write_keeps_existing_file(tmp_path, monkeypatch):
     assert dst.read_bytes() == b"old"
     assert not list(tmp_path.glob(".*.tmp"))
 
+
+# --- Which slots to save ---
 
 def test_slots_to_save_follows_the_editor_rule():
     names = [EMPTY_PRESET_NAME] * 30

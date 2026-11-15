@@ -11,6 +11,7 @@ import tomli_w
 
 from dspanalyze.metadata import meta_path_for, write_metadata
 
+# --- Sidecar refresh ---
 
 def test_refresh_keeps_capture_provenance_and_description(tmp_path):
     capture = tmp_path / "capture_x.pcapng"

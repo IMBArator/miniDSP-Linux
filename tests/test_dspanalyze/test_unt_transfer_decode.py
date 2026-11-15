@@ -15,6 +15,8 @@ from dspanalyze.decode import decode_frame, parse_raw_packet
 from dspanalyze.readers import RawPacket
 from minidsp.protocol import build_frame
 
+# --- Helpers ---
+
 HEADER_REPLY = bytes.fromhex(
     "1901031e303030300000270f000041534446000a003478344420416d706c6966696572")
 
@@ -32,11 +34,15 @@ def decode(payload: bytes, direction: str):
     return decode_frame(frame, load_config())
 
 
+# --- Opcode table ---
+
 def test_new_opcodes_are_known():
     for payload in (b"\x04", b"\x19\x00\x00\x22", b"\x23", b"\x24\x01",
                     b"\x28\x00", bytes([0x25, 0x08, 0x1d]) + bytes(19)):
         assert decode(payload, "out").is_known, payload.hex()
 
+
+# --- Decoded fields ---
 
 def test_read_header_reply_fields():
     cmd = decode(HEADER_REPLY, "in")

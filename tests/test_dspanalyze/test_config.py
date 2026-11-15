@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from dspanalyze.config import convert_value, load_config
 
+# --- Value converters ---
 
 def test_q_log_uses_div_100_not_255():
     """raw=25 must decode to Q≈1.69 (formula 0.4·320^(raw/100)).
