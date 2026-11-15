@@ -200,12 +200,12 @@ class HidrawTransport(Transport):
         self._fd = os.open(device_path, os.O_RDWR)
         try:
             fcntl.flock(self._fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except (OSError, BlockingIOError):
+        except (OSError, BlockingIOError) as err:
             os.close(self._fd)
             self._fd = None
             raise DeviceBusyError(
                 f"{device_path} is already in use by another process"
-            )
+            ) from err
         log.info("Opened %s (exclusive lock acquired)", device_path)
 
     def close(self) -> None:

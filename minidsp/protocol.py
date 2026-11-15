@@ -1857,7 +1857,7 @@ def calibrate_compute_ref(points: list[dict]) -> float | None:
     if not log_refs:
         return None
     total_w = sum(weights)
-    weighted_mean = sum(lr * w for lr, w in zip(log_refs, weights)) / total_w
+    weighted_mean = sum(lr * w for lr, w in zip(log_refs, weights, strict=True)) / total_w
     return math.exp(weighted_mean)
 
 

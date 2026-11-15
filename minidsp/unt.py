@@ -146,7 +146,9 @@ class UntFile:
     @property
     def header(self) -> dict:
         """Parsed header fields, see :func:`~minidsp.protocol.parse_device_header`."""
-        return parse_device_header(bytes([OP_DEVICE_HEADER]) + self.header_block)
+        header = parse_device_header(bytes([OP_DEVICE_HEADER]) + self.header_block)
+        assert header is not None  # the header block always has the full length
+        return header
 
     @property
     def active_slot(self) -> int:

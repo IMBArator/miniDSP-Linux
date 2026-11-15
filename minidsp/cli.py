@@ -33,18 +33,32 @@ def cmd_dump(args: argparse.Namespace) -> None:
     Args:
         args: Parsed CLI arguments (no subcommand-specific flags).
     """
+    from rich import box as rich_box
     from rich.console import Console
     from rich.table import Table
-    from rich import box as rich_box
+
     from .protocol import (
-        raw_to_db, freq_raw_to_hz, delay_samples_to_ms,
-        gate_threshold_to_db, gate_time_to_ms,
-        comp_threshold_to_db, comp_attack_to_ms, comp_release_to_ms,
-        SLOPE_NAMES, PEQ_TYPE_NAMES, COMP_RATIO_NAMES,
-        INPUT_CHANNEL_NAMES, OUTPUT_CHANNEL_NAMES,
-        CHANNEL_NAMES, decode_link_groups, decode_routing_matrix,
-        peq_raw_to_gain, peq_raw_to_q,
-        TONE_MODE_NAMES, SINE_FREQ_NAMES, TONE_SINE,
+        CHANNEL_NAMES,
+        COMP_RATIO_NAMES,
+        INPUT_CHANNEL_NAMES,
+        OUTPUT_CHANNEL_NAMES,
+        PEQ_TYPE_NAMES,
+        SINE_FREQ_NAMES,
+        SLOPE_NAMES,
+        TONE_MODE_NAMES,
+        TONE_SINE,
+        comp_attack_to_ms,
+        comp_release_to_ms,
+        comp_threshold_to_db,
+        decode_link_groups,
+        decode_routing_matrix,
+        delay_samples_to_ms,
+        freq_raw_to_hz,
+        gate_threshold_to_db,
+        gate_time_to_ms,
+        peq_raw_to_gain,
+        peq_raw_to_q,
+        raw_to_db,
     )
 
     dsp = DSPmini()
@@ -248,12 +262,14 @@ def cmd_levels(args: argparse.Namespace) -> None:
         args: Parsed CLI arguments — ``watch``, ``count``, ``interval``,
             ``csv``, ``csv_only``.
     """
+    from rich import box as rich_box
     from rich.console import Console
     from rich.table import Table
-    from rich import box as rich_box
+
     from .protocol import (
+        INPUT_CHANNEL_NAMES,
+        OUTPUT_CHANNEL_NAMES,
         level24_to_dbu,
-        INPUT_CHANNEL_NAMES, OUTPUT_CHANNEL_NAMES,
     )
 
     console = Console()
@@ -314,6 +330,7 @@ def cmd_levels(args: argparse.Namespace) -> None:
                 csv_writer.writerow([ts] + all_vals + all_vals24 + db_strs
                                     + [int(c) for c in levels["clipping"]]
                                     + [int(levels["clip"])])
+                assert csv_file is not None  # opened together with csv_writer
                 csv_file.flush()
 
             if not args.csv_only:
@@ -324,7 +341,7 @@ def cmd_levels(args: argparse.Namespace) -> None:
                 t.add_column("dBu", justify="right", min_width=8)
                 t.add_column("Clip", min_width=4)
                 for name, val, val24, db, clipping in zip(
-                        ch_names, all_vals, all_vals24, db_vals, levels["clipping"]):
+                        ch_names, all_vals, all_vals24, db_vals, levels["clipping"], strict=True):
                     db_str = f"{db:+.1f}" if db != float("-inf") else " -inf"
                     t.add_row(name, str(val), str(val24), db_str,
                               "[bold red]CLIP[/bold red]" if clipping else "")
