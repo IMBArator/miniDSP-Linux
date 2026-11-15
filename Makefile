@@ -4,7 +4,7 @@ CAPTURES := analysis/usb_captures
 .DEFAULT_GOAL := build
 
 .PHONY: sync install test check check-ruff check-ty fix-ruff analyze analyze-raw analyze-no-poll analyze-human \
-        analyze-summary analyze-all diff-config check-all \
+        analyze-summary analyze-all diff-config analyze-check \
         capture-enable capture-disable build clean version publish help \
         docs docs-serve docs-clean
 
@@ -34,7 +34,7 @@ help:
 	@echo "  analyze-summary         Summary only (no per-frame detail)"
 	@echo "  analyze-all             Summarise all captures in $(CAPTURES)"
 	@echo "  diff-config             Compare config reads within a capture"
-	@echo "  check-all               Run protocol assertions against all captures"
+	@echo "  analyze-check           Run protocol assertions against all captures"
 	@echo ""
 	@echo "USB Capture"
 	@echo "  capture-enable          Load usbmon and grant non-root capture access"
@@ -118,12 +118,22 @@ analyze-all:
 		echo ""; \
 	done
 
-# Run protocol assertions against all captures
-check-all:
-	@for f in $(CAPTURES)/*.txt $(CAPTURES)/*.pcapng; do \
+# Run protocol assertions against all captures; every capture is checked,
+# each failing one is named, and the target fails if any capture failed
+analyze-check:
+	@failed=0; \
+	for f in $(CAPTURES)/*.txt $(CAPTURES)/*.pcapng; do \
 		[ -f "$$f" ] || continue; \
-		$(UV) run dspanalyze check "$$f" --assertion all 2>/dev/null || true; \
-	done
+		if ! $(UV) run dspanalyze check "$$f" --assertion all; then \
+			echo "FAILED: $$f"; \
+			failed=$$((failed + 1)); \
+		fi; \
+	done; \
+	if [ $$failed -gt 0 ]; then \
+		echo ""; \
+		echo "$$failed capture(s) failed the protocol assertions"; \
+		exit 1; \
+	fi
 
 # Load usbmon, grant access, and enable dumpcap capabilities for non-root USB capture
 capture-enable:

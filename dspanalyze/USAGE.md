@@ -277,7 +277,7 @@ frame# timestamp direction hex_data
 | `analyze-summary` | `make analyze-summary FILE="path"` | Summary stats only |
 | `diff-config` | `make diff-config FILE="path"` | Compare config reads |
 | `analyze-all` | `make analyze-all` | Batch analyze all captures (summaries) |
-| `check-all` | `make check-all` | Run assertions against all captures |
+| `analyze-check` | `make analyze-check` | Run assertions against all captures; fails if any capture fails |
 | `capture-enable` | `make capture-enable` | Load usbmon, grant permissions (sudo) |
 | `capture-disable` | `make capture-disable` | Remove caps, unload usbmon (sudo) |
 
@@ -329,7 +329,7 @@ Formats define how raw bytes convert to human-readable values. Key formats:
 5. **Validate:** `python -m dspanalyze check capture.pcapng`
 6. **Compare configs:** `make diff-config FILE="..."` if a parameter was changed
 7. **Update protocol:** Add new opcodes to `protocol_config.toml`, then to `analysis/protocol.md` and `minidsp/protocol.py`
-8. **Verify:** `make check-all` to ensure no regressions
+8. **Verify:** `make analyze-check` to ensure no regressions
 9. **Cleanup:** `make capture-disable`
 
 ## Supported Capture Formats

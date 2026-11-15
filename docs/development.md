@@ -88,7 +88,7 @@ example `winget install ezwinports.make`); `sync`, `install`, `test`,
 
 `version` and `publish` shell out to bash scripts;
 `capture-enable`/`capture-disable` manage usbmon and dumpcap capabilities and
-are Linux-only; `clean`, `docs-clean`, and the `analyze-all`/`check-all`
+are Linux-only; `clean`, `docs-clean`, and the `analyze-all`/`analyze-check`
 loops need a POSIX shell — or Git Bash, which ships with Git for Windows.
 
 ## Protocol analysis workflow
@@ -112,7 +112,8 @@ make analyze-no-poll FILE=...     # without 0x40 level-poll noise
 make diff-config FILE=...
 
 # Guard existing knowledge: protocol assertions over all captures
-make check-all
+# (names every failing capture and fails if any did)
+make analyze-check
 
 # Revoke capture access again
 make capture-disable
