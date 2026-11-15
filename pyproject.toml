@@ -6,7 +6,9 @@ build-backend = "hatchling.build"
 name = "minidsp-linux"
 version = "1.5.0"
 description = "USB HID control and protocol analysis for the t.racks DSP 4x4 Mini"
+readme = "README.md"
 requires-python = ">=3.11"
+license = "GPL-3.0-or-later"
 dependencies = [
     "tomli-w>=1.0",
     "rich>=13.0",

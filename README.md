@@ -299,6 +299,6 @@ Release notes are generated from [Conventional Commits](https://www.conventional
 
 ## License
 
-This project is licensed under the [GNU General Public License v3.0](LICENSE).
+This project is licensed under the [GNU General Public License v3.0 or later](LICENSE) (GPL-3.0-or-later).
 
 Not affiliated with Musicrown, the t.racks, or Thomann. Protocol reverse-engineered for interoperability purposes under applicable law.

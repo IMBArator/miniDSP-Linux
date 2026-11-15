@@ -52,3 +52,6 @@ interoperability purposes under applicable law.
 ## More Information
 
 * `9609a84` — license commit, naming the dsp-408-ui precedent.
+* Since 2026-11-15 the build metadata declares the SPDX id
+  `GPL-3.0-or-later` (`license` in `pyproject.toml`), and the README names
+  it, so the license is stated the same way in all three places.
