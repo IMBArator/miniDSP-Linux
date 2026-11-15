@@ -3,7 +3,7 @@ CAPTURES := analysis/usb_captures
 
 .DEFAULT_GOAL := build
 
-.PHONY: sync install test analyze analyze-raw analyze-no-poll analyze-human \
+.PHONY: sync install test check check-ruff check-ty fix-ruff analyze analyze-raw analyze-no-poll analyze-human \
         analyze-summary analyze-all diff-config check-all \
         capture-enable capture-disable build clean version publish help \
         docs docs-serve docs-clean
@@ -21,6 +21,10 @@ help:
 	@echo "  sync                    Install all dependencies (incl. dev extras)"
 	@echo "  install                 Alias for sync"
 	@echo "  test                    Run test suite with pytest"
+	@echo "  check                   check-ruff and check-ty"
+	@echo "  check-ruff              Lint the code base with ruff"
+	@echo "  check-ty                Type-check the code base with ty"
+	@echo "  fix-ruff                Apply ruff's automatic fixes"
 	@echo ""
 	@echo "Analysis  (FILE=path/to/capture)"
 	@echo "  analyze                 Decode capture (claude format)"
@@ -48,6 +52,20 @@ install: sync
 
 test:
 	$(UV) run pytest -v
+
+check: check-ruff check-ty
+
+# Lint (ruff: pyflakes, pycodestyle, isort, pyupgrade, bugbear; config in pyproject.toml)
+check-ruff:
+	$(UV) run ruff check minidsp dspanalyze tests
+
+# Type check (ty, Astral's checker; Python version from requires-python)
+check-ty:
+	$(UV) run ty check minidsp dspanalyze tests
+
+# Apply ruff's safe automatic fixes (import order, future import, pyupgrade)
+fix-ruff:
+	$(UV) run ruff check --fix minidsp dspanalyze tests
 
 build:
 	$(UV) build
