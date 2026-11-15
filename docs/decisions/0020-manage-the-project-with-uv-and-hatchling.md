@@ -64,3 +64,6 @@ Makefile targets invoke `uv run`.
 * `5d8d931` — migration; `b2311bf` — the reversed gitignore decision;
   `c1c50b0` — lockfile discipline in releases; miniDSP-Linux-qt ADR-0026 —
   the sibling decision (which additionally adopts ruff; this repo has not).
+* `f0715bc` — this repository adopts ruff as well, together with ty, behind
+  `make check`; see
+  [ADR-0027](0027-lint-with-ruff-and-type-check-with-ty-behind-make-check.md).
