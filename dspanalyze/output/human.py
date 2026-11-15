@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections import Counter
 from pathlib import Path
 
 from dspanalyze.config import ProtocolConfig
@@ -26,7 +25,7 @@ def format_human(
     in_count = sum(1 for c in commands if c.direction == "in")
     duration = _duration(commands)
 
-    lines.append(f"=== miniDSP Capture Analysis ===")
+    lines.append("=== miniDSP Capture Analysis ===")
     lines.append(f"File: {name}")
     lines.append(f"Duration: {duration:.1f}s | {len(commands)} HID packets ({out_count} OUT, {in_count} IN)")
     lines.append("")
@@ -50,7 +49,7 @@ def format_human(
         lines.append("")
 
     # ── Summary table ──
-    lines.append(f"=== Summary ===")
+    lines.append("=== Summary ===")
 
     by_opcode: dict[int, list[DecodedCommand]] = {}
     for cmd in commands:

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from dspanalyze.config import ProtocolConfig, FieldDef, convert_value
+from dspanalyze.config import FieldDef, ProtocolConfig, convert_value
 from dspanalyze.readers import RawPacket
 from minidsp.protocol import parse_frame
 

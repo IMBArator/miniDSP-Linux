@@ -17,6 +17,7 @@ they are safe to wire into CI scripts.
 from __future__ import annotations
 
 import argparse
+import io
 import sys
 from pathlib import Path
 
@@ -156,10 +157,12 @@ def _force_utf8_output() -> None:
     ``─`` or ``…`` used by the formatters.
     """
     for stream in (sys.stdout, sys.stderr):
+        if not isinstance(stream, io.TextIOWrapper):
+            continue  # not a TextIOWrapper (e.g. pytest capture) — leave as is
         try:
             stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass  # not a TextIOWrapper (e.g. pytest capture) — leave as is
+        except ValueError:
+            pass  # the stream refuses a new encoding — leave as is
 
 
 def main() -> None:
@@ -327,7 +330,7 @@ def cmd_list_captures(args: argparse.Namespace) -> None:
                 print(f"    Opcodes: {opcodes}")
         else:
             print(f"  {cap.name}")
-            print(f"    (no metadata — run 'dspanalyze analyze' to generate)")
+            print("    (no metadata — run 'dspanalyze analyze' to generate)")
         print()
 
 
@@ -448,7 +451,7 @@ def cmd_capture(args: argparse.Namespace) -> None:
             print(f"\nWarning: capture programs already running: {', '.join(busy)}")
         return
 
-    output_path = run_capture(
+    run_capture(
         output_dir=Path(args.output_dir),
         description=args.description,
         notes=args.notes,

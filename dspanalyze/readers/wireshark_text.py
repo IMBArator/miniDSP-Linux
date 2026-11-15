@@ -11,7 +11,6 @@ from pathlib import Path
 
 from dspanalyze.readers import RawPacket
 
-
 # Regex for the packet summary line at the top of each packet block
 # Format: "     NNN  TIMESTAMP  SOURCE  DEST  PROTO  LEN  INFO"
 _PKT_HEADER_RE = re.compile(
@@ -54,7 +53,7 @@ def read_wireshark_text(filepath: str | Path) -> list[RawPacket]:
         silently skipped (one bad packet does not abort the whole parse).
     """
     filepath = Path(filepath)
-    with open(filepath, "r", errors="replace") as f:
+    with open(filepath, errors="replace") as f:
         lines = f.readlines()
 
     packets: list[RawPacket] = []

@@ -84,14 +84,15 @@ def _fmt_ref(ref24: float) -> str:
 
 def cmd_calibrate_show() -> None:
     """Display stored calibration points and the computed reference."""
+    from rich import box as rich_box
     from rich.console import Console
     from rich.table import Table
-    from rich import box as rich_box
+
     from minidsp.protocol import (
-        LEVEL_REF_LEVEL24_FACTORY,
         LEVEL24_PER_UINT16,
-        calibrate_compute_ref,
+        LEVEL_REF_LEVEL24_FACTORY,
         _point_level24,
+        calibrate_compute_ref,
     )
 
     console = Console()
@@ -161,9 +162,12 @@ def cmd_calibrate_capture(dbu: float, channel: int = 0,
                           n_samples: int = DEFAULT_SAMPLES) -> None:
     """Capture 24-bit levels at a known analog level and store the point."""
     from rich.console import Console
+
     from minidsp.device import DSPmini
     from minidsp.protocol import (
-        INPUT_CHANNEL_NAMES, OUTPUT_CHANNEL_NAMES, LEVEL24_PER_UINT16,
+        INPUT_CHANNEL_NAMES,
+        LEVEL24_PER_UINT16,
+        OUTPUT_CHANNEL_NAMES,
         calibrate_compute_ref,
     )
 
@@ -243,6 +247,7 @@ def cmd_calibrate_capture(dbu: float, channel: int = 0,
 def cmd_calibrate_apply() -> None:
     """Compute the best-fit reference from stored points and write it."""
     from rich.console import Console
+
     from minidsp.protocol import (
         LEVEL24_PER_UINT16,
         calibrate_compute_ref,
@@ -277,7 +282,8 @@ def cmd_calibrate_apply() -> None:
 def cmd_calibrate_reset() -> None:
     """Revert calibration.toml to the factory default (the editor's 0 dB point)."""
     from rich.console import Console
-    from minidsp.protocol import LEVEL_REF_LEVEL24_FACTORY, LEVEL24_PER_UINT16
+
+    from minidsp.protocol import LEVEL24_PER_UINT16, LEVEL_REF_LEVEL24_FACTORY
 
     console = Console()
     calibrate_save({
@@ -285,6 +291,6 @@ def cmd_calibrate_reset() -> None:
         "ref_level": round(float(LEVEL_REF_LEVEL24_FACTORY) / LEVEL24_PER_UINT16, 2),
         "points": [],
     })
-    console.print(f"[green]Calibration reset.[/green]")
+    console.print("[green]Calibration reset.[/green]")
     console.print(f"  reference = {_fmt_ref(LEVEL_REF_LEVEL24_FACTORY)} (factory default)")
     console.print(f"  Written to {_calibration_file_path()}")

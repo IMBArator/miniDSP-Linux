@@ -30,9 +30,9 @@ message suitable for CLI output.
 from __future__ import annotations
 
 import fnmatch
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
 
 from dspanalyze.decode import DecodedCommand
 
@@ -301,7 +301,7 @@ def _check_config_pages_complete(commands: list[DecodedCommand]) -> tuple[bool, 
     missing = expected - pages
     if missing:
         return False, f"missing config pages: {sorted(missing)}"
-    return True, f"all 9 config pages present (0-8)"
+    return True, "all 9 config pages present (0-8)"
 
 
 def _check_gain_calibration_0db(commands: list[DecodedCommand]) -> tuple[bool, str]:
@@ -323,7 +323,7 @@ def _check_gain_calibration_0db(commands: list[DecodedCommand]) -> tuple[bool, s
         return True, "no gain commands found"
     max_val = max(c.fields["value"] for c in gain_cmds if isinstance(c.fields["value"], int))
     if max_val == 280:
-        return True, f"max gain raw value = 280 (0.0 dB)"
+        return True, "max gain raw value = 280 (0.0 dB)"
     return False, f"expected max gain = 280 (0.0 dB), got {max_val}"
 
 
@@ -346,7 +346,7 @@ def _check_gain_calibration_12db(commands: list[DecodedCommand]) -> tuple[bool, 
         return True, "no gain commands found"
     max_val = max(c.fields["value"] for c in gain_cmds if isinstance(c.fields["value"], int))
     if max_val == 400:
-        return True, f"max gain raw value = 400 (+12.0 dB)"
+        return True, "max gain raw value = 400 (+12.0 dB)"
     return False, f"expected max gain = 400 (+12.0 dB), got {max_val}"
 
 
@@ -394,7 +394,7 @@ def _check_preset_names_30(commands: list[DecodedCommand]) -> tuple[bool, str]:
     missing = expected - slots
     if missing:
         return False, f"missing preset slots: {sorted(missing)}"
-    return True, f"all 30 preset name slots read"
+    return True, "all 30 preset name slots read"
 
 
 # ── Assertion registry ──────────────────────────────
