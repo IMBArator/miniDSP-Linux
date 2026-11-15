@@ -68,3 +68,6 @@ Makefile documents the four-step flow (`version` → push → `build` →
 
 * `aa46748` — publish.sh design notes; `e70bfa8` — version.sh hardening;
   `20e2399` — notes extraction; `c1c50b0` — lockfile inclusion.
+* `9b4946d` — version.sh also bumps `__version__` in both packages, and its
+  optional push needs an explicit yes: without a terminal it no longer
+  pushes (before, a non-interactive run answered every prompt with yes).
