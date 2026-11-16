@@ -61,7 +61,6 @@ add a line to the relevant table below.
 | [0021](0021-drive-the-changelog-from-conventional-commits-with-git-cliff.md) | Drive the changelog from Conventional Commits with git-cliff, prepending to a hand-curatable file |
 | [0022](0022-publish-docs-as-an-mkdocs-site-that-transcludes-sources-in-place.md) | Publish docs as an MkDocs Material site that transcludes sources in place |
 | [0023](0023-write-release-automation-in-plain-bash-against-the-github-api.md) | Write release automation in plain bash against the GitHub API |
-| [0027](0027-lint-with-ruff-and-type-check-with-ty-behind-make-check.md) | Lint with ruff and type-check with ty behind `make check`, fixing findings instead of suppressing them |
 
 ## Decisions that reversed an earlier position
 

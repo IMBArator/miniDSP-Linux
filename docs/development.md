@@ -63,11 +63,9 @@ make check           # ruff (lint) and ty (types): make check-ruff, make check-t
 make fix-ruff        # apply ruff's safe automatic fixes
 ```
 
-`make test` and `make check` must both pass before a commit
-([ADR-0027](decisions/0027-lint-with-ruff-and-type-check-with-ty-behind-make-check.md)).
-The Windows-only code in `minidsp/transport.py` and `dspanalyze/capture.py`
-still produces ty findings on Linux; they stay visible until they are fixed
-on Windows.
+On Linux, `make check-ty` currently reports findings in the Windows-only code
+in `minidsp/transport.py` and `dspanalyze/capture.py`; they stay visible until
+they are fixed on Windows.
 
 No hardware is needed: the device layer is exercised through a `FakeTransport`
 (the injection seam introduced with

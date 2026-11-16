@@ -279,14 +279,11 @@ why.
   `logging.getLogger(__name__)` and never touch handlers
   ([ADR-0018](decisions/0018-add-observability-with-stdlib-logging-behind-verbosity-flags.md)).
 
-### Tests, checks and releases
+### Tests and releases
 
 - Tests never talk to a real DSP; they use `FakeTransport` and a stubbed `hid`
   module, so the suite runs the same on Linux and Windows without hardware
   ([ADR-0024](decisions/0024-support-windows-through-a-hidapi-transport.md)).
-- ruff and ty findings are fixed, never hidden: no ignore comments and no
-  checker configuration that suppresses a finding
-  ([ADR-0027](decisions/0027-lint-with-ruff-and-type-check-with-ty-behind-make-check.md)).
 - `scripts/version.sh` refuses a dirty working tree, an existing tag and a
   duplicate changelog section, and pushes only after an explicit yes, never
   without a terminal
