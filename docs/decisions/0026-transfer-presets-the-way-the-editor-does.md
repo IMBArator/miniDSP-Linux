@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `7ee1f99`.
+
 Saving a `.unt` needs every stored preset, but the library could only read the
 *active* one; recalling each slot with `0x20` would change the live audio. Two
 captures of the manufacturer editor (`capture_20261026_221454` save,

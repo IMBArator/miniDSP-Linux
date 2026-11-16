@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `91fa1b5`.
+
 `minidsp dump` failures printed "Failed to read configuration" and nothing
 else, because `read_config()` swallowed every step's failure silently. At the
 other extreme, the (then-bundled) GUI hardcoded `basicConfig(DEBUG)` at import

@@ -69,3 +69,4 @@ A decision is recorded if `docs/decisions/` contains a file for it and
 * [MADR project](https://adr.github.io/madr/)
 * miniDSP-Linux-qt ADR-0000, which weighs the four options above in detail;
   the same trade-offs apply here and are not repeated.
+* `38a1d51` — the commit that started this log.

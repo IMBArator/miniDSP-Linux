@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `5d8d931`.
+
 The project started on setuptools with plain `pip install -e`. As it grew two
 packages, optional dependency groups, TOML package resources, and a release
 pipeline, environment management needed to be fast, reproducible, and shared

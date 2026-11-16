@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `5aba93c`.
+
 Preset store (`0x21`) takes a direct slot index where 0 is F00, the factory
 preset, and 1–30 are the user slots U01–U30 (`5aba93c`). The manufacturer's
 software never writes slot 0, so nothing is known about what the firmware does

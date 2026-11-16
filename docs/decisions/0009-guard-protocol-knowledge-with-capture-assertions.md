@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `e3cd9a9`.
+
 Protocol knowledge accumulates across dozens of captures, and each new
 discovery risks quietly contradicting an old one — a re-interpreted byte
 offset, a changed value range, a renamed field. Unit tests cover the *code*,

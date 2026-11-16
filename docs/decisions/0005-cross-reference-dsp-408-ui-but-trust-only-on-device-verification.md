@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `5aba93c`.
+
 [dsp-408-ui](https://github.com/Aeternitaas/dsp-408-ui) implements the same
 Musicrown protocol family over TCP for the DSP 408. It is an enormously
 valuable head start — opcodes, frame format, and many encodings carry over.

@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `9c615a9`.
+
 The capture corpus grew past twenty files with names like
 `capture_20260409_213417_output_peq_gain.pcapng`. Answering "which capture
 demonstrates X?" or "has this file been re-analyzed since the PEQ fix?"

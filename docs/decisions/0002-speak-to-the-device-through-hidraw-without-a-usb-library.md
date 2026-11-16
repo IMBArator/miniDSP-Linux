@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `cf6c68b`.
+
 The DSP presents itself as a USB HID device (VID `0168`, PID `0821`) moving
 64-byte interrupt reports. Python has several ways to reach it: `libusb`-based
 stacks (pyusb), the `hidapi` bindings, or the Linux kernel's own hidraw driver,

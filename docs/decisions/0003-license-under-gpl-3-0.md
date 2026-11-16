@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `9609a84`.
+
 The repository publishes a reverse-engineered protocol specification, a control
 library, and analysis tooling for a commercial device. It needed a license
 before publication on GitHub, and — because the content is derived from

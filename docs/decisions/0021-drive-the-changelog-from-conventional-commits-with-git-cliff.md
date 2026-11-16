@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `3d74811`.
+
 With versioned releases starting at v1.0.0, the project needed release notes.
 The commit history was already disciplined (conventional-commit style since
 early on, codified in `CLAUDE.md`), so the changelog could in principle be

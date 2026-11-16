@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `39bdbae`.
+
 Device failure states were signalled inconsistently: a closed handle tripped a
 bare `assert self._fd is not None` in `_send`/`_recv`, and a PIN-locked device
 simply never answered config reads, hanging the caller. Assertions vanish

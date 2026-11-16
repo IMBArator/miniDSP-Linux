@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `66603cd`.
+
 Value conversions (raw↔dB gain, log frequency, PEQ Q, level→dBu) and display
 constants (channel, slope, ratio, filter-type names) had grown independent
 copies in three places: the runtime library, the analyzer's `convert_value()`,

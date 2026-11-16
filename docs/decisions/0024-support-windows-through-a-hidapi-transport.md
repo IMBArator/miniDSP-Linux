@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made on 2026-08-28 and implemented in `ff55876`.
+
 Device control was Linux-only by construction: `device.py` opened
 `/dev/hidrawN` directly ([ADR-0002](0002-speak-to-the-device-through-hidraw-without-a-usb-library.md))
 and imported `fcntl` at module scope, so on Windows the import failed before

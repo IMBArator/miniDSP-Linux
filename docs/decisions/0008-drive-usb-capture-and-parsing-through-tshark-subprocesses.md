@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `9c615a9`.
+
 The analyzer must read `.pcapng` USB captures (from Linux usbmon and Windows
 USBPcap) and, ideally, record new ones itself. Python-side options are pcap
 parsing libraries (scapy, pyshark, dpkt) or shelling out to the Wireshark CLI

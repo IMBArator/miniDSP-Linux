@@ -50,7 +50,7 @@ add a line to the relevant table below.
 | [0018](0018-add-observability-with-stdlib-logging-behind-verbosity-flags.md) | Add observability with stdlib logging behind -v/-vv, configured only at the entry point |
 | [0019](0019-ship-level-meter-calibration-as-an-editable-package-resource.md) | Ship level-meter calibration as an editable package resource with a fitting workflow |
 | [0024](0024-support-windows-through-a-hidapi-transport.md) | Support Windows through a platform-selected hidapi transport |
-| [0025](0025-the-library-owns-the-unt-file-format.md) | The library owns the .unt file format, with byte-preserving in-place edits |
+| [0025](0025-the-library-owns-the-unt-file-format.md) | The library owns the .unt file format |
 | [0026](0026-transfer-presets-the-way-the-editor-does.md) | Transfer presets the way the editor does: stored reads without recall; guarded restore that keeps the device PIN |
 
 ## Build, release, and documentation
@@ -60,7 +60,7 @@ add a line to the relevant table below.
 | [0020](0020-manage-the-project-with-uv-and-hatchling.md) | Manage the project with uv and Hatchling, and commit the lockfile |
 | [0021](0021-drive-the-changelog-from-conventional-commits-with-git-cliff.md) | Drive the changelog from Conventional Commits with git-cliff, prepending to a hand-curatable file |
 | [0022](0022-publish-docs-as-an-mkdocs-site-that-transcludes-sources-in-place.md) | Publish docs as an MkDocs Material site that transcludes sources in place |
-| [0023](0023-write-release-automation-in-plain-bash-against-the-github-api.md) | Write release automation in plain bash against the GitHub API |
+| [0023](0023-write-release-automation-in-plain-bash-against-the-github-api.md) | Write release automation in plain bash against the GitHub API, with defensive preconditions |
 
 ## Decisions that reversed an earlier position
 

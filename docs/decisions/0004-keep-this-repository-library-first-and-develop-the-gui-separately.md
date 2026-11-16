@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `2cba9bb`.
+
 The project started as one repository containing everything: the protocol
 analysis, the control library, a CLI, and a PySide6 GUI with faders, meters,
 and mute buttons (`cf6c68b`). As the protocol work matured, the GUI's needs

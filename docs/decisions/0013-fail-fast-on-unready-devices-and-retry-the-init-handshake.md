@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `74eb3dc`.
+
 When the DSP is plugged in (or re-enumerates), the hidraw node appears before
 the firmware is ready to talk. The original code silently accepted an init
 handshake timeout in `open()` and then let `read_config()` walk all eight of

@@ -1,12 +1,14 @@
 ---
 status: accepted
-date: 2026-04-04
+date: 2026-04-03
 decision-makers: Maximilian Zettler
 ---
 
 # Verify every protocol claim against device captures before documenting or implementing it
 
 ## Context and Problem Statement
+
+Written after the fact from the commit history; the decision was made in `77bf390`.
 
 The USB HID protocol of the t.racks DSP 4x4 Mini is undocumented. Knowledge
 about it comes from three sources of very different reliability: live Wireshark

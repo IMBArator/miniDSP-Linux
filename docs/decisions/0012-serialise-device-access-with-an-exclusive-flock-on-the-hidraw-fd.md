@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `ca91676`.
+
 Two processes can open the same `/dev/hidrawN` node — e.g. the Qt GUI's poll
 loop and a `minidsp dump` in a terminal. Both then read from one interrupt IN
 endpoint, and each steals responses the other is waiting for: commands appear

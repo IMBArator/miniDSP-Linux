@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `c72d46e`.
+
 `.unt` is the manufacturer editor's preset file: a 50-byte header and 30 slots
 of 432 bytes. Until now the reader and writer lived in the Qt app
 (`minidspqt/unt_loader.py`, `unt_writer.py`, a bundled `blank.unt`), which kept a

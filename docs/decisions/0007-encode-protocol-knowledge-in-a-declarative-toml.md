@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `e6a6cbe`.
+
 The analysis tool must decode ~30 opcodes, each with named fields, byte
 offsets, value formats, and verification status — knowledge that changes
 weekly as reverse engineering progresses. Hardcoding it in Python would bury

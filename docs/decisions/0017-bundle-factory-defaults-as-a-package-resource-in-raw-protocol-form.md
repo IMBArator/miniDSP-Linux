@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `7d8253e`.
+
 Downstream consumers — the Qt GUI's offline mode and reset-to-default
 controls foremost — need the device's factory state (the F00 preset) without a
 device attached. Hand-maintaining default constants had already failed in the

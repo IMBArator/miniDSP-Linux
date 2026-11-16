@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `595666e`.
+
 The device reports channel levels as linear uint16 amplitudes with no
 documented reference point. Mapping them to dBu requires a calibration
 constant (`REF_LEVEL`, the raw value corresponding to a known analog level),

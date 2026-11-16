@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `e6a6cbe`.
+
 Early protocol work was done with one-off scripts (`analysis/extract_hid.py`,
 `extract_gain_commands.py`) run against Wireshark text exports. Every new
 question meant a new script or a hand-edited old one; results were not

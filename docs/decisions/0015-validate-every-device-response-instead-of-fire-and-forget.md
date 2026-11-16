@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `f3984a6`.
+
 Early device methods sent commands and discarded the responses. That worked —
 until it didn't: the three `0x12` activate calls never checked whether
 activation actually happened, and `store_preset` misread the device's reply to

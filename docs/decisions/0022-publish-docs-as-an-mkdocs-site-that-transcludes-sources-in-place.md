@@ -8,6 +8,8 @@ decision-makers: Maximilian Zettler
 
 ## Context and Problem Statement
 
+Written after the fact from the commit history; the decision was made in `4e2b514`.
+
 The project's documentation is genuinely good but was scattered by design:
 `README.md` at the root, the protocol spec and feature list in `analysis/`
 (next to their evidence), the analyzer reference in `dspanalyze/USAGE.md`
