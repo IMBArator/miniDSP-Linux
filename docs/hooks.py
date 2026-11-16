@@ -14,9 +14,16 @@ import re
 
 # Pages whose relative links point at source files outside docs/ and
 # therefore need rewriting: pages that transclude an upstream Markdown
-# file, and architecture.md, which links the sources directly so the links
-# also work on GitHub. Any page not listed here is passed through unchanged.
-_TRANSCLUDED_PAGES = {"index.md", "changelog.md", "architecture.md"}
+# file, and architecture.md and development.md, which link the sources
+# directly so the links also work on GitHub. Any page not listed here is
+# passed through unchanged.
+_TRANSCLUDED_PAGES = {
+    "index.md",
+    "changelog.md",
+    "contributing.md",
+    "architecture.md",
+    "development.md",
+}
 
 _LINK_MAP = {
     "../analysis/protocol.md": "protocol.md",
@@ -24,6 +31,8 @@ _LINK_MAP = {
     "../dspanalyze/USAGE.md": "dspanalyze-usage.md",
     "../LICENSE": "https://github.com/IMBArator/miniDSP-Linux/blob/main/LICENSE",
     "../CHANGELOG.md": "changelog.md",
+    "../CONTRIBUTING.md": "contributing.md",
+    "../README.md": "index.md",
 }
 
 

@@ -85,6 +85,7 @@ nav:
   - Feature List: feature-list.md
   - DSPanalyze CLI Usage: dspanalyze-usage.md
   - Development: development.md
+  - Contributing: contributing.md
   - Decisions: decisions/
   - API Reference: api/
   - Changelog: changelog.md

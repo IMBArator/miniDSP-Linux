@@ -1,10 +1,12 @@
 # Architecture
 
-This document describes how miniDSP-Linux is built and why. It condenses the
-architecture decision records in [decisions/](decisions/index.md) into one
-reading order. The records stay the authority for *why*; this page is the map
-of *what* and *how*. The rules every change must keep are collected in
-[Invariants](#invariants).
+This document describes how miniDSP-Linux is built and why. It draws the
+architecture decision records in [decisions/](decisions/index.md) together
+into one reading order: the records stay the place for *why*, this page is the
+map of *what* and *how*. The rules every change must keep are collected in
+[Invariants](#invariants). How changes are made is in
+[CONTRIBUTING.md](../CONTRIBUTING.md), and how to work on the code from a
+checkout in the [developer guide](development.md).
 
 <!-- Keep this page in step with the code and the records: update it in the
      same change that alters the design, adds or removes a module, or accepts
@@ -46,28 +48,30 @@ halves that ship in one distribution (`minidsp-linux`):
 
 Two choices shape everything else:
 
-1. **The protocol is known only through captures.** Every claim is verified
-   on the device before it is documented or implemented
-   ([ADR-0001](decisions/0001-verify-every-protocol-claim-against-device-captures.md));
-   the related DSP 408 project is a source of hypotheses, not of facts
+1. **The protocol is known only through captures.** Nothing is documented or
+   implemented until a capture from the device shows it
+   ([ADR-0001](decisions/0001-verify-every-protocol-claim-against-device-captures.md)).
+   The related DSP 408 project only supplies hypotheses to check
    ([ADR-0005](decisions/0005-cross-reference-dsp-408-ui-but-trust-only-on-device-verification.md)).
-   Verified knowledge is encoded once: the wire format and the conversions in
-   `minidsp.protocol`
+   What is verified is written down once: the wire format and the conversions
+   in `minidsp.protocol`
    ([ADR-0011](decisions/0011-make-minidsp-protocol-the-single-source-of-conversions-and-constants.md)),
    the analyzer's view in `protocol_config.toml`
    ([ADR-0007](decisions/0007-encode-protocol-knowledge-in-a-declarative-toml.md)).
-   Assertions over the committed captures guard it against regressions
+   Assertions over the committed captures make sure later changes don't
+   break it
    ([ADR-0009](decisions/0009-guard-protocol-knowledge-with-capture-assertions.md)).
-2. **The runtime library is small and protective.** It is a GUI-free,
-   dependency-light layer over a swappable `Transport`
+2. **The runtime library is small and careful with the device.** It has no
+   GUI and few dependencies, and it talks to the hardware through a
+   swappable `Transport`
    ([ADR-0002](decisions/0002-speak-to-the-device-through-hidraw-without-a-usb-library.md),
-   [ADR-0024](decisions/0024-support-windows-through-a-hidapi-transport.md))
-   that serialises device access
+   [ADR-0024](decisions/0024-support-windows-through-a-hidapi-transport.md)).
+   Only one program can use the device at a time
    ([ADR-0012](decisions/0012-serialise-device-access-with-an-exclusive-flock-on-the-hidraw-fd.md)),
-   validates every response
+   every reply is checked
    ([ADR-0015](decisions/0015-validate-every-device-response-instead-of-fire-and-forget.md)),
-   and refuses destructive writes: the factory preset F00, and on a restore the
-   device PIN
+   and writes that could destroy something are refused: the factory preset
+   F00 is never overwritten, and a restore keeps the device's PIN
    ([ADR-0016](decisions/0016-refuse-to-overwrite-the-factory-preset-slot.md),
    [ADR-0026](decisions/0026-transfer-presets-the-way-the-editor-does.md)).
 
@@ -188,8 +192,9 @@ command reference is [DSPanalyze CLI Usage](../dspanalyze/USAGE.md).
 ### How things plug in
 
 * **A protocol command.** Capture one isolated action of the editor and find
-  the bytes (the "Typical Workflow" in
-  [DSPanalyze CLI Usage](../dspanalyze/USAGE.md)). Then, in one change: add
+  the bytes (the
+  [protocol analysis workflow](development.md#protocol-analysis-workflow) in
+  the developer guide). Then, in one change: add
   the opcode block to `protocol_config.toml`, add the builder, parser and
   conversions to `minidsp/protocol.py` with tests that assert the captured
   bytes, and document the opcode in [protocol.md](../analysis/protocol.md)
@@ -223,8 +228,6 @@ why.
 - `dspanalyze/protocol_config.toml` is the analyzer's only protocol
   knowledge; a new opcode is a TOML block, not decoder code
   ([ADR-0007](decisions/0007-encode-protocol-knowledge-in-a-declarative-toml.md)).
-- Every committed capture has a `.meta.toml` sidecar next to it
-  ([ADR-0010](decisions/0010-record-capture-metadata-in-toml-sidecars.md)).
 
 ### Device safety
 
@@ -256,9 +259,6 @@ why.
 - Level-meter calibration lives only in `minidsp/calibration.toml`, written by
   `dspanalyze calibrate`
   ([ADR-0019](decisions/0019-ship-level-meter-calibration-as-an-editable-package-resource.md)).
-- `CHANGELOG.md` is generated from the commit subjects by git-cliff at release
-  time; hand-curated sections are kept
-  ([ADR-0021](decisions/0021-drive-the-changelog-from-conventional-commits-with-git-cliff.md)).
 
 ### Layering and dependencies
 
@@ -279,15 +279,11 @@ why.
   `logging.getLogger(__name__)` and never touch handlers
   ([ADR-0018](decisions/0018-add-observability-with-stdlib-logging-behind-verbosity-flags.md)).
 
-### Tests and releases
+### Tests
 
 - Tests never talk to a real DSP; they use `FakeTransport` and a stubbed `hid`
   module, so the suite runs the same on Linux and Windows without hardware
   ([ADR-0024](decisions/0024-support-windows-through-a-hidapi-transport.md)).
-- `scripts/version.sh` refuses a dirty working tree, an existing tag and a
-  duplicate changelog section, and pushes only after an explicit yes, never
-  without a terminal
-  ([ADR-0023](decisions/0023-write-release-automation-in-plain-bash-against-the-github-api.md)).
 
 ## Decision records
 

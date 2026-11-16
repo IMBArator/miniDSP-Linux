@@ -66,3 +66,6 @@ Makefile targets invoke `uv run`.
 * `5d8d931` — migration; `b2311bf` — the reversed gitignore decision;
   `c1c50b0` — lockfile discipline in releases; miniDSP-Linux-qt ADR-0026 —
   the sibling decision (which additionally adopts ruff; this repo has not).
+* Since 2026-11-16, uv, Hatchling and the committed `uv.lock` are a standing
+  convention written down in CONTRIBUTING.md (Code); changes within it need
+  no further record.

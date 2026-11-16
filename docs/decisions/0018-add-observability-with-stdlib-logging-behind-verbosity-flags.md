@@ -64,3 +64,8 @@ acquire `logging.getLogger(__name__)` and never touch handlers.
 ## More Information
 
 * `91fa1b5` — the full change, including the GUI cleanup.
+* Since 2026-11-16, logging through `logging.getLogger(__name__)` is a
+  standing convention written down in CONTRIBUTING.md (Code), and the rule
+  that only the command line entry point configures logging is one of the
+  invariants in docs/architecture.md. Changes within them need no further
+  record.
