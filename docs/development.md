@@ -1,179 +1,113 @@
 # Development
 
-Setup, testing, the protocol-analysis workflow, and the release workflow for
-contributors.
+How to work on miniDSP-Linux from a checkout: set it up, run it, test, check
+and build it, and use the protocol-analysis tooling. `make help` lists every
+target. How changes get in is in [CONTRIBUTING.md](../CONTRIBUTING.md); how the
+code is built inside, and why, is in [architecture.md](architecture.md).
 
 ## Requirements
 
-- Python 3.11+
-- [uv](https://docs.astral.sh/uv/) — manages the virtual environment and
-  dependencies
+Beyond the [README's requirements](../README.md#requirements) (Python 3.11+,
+uv, access to `/dev/hidraw*` on Linux):
 
-### Linux
+- GNU make: the targets are the way to set up, test, check and build. On
+  Windows: `winget install ezwinports.make`.
+- For protocol analysis: Wireshark's `tshark`; on Linux the `usbmon` kernel
+  module (`make capture-enable` loads it), on Windows USBPcap.
 
-- Kernel HID driver — the library talks to `/dev/hidraw*` directly, no libusb
-- Read/write access to `/dev/hidraw*` — see the udev rule under
-  [Permissions](index.md#permissions)
-
-### Windows
-
-- No driver installation and no udev equivalent — Windows binds its built-in
-  HID driver to the DSP automatically
-- [hidapi](https://pypi.org/project/hidapi/) is installed by `uv sync` through
-  a `sys_platform == 'win32'` marker, so it lands on Windows only (see
-  [ADR-0024](decisions/0024-support-windows-through-a-hidapi-transport.md))
-- Wireshark with USBPcap is needed **only** for `dspanalyze capture`, not for
-  controlling the device
-
-## Development environment
+## Setting up
 
 ```bash
 git clone https://github.com/IMBArator/miniDSP-Linux.git
 cd miniDSP-Linux
-uv sync              # creates .venv, installs core deps
-uv sync --extra dev  # also installs pytest for development
+make sync            # .venv with all dependencies, including the dev tools
 ```
 
-On Windows the same commands run unchanged in PowerShell — install uv with
-`winget install astral-sh.uv` first; it provisions Python itself. Prefix
-commands with `uv run` (`uv run minidsp dump`, `uv run pytest -v`).
+On Windows the same commands run in PowerShell once uv
+(`winget install astral-sh.uv`, which provisions Python itself) and GNU make
+are installed. hidapi, the Windows HID backend, is installed on Windows only.
 
-### Testing changes against the Qt GUI
-
-[miniDSP-Linux-qt](https://github.com/IMBArator/miniDSP-Linux-qt) consumes
-this library as a pinned release wheel. To try local protocol changes in the
-GUI before they are released, override the pin **in the Qt checkout**:
+## Running from the checkout
 
 ```bash
-cd ../miniDSP-Linux-qt
-uv pip install --reinstall --no-cache ../miniDSP-Linux/
-uv run --no-sync minidspqt        # --no-sync keeps the override in place
+uv run minidsp dump
+uv run dspanalyze analyze analysis/usb_captures/<capture>.pcapng --decode
 ```
 
-The details (why `--no-cache` matters, how the override is reverted) are in
-the Qt project's own
-[Development page](https://imbarator.github.io/miniDSP-Linux-qt/development/).
-
-## Running tests
+## Tests and checks
 
 ```bash
-make sync            # runs `uv sync --extra dev`
-make test            # uv run pytest -v
-make check           # ruff (lint) and ty (types): make check-ruff, make check-ty
+make test            # the test suite
+make check           # ruff (lint) and ty (types); also make check-ruff, make check-ty
 make fix-ruff        # apply ruff's safe automatic fixes
 ```
+
+No hardware is needed: the device layer runs against a `FakeTransport`, and
+the Windows hidapi path against a stubbed `hid` module, so the suite behaves
+the same on Linux and Windows. The protocol tests assert the command builders
+byte for byte against frames from real captures.
 
 On Linux, `make check-ty` currently reports findings in the Windows-only code
 in `minidsp/transport.py` and `dspanalyze/capture.py`; they stay visible until
 they are fixed on Windows.
 
-No hardware is needed: the device layer is exercised through a `FakeTransport`
-(the injection seam introduced with
-[ADR-0024](decisions/0024-support-windows-through-a-hidapi-transport.md)),
-and the Windows hidapi path runs against a stubbed `hid` module, so the whole
-suite behaves identically on Linux and Windows. The protocol tests assert
-command builders byte-for-byte against frames from real captures
-([ADR-0001](decisions/0001-verify-every-protocol-claim-against-device-captures.md)).
+## Building
 
-### GNU make on Windows (optional)
+```bash
+make build           # wheel and sdist into dist/
+make docs            # the docs site into site/ (MkDocs Material)
+make docs-serve      # live preview at http://127.0.0.1:8000
+make clean           # remove the build output; make docs-clean removes site/
+```
 
-`make` is not part of a Windows install. It is not required — every target
-that matters day to day is a one-line `uv` invocation you can type directly
-(`uv sync --extra dev`, `uv run pytest -v`, `uv build`,
-`uv run mkdocs build`). If you prefer the targets, install GNU make (for
-example `winget install ezwinports.make`); `sync`, `install`, `test`,
-`build`, `docs`, and `docs-serve` are shell-agnostic and work as-is.
+## Windows notes
 
-`version` and `publish` shell out to bash scripts;
-`capture-enable`/`capture-disable` manage usbmon and dumpcap capabilities and
-are Linux-only; `clean`, `docs-clean`, and the `analyze-all`/`analyze-check`
-loops need a POSIX shell — or Git Bash, which ships with Git for Windows.
+`sync`, `install`, `test`, `check`, `fix-ruff`, `build`, `docs` and
+`docs-serve` work in PowerShell as they are. `version` and `publish` run bash
+scripts, and `clean`, `docs-clean` and the `analyze-all`/`analyze-check` loops
+need a POSIX shell, for example Git Bash, which comes with Git for Windows.
+`capture-enable` and `capture-disable` are Linux-only.
 
 ## Protocol analysis workflow
 
-Every protocol claim in this repository is backed by a USB capture
-([ADR-0001](decisions/0001-verify-every-protocol-claim-against-device-captures.md)).
-The loop for discovering or verifying an opcode:
+The loop for discovering or verifying an opcode. What has to happen with the
+results is in
+[CONTRIBUTING.md](../CONTRIBUTING.md#protocol-work-the-device-and-releases);
+every command is described in [DSPanalyze CLI Usage](../dspanalyze/USAGE.md).
 
 ```bash
 # One-time (Linux): load usbmon and grant non-root capture access
 make capture-enable
 
-# Record the manufacturer software performing ONE isolated action
-uv run dspanalyze capture --output-dir analysis/usb_captures
+# Record the manufacturer's editor performing ONE isolated action
+uv run dspanalyze capture -d "what was done" -n "notes"
 
 # Decode it (writes a .meta.toml sidecar next to the capture)
 make analyze FILE=analysis/usb_captures/capture_....pcapng
-make analyze-no-poll FILE=...     # without 0x40 level-poll noise
+make analyze-no-poll FILE=...     # without the 0x40 level-poll noise
+make analyze-summary FILE=...     # statistics only
 
-# Compare the config reads inside one capture to find changed bytes
+# Compare the config reads inside one capture to find the changed bytes
 make diff-config FILE=...
 
-# Guard existing knowledge: protocol assertions over all captures
-# (names every failing capture and fails if any did)
-make analyze-check
+# Protocol assertions, for one capture or for all of them
+uv run dspanalyze check analysis/usb_captures/capture_....pcapng
+make analyze-check                # names every failing capture, fails if any did
 
 # Revoke capture access again
 make capture-disable
 ```
 
-Findings then travel together in one pass: `dspanalyze/protocol_config.toml`
-(analyzer knowledge), `minidsp/protocol.py` + tests (runtime), and
-[protocol.md](protocol.md) (the specification). The full CLI reference is on
-the [DSP-Analyze CLI Usage](dspanalyze-usage.md) page; capture inventory
-conventions are in
-[ADR-0010](decisions/0010-record-capture-metadata-in-toml-sidecars.md).
+Two package resources have their own tools: `minidsp/factory_defaults.toml`
+is regenerated with `uv run dspanalyze extract-defaults` from an F00-load
+capture, and `minidsp/calibration.toml` is fitted with
+`uv run dspanalyze calibrate` against a known signal source (the steps are in
+the [README](../README.md#level-meter-calibration-dspanalyze-calibrate)).
 
-Two generated package resources have their own regeneration tools:
-`minidsp/factory_defaults.toml` via `dspanalyze extract-defaults` (from an
-F00-load capture) and `minidsp/calibration.toml` via `dspanalyze calibrate`
-(against a known signal source).
+## Testing changes in the Qt GUI
 
-## Releasing
-
-The release flow uses two helper scripts under
-[`scripts/`](https://github.com/IMBArator/miniDSP-Linux/tree/main/scripts),
-wired into the Makefile:
-
-```bash
-# 1. Bump version in pyproject.toml, uv.lock and both packages' __version__,
-#    prepend a new CHANGELOG.md section (git-cliff), commit
-#    `chore(release): vX.Y.Z`, tag vX.Y.Z, optionally push (only after an
-#    explicit yes; without a terminal it never pushes).
-make version VERSION=X.Y.Z
-
-# 2. Push the commit + tag if you skipped the prompt above.
-git push && git push origin vX.Y.Z
-
-# 3. Build the artifacts that publish.sh will attach.
-make build           # wheel + sdist into dist/
-
-# 4. Create the GitHub Release, upload wheel + sdist, and deploy the docs to
-#    GitHub Pages. Needs GITHUB_TOKEN (PAT with `repo` scope) in the
-#    environment.
-export GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
-make publish         # or: make publish VERSION=X.Y.Z
-```
-
-Release notes are extracted from the `## [X.Y.Z]` section of the
-[Changelog](changelog.md), which `make version` generates from Conventional
-Commits via `cliff.toml` — a hand-curated section survives later releases and
-flows to the GitHub Release verbatim
-([ADR-0021](decisions/0021-drive-the-changelog-from-conventional-commits-with-git-cliff.md)).
-Tags matching `-rc`, `-beta`, or `-alpha` are auto-flagged as prereleases.
-`version.sh` refuses to run from a dirty tree, a non-main branch, a duplicate
-tag, or a version regression, and previews the changelog before committing
-([ADR-0023](decisions/0023-write-release-automation-in-plain-bash-against-the-github-api.md)).
-
-Downstream: the Qt GUI pins this library to a published release wheel (its
-ADR-0003), so after publishing a version its PEP 508 pin can be bumped — its
-Development page currently lists the v1.3.0 wheel (Windows transport) as its
-open release blocker.
-
-## Architecture decisions
-
-Lasting design decisions — and the positions the project abandoned along the
-way — are recorded as MADR files under
-[Architecture Decisions](decisions/index.md). Read the relevant record before
-proposing a change in an area it covers; several document alternatives that
-were already tried here.
+[miniDSP-Linux-qt](https://github.com/IMBArator/miniDSP-Linux-qt) uses this
+library as a pinned release wheel. To try local changes in the GUI before a
+release, install this checkout into the Qt project's environment; how to do
+that, and how to undo it, is on the Qt project's
+[Development page](https://imbarator.github.io/miniDSP-Linux-qt/development/).

@@ -79,6 +79,7 @@ dspanalyze calibrate reset
 
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/) — manages the virtual environment and dependencies
+- GNU make — runs the setup (on Windows: `winget install ezwinports.make`)
 
 ### Linux
 
@@ -89,8 +90,8 @@ dspanalyze calibrate reset
 
 - No driver installation and no udev equivalent — Windows binds its built-in
   HID driver to the DSP automatically
-- `uv sync` installs [hidapi](https://pypi.org/project/hidapi/) automatically;
-  it is only pulled in on Windows
+- `make sync` installs [hidapi](https://pypi.org/project/hidapi/)
+  automatically; it is only pulled in on Windows
 - Wireshark with USBPcap is needed **only** for `dspanalyze capture`, not for
   controlling the device
 
@@ -99,24 +100,24 @@ dspanalyze calibrate reset
 ```bash
 git clone https://github.com/IMBArator/miniDSP-Linux.git
 cd miniDSP-Linux
-uv sync              # creates .venv, installs core deps
-uv sync --extra dev  # also installs pytest for development
+make sync            # creates .venv and installs the dependencies
 ```
 
 ### Windows
 
-Install uv (`winget install astral-sh.uv`), then run the same commands in
-PowerShell — uv provisions Python itself, so nothing else is needed:
+Install uv (`winget install astral-sh.uv`) and GNU make
+(`winget install ezwinports.make`), then run the same commands in
+PowerShell — uv provisions Python itself:
 
 ```powershell
 git clone https://github.com/IMBArator/miniDSP-Linux.git
 cd miniDSP-Linux
-uv sync
+make sync
 uv run minidsp dump
 ```
 
 Prefix the commands below with `uv run` (`uv run minidsp levels --watch`,
-`uv run dspanalyze analyze ...`). The `make` targets are Linux-only.
+`uv run dspanalyze analyze ...`).
 
 ## Usage
 
@@ -252,6 +253,14 @@ Key opcodes (see [analysis/protocol.md](analysis/protocol.md) for full reference
 | `0x3c` / `0x3d` | out | PEQ channel bypass / channel name |
 | `0x3e` | out | Input noise gate |
 | `0x40` | both | Level poll / 8-channel metering |
+
+## Development
+
+To work on the code from a checkout (setup, tests, checks, builds and the
+protocol-analysis tooling), see the [developer guide](docs/development.md);
+`make help` lists every target. How changes get in is in
+[CONTRIBUTING.md](CONTRIBUTING.md); the design, the module map and the
+invariants are in [docs/architecture.md](docs/architecture.md).
 
 ## Related projects
 

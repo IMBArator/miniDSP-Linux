@@ -266,20 +266,8 @@ frame# timestamp direction hex_data
 
 ## Makefile Targets
 
-| Target | Usage | Description |
-|--------|-------|-------------|
-| `install` | `make install` | Install package in dev mode |
-| `test` | `make test` | Run pytest suite |
-| `analyze` | `make analyze FILE="path"` | Claude format + decode |
-| `analyze-raw` | `make analyze-raw FILE="path"` | Raw hex dump |
-| `analyze-no-poll` | `make analyze-no-poll FILE="path"` | Claude format, no 0x40 polls |
-| `analyze-human` | `make analyze-human FILE="path"` | Human table + decode |
-| `analyze-summary` | `make analyze-summary FILE="path"` | Summary stats only |
-| `diff-config` | `make diff-config FILE="path"` | Compare config reads |
-| `analyze-all` | `make analyze-all` | Batch analyze all captures (summaries) |
-| `analyze-check` | `make analyze-check` | Run assertions against all captures; fails if any capture fails |
-| `capture-enable` | `make capture-enable` | Load usbmon, grant permissions (sudo) |
-| `capture-disable` | `make capture-disable` | Remove caps, unload usbmon (sudo) |
+`make help` lists every make target, including the `analyze-*` shortcuts for
+the commands on this page.
 
 ## Protocol Config (`protocol_config.toml`)
 
@@ -322,15 +310,10 @@ Formats define how raw bytes convert to human-readable values. Key formats:
 
 ## Typical Workflow
 
-1. **Enable capture:** `make capture-enable`
-2. **Capture:** `python -m dspanalyze capture -d "feature name" -n "notes"`
-3. **Analyze:** `make analyze FILE="analysis/usb_captures/capture_xxx.pcapng"`
-4. **Focus:** `make analyze-no-poll FILE="..."` to see commands without poll noise
-5. **Validate:** `python -m dspanalyze check capture.pcapng`
-6. **Compare configs:** `make diff-config FILE="..."` if a parameter was changed
-7. **Update protocol:** Add new opcodes to `protocol_config.toml`, then to `analysis/protocol.md` and `minidsp/protocol.py`
-8. **Verify:** `make analyze-check` to ensure no regressions
-9. **Cleanup:** `make capture-disable`
+How these commands fit together, from enabling the capture to checking all
+captures again, is the
+[protocol analysis workflow](../docs/development.md#protocol-analysis-workflow)
+in the developer guide.
 
 ## Supported Capture Formats
 
