@@ -12,14 +12,16 @@ from __future__ import annotations
 
 import re
 
-# Pages that transclude an upstream Markdown file and therefore need
-# their relative links rewritten. Any page not listed here is passed
-# through unchanged.
-_TRANSCLUDED_PAGES = {"index.md", "changelog.md"}
+# Pages whose relative links point at source files outside docs/ and
+# therefore need rewriting: pages that transclude an upstream Markdown
+# file, and architecture.md, which links the sources directly so the links
+# also work on GitHub. Any page not listed here is passed through unchanged.
+_TRANSCLUDED_PAGES = {"index.md", "changelog.md", "architecture.md"}
 
 _LINK_MAP = {
     "../analysis/protocol.md": "protocol.md",
     "../analysis/feature-list.md": "feature-list.md",
+    "../dspanalyze/USAGE.md": "dspanalyze-usage.md",
     "../LICENSE": "https://github.com/IMBArator/miniDSP-Linux/blob/main/LICENSE",
     "../CHANGELOG.md": "changelog.md",
 }

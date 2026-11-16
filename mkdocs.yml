@@ -80,6 +80,7 @@ hooks:
 
 nav:
   - Home: index.md
+  - Architecture: architecture.md
   - Protocol: protocol.md
   - Feature List: feature-list.md
   - DSPanalyze CLI Usage: dspanalyze-usage.md

@@ -172,45 +172,6 @@ ADR-0003), so after publishing a version its PEP 508 pin can be bumped — its
 Development page currently lists the v1.3.0 wheel (Windows transport) as its
 open release blocker.
 
-## Repository structure
-
-```
-minidsp/                  Python control package
-  __main__.py             Entry point (delegates to cli.main)
-  device.py               Open/close, send/recv, command methods, config read
-  transport.py            HID I/O backends: hidraw (Linux), hidapi (Windows)
-  protocol.py             Frame encoding/decoding, all command builders
-  unt.py                  .unt preset file format (UntFile: read, edit, write)
-  calibration.toml        Level meter calibration (REF_LEVEL + anchor points)
-  factory_defaults.toml   F00 factory-preset parameter values (raw protocol form)
-  defaults.py             load_factory_defaults() — parses the bundled TOML
-  cli.py                  CLI subcommands: dump, levels, mute, unmute, save-unt, restore-unt, unt-info
-
-dspanalyze/               Protocol analysis toolchain
-  cli.py                  Entry point: analyze, check, capture, diff-config, list-captures, calibrate, extract-defaults
-  calibrate.py            Level meter calibration tool (capture, show, apply, reset)
-  extract_defaults.py     Stitch F00 config pages → factory_defaults.json
-  protocol_config.toml    All protocol knowledge (opcodes, fields, value formats)
-  decode.py               Frame → structured command decoder
-  capture.py              tshark-based USB capture with device auto-detect
-  check.py                Protocol assertion framework
-  readers/                pcapng and Wireshark text export parsers
-  output/                 claude / human / raw output formatters
-
-tests/                    Protocol and device-layer unit tests (pytest)
-docs/                     MkDocs site sources
-  decisions/              Architecture decision records (MADR)
-analysis/                 Reverse engineering reference
-  protocol.md             Full protocol specification
-  feature-list.md         DSP feature inventory with protocol status
-  usb_captures/           Wireshark USBPcap captures (.pcapng + .meta.toml)
-  resources/              Screenshots, manual PDF
-
-CLAUDE.md                 Agent/contributor working notes
-scripts/                  version.sh + publish.sh (release automation)
-Makefile                  Targets for test, build, docs, analysis, release
-```
-
 ## Architecture decisions
 
 Lasting design decisions — and the positions the project abandoned along the
