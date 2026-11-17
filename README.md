@@ -226,33 +226,9 @@ Frames are carried inside 64-byte USB HID reports (interrupt transfers):
 
 Checksum = XOR of LEN and all payload bytes. OUT endpoint 0x02 (host→device), IN endpoint 0x81 (device→host).
 
-Key opcodes (see [analysis/protocol.md](analysis/protocol.md) for full reference):
-
-| Opcode | Direction | Function |
-|---|---|---|
-| `0x10` | both | Init handshake |
-| `0x12` | out | Activate / config load complete |
-| `0x13` | both | Firmware/model string query |
-| `0x14` | both | Active preset index |
-| `0x15` | out | Delay display unit (ms/m/ft) |
-| `0x19` / `0x1a` | both/out | Read / write header block (`.unt` header) |
-| `0x20` / `0x21` | out | Load / store preset |
-| `0x23` / `0x25` / `0x04` | out | Begin restore / write stored page / reboot |
-| `0x24` + `0x28` | out | Select + read a stored preset page (no recall) |
-| `0x26` | out | Set preset name (14 chars max) |
-| `0x27` / `0x24` | out/in | Read config page / response |
-| `0x2c` | both | Device info (counter, lock status) |
-| `0x2d` / `0x2f` | both/out | Submit PIN / set lock PIN |
-| `0x30` | out | Output compressor (all 5 params) |
-| `0x31` / `0x32` | out | Lo-pass / hi-pass crossover |
-| `0x33` | out | Output parametric EQ band |
-| `0x34` / `0x35` / `0x36` | out | Gain / mute / phase invert |
-| `0x38` | out | Output delay (samples @ 48 kHz) |
-| `0x39` | out | Test tone generator |
-| `0x3a` / `0x3b` | out | Routing matrix / channel link |
-| `0x3c` / `0x3d` | out | PEQ channel bypass / channel name |
-| `0x3e` | out | Input noise gate |
-| `0x40` | both | Level poll / 8-channel metering |
+Every opcode, with its direction and payload layout, is listed in the
+[Known Register Map](analysis/protocol.md#known-register-map) of the protocol
+specification.
 
 ## Development
 
