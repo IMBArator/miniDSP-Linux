@@ -60,8 +60,6 @@ ignore = ["E501"]  # long lines are a formatting matter; the formatter is not en
 # Every module starts with the future import; ruff adds it where it is missing.
 required-imports = ["from __future__ import annotations"]
 
-[tool.ty.analysis]
-# `hid` (PyPI hidapi) is a compiled extension without type stubs, and it is only
-# installed on Windows; minidsp/transport.py imports it lazily. ty cannot resolve
-# it on any platform, so treat it as untyped instead of reporting it.
-allowed-unresolved-imports = ["hid"]
+[tool.ty.environment]
+# hidapi ships no type stubs, so ty reads the local ones in typings/.
+extra-paths = ["typings"]
