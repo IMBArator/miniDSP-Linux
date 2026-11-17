@@ -258,8 +258,9 @@ def test_dspmini_open_propagates_device_busy(monkeypatch):
     assert busy.close_calls == 0
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="flock is POSIX-only")
 def test_hidraw_open_raises_device_busy_when_flock_is_held(monkeypatch):
+    if sys.platform == "win32":
+        pytest.skip("flock is POSIX-only")
     closed: list[int] = []
 
     def refuse_lock(_fd, _operation):
@@ -267,9 +268,7 @@ def test_hidraw_open_raises_device_busy_when_flock_is_held(monkeypatch):
 
     monkeypatch.setattr(transport.os, "open", lambda _path, _flags: 42)
     monkeypatch.setattr(transport.os, "close", closed.append)
-    # Dotted-string target: `transport.fcntl` only exists off Windows, so a
-    # type checker running on Windows would flag the attribute access.
-    monkeypatch.setattr("minidsp.transport.fcntl.flock", refuse_lock)
+    monkeypatch.setattr(transport.fcntl, "flock", refuse_lock)
     t = HidrawTransport()
 
     with pytest.raises(DeviceBusyError, match="already in use"):
