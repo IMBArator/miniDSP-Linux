@@ -47,10 +47,6 @@ the Windows hidapi path against a stubbed `hid` module, so the suite behaves
 the same on Linux and Windows. The protocol tests assert the command builders
 byte for byte against frames from real captures.
 
-On Linux, `make check-ty` currently reports findings in the Windows-only code
-in `minidsp/transport.py` and `dspanalyze/capture.py`; they stay visible until
-they are fixed on Windows.
-
 ## Building
 
 ```bash

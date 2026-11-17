@@ -55,11 +55,6 @@ calling pytest, ruff or ty yourself: the Makefile is the one place that decides
 the flags and paths, so everybody runs the same thing. How to set it all up is
 in the [developer guide](docs/development.md).
 
-> **For now:** on Linux, `make check-ty` reports findings in the Windows-only
-> code (`minidsp/transport.py`, `dspanalyze/capture.py`). They will be fixed on
-> a Windows machine rather than silenced; until then, mention them in the
-> commit body.
-
 Some things belong in the same commit as your change:
 
 - **Tests.** When behaviour changes, the tests change with it. A regression
