@@ -7,6 +7,10 @@ but our docs tree doesn't mirror the source layout (analysis/ files are
 surfaced at the site root, not under analysis/). Map those rewritten
 paths to their rendered counterparts so MkDocs' link checker stops
 warning.
+
+The second hook drops api/SUMMARY.md from the build after
+mkdocs-literate-nav has consumed it (otherwise it would render as an
+orphan page and pollute the search index).
 """
 from __future__ import annotations
 
