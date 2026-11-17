@@ -20,6 +20,7 @@ add a line to the relevant table below.
 
 | ADR | Decision |
 |-----|----------|
+| [0000](0000-record-architecture-decisions-as-madr-files.md) | Record architectural decisions as MADR files |
 | [0001](0001-verify-every-protocol-claim-against-device-captures.md) | Verify every protocol claim against device captures before documenting or implementing it |
 | [0002](0002-speak-to-the-device-through-hidraw-without-a-usb-library.md) | Speak to the device through /dev/hidraw without a USB library |
 | [0003](0003-license-under-gpl-3-0.md) | License under GPL-3.0 with an interoperability notice |
