@@ -267,7 +267,9 @@ def test_hidraw_open_raises_device_busy_when_flock_is_held(monkeypatch):
 
     monkeypatch.setattr(transport.os, "open", lambda _path, _flags: 42)
     monkeypatch.setattr(transport.os, "close", closed.append)
-    monkeypatch.setattr(transport.fcntl, "flock", refuse_lock)
+    # Dotted-string target: `transport.fcntl` only exists off Windows, so a
+    # type checker running on Windows would flag the attribute access.
+    monkeypatch.setattr("minidsp.transport.fcntl.flock", refuse_lock)
     t = HidrawTransport()
 
     with pytest.raises(DeviceBusyError, match="already in use"):
