@@ -50,7 +50,8 @@ commits so every claim's evidence is in the repository. Fields that have not
 been swept end-to-end are marked TBD in `protocol_config.toml` (as the
 compressor fields initially were in `9dd5ac4`).
 
-The working convention (recorded in `CLAUDE.md`) is that protocol docs and
+The working convention (recorded in the agent working notes of the time,
+`CLAUDE.md`) is that protocol docs and
 protocol code are never changed without verified results and explicit
 confirmation.
 

@@ -61,7 +61,8 @@ divisor bug `babac86`) and were removed.
 
 `dspanalyze check` asserts decoding invariants over real captures; discovery
 commits touch `protocol_config.toml`, `protocol.py`, and `protocol.md`
-together (enforced by convention recorded in `CLAUDE.md`).
+together (enforced by a convention recorded in the agent working notes of
+the time, `CLAUDE.md`).
 
 ## More Information
 

@@ -24,8 +24,9 @@ capture sessions planned, the analysis process itself needed engineering.
 * Decoding knowledge should live in one place, not be re-embedded per script.
 * The workflow spans capture → decode → diff → assert; ad-hoc scripts cover
   one step each and compose poorly.
-* `CLAUDE.md` codifies the working rule: prefer committed tools over one-off
-  one-liners so runs are reproducible.
+* The agent working notes of the time (`CLAUDE.md`) codified the working
+  rule: prefer committed tools over one-off one-liners so runs are
+  reproducible.
 
 ## Considered Options
 

@@ -12,7 +12,8 @@ Written after the fact from the commit history; the decision was made in `3d7481
 
 With versioned releases starting at v1.0.0, the project needed release notes.
 The commit history was already disciplined (conventional-commit style since
-early on, codified in `CLAUDE.md`), so the changelog could in principle be
+early on, codified in the agent working notes of the time, `CLAUDE.md`), so
+the changelog could in principle be
 generated — but generated *how* matters: a naive full regeneration destroys
 any hand-written content, and raw conventional-commit categories are written
 for maintainers, not users.
