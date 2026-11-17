@@ -399,8 +399,11 @@ class HidapiTransport(Transport):
             DeviceBusyError: If the mutex already exists — another process is
                 talking to the device.
             OSError: If the mutex cannot be created at all, which is a
-                Win32 failure rather than a lock conflict.
+                Win32 failure rather than a lock conflict, or if called on a
+                platform other than Windows.
         """
+        if sys.platform != "win32":
+            raise OSError("The single-instance mutex is only available on Windows")
         import ctypes
 
         kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
@@ -418,7 +421,7 @@ class HidapiTransport(Transport):
 
     def _release_mutex(self) -> None:
         """Release and close the named mutex if it is held."""
-        if self._mutex is None:
+        if self._mutex is None or sys.platform != "win32":
             return
         import ctypes
 

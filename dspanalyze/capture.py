@@ -252,7 +252,9 @@ def is_windows_admin() -> bool | None:
     Returns:
         ``True``/``False`` on Windows, ``None`` elsewhere or if unknown.
     """
-    if platform.system() != "Windows":
+    # sys.platform (not platform.system()) so type checkers can narrow the
+    # Windows-only ctypes.windll access below.
+    if sys.platform != "win32":
         return None
     try:
         import ctypes
