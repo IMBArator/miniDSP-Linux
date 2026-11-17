@@ -319,6 +319,18 @@ def test_hidapi_acquire_mutex_raises_device_busy_when_mutex_exists(monkeypatch):
     assert t._mutex is None
 
 
+def test_hidapi_acquire_mutex_raises_off_windows():
+    """Off Windows the mutex guard raises a clear OSError, not ctypes' AttributeError."""
+    if sys.platform == "win32":
+        pytest.skip("tests the guard for platforms other than Windows")
+    t = HidapiTransport()
+
+    with pytest.raises(OSError, match="only available on Windows"):
+        t._acquire_mutex("/dev/hidraw0")
+
+    assert t._mutex is None
+
+
 # --- Response validation (ADR-0015) ----------------------------------------
 
 def test_set_gain_true_on_ack():
