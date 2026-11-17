@@ -130,7 +130,10 @@ Releases and publishing are done by the maintainer:
 
 1. `make version VERSION=X.Y.Z` sets the new version (in `pyproject.toml`,
    `uv.lock` and both packages), adds the changelog section, and commits and
-   tags the release. The script refuses to run on a dirty working tree, for an
+   tags the release. Before it commits, it shows the new changelog section
+   and offers to open it in your editor, so you can drop or reword entries
+   (for example ones for changes that never reached a release). The script
+   refuses to run on a dirty working tree, for an
    existing tag or for a version that already has a changelog section. It asks
    before tagging from a branch other than `main` or a version below the
    latest, and it pushes only after an explicit yes, never when it doesn't run
